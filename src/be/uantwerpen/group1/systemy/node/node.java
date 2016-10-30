@@ -1,4 +1,4 @@
-package be.uantwerpen.systemy.node;
+package be.uantwerpen.group1.systemy.node;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

@@ -1,4 +1,4 @@
-package be.uantwerpen.systemy.nameserver;
+package be.uantwerpen.group1.systemy.nameserver;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
