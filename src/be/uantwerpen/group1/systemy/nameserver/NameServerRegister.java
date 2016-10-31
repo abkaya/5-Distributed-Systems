@@ -18,7 +18,7 @@
  * 
  */
 
-package be.uantwerpen.systemy.nameserver;
+package be.uantwerpen.group1.systemy.nameserver;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
