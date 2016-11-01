@@ -121,7 +121,7 @@ public class NameServerRegister implements Serializable {
 			System.out.println("This node already exist");
 		} else {
 			register.put(nodeHash, hostIP);
-			System.out.println(hostName + " ( hashcode: " + nodeHash + "): " + hostIP + " is added to the register");
+			System.out.println(hostName + " (hashcode: " + nodeHash + "): " + hostIP + " is added to the register");
 		}
 		//saveRegister();
 	}

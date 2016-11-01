@@ -13,14 +13,15 @@ import be.uantwerpen.group1.systemy.networking.MulticastSender;
 public class Node
 {
 
-	public static void main(String args[])
+	public static void main(String args[]) throws RemoteException
 	{
 
 		NameServerInterface nsi = null;
 		String remoteNSName = "NameServerInterface";
 		String dnsIP = "192.168.1.103";
-		String myIP = "192.168.1.103";
+		String hostnameIP = "Node1,192.168.1.103";
 		int dnsPort = 1099;
+		int multicastPort = 2000;
 
 		/*
 		 * Assessing one's IP address can become tricky when multiple network
@@ -30,19 +31,14 @@ public class Node
 		 * 
 		 * String myIP = InetAddress.getLocalHost().getHostAddress();
 		 */
-		MulticastSender.send("234.0.113.0", 1337, myIP);
+		MulticastSender.send("234.0.113.0", multicastPort, hostnameIP);
 
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
 
-		try
-		{
-			// test to see whether our RMI class does its job properly. Spoiler alert: it does.
-			System.out.println(nsi.getIPAddress("filename"));
-		} catch (RemoteException e)
-		{
-			e.printStackTrace();
-		}
+		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
+		System.out.println("NameServerRegister > NameServer >< RMI > "+nsi.getIPAddress("filename"));
+
 	}
 
 }
