@@ -1,4 +1,4 @@
-/*
+/**
  * This class is the register of the NameServer.
  * It will keep track of the nodes, performs the hashing function, calculate the ownership of a file, ...
  * 
@@ -49,7 +49,7 @@ public class NameServerRegister implements Serializable {
 	private static TreeMap<Integer, String> register;
 	private String fileName = "NSRegister.ser";
 
-	/*
+	/**
 	 * Auto generated constructor
 	 * @param clear: if clear = 'true' clear previous register, if clear = 'false' continue with previous register
 	 */
@@ -69,7 +69,7 @@ public class NameServerRegister implements Serializable {
 		//}
 	}
 
-	/*
+	/**
 	 * This method loads the register from the hard drive
 	 */
 	@SuppressWarnings("unchecked")
@@ -86,7 +86,7 @@ public class NameServerRegister implements Serializable {
 		}
 	}
 
-	/*
+	/**
 	 * This method saves the register to the hard drive
 	 */
 	public void saveRegister() {
@@ -101,7 +101,7 @@ public class NameServerRegister implements Serializable {
 		}
 	}
 
-	/*
+	/**
 	 * Converts a string to hashcode (from 0 - 32768, see specifications)
 	 * @param name: the name where we need to calculate the hash from
 	 */
@@ -109,7 +109,7 @@ public class NameServerRegister implements Serializable {
 		return Math.abs((nameToConvert.hashCode()) % 32768);
 	}
 
-	/*
+	/**
 	 * This method adds a host as a node to the register
 	 * @param hostName: hostname of the new node
 	 * @param hostIP: IPAddress of the new node
@@ -126,7 +126,7 @@ public class NameServerRegister implements Serializable {
 		//saveRegister();
 	}
 
-	/*
+	/**
 	 * This method removes a node from the register based on his hash code
 	 * @param nodeHash: this is the hash of the node that's need to be removed
 	 */
@@ -140,7 +140,7 @@ public class NameServerRegister implements Serializable {
 		}
 	}
 
-	/*
+	/**
 	 * This method calculates the ownership of the files. 
 	 * @param fileName: the name of the file we want the IPAddress from where it is stored
 	 * @return nodeIP: this is string that will contains the IPAddress of the node containing the file
@@ -171,7 +171,7 @@ public class NameServerRegister implements Serializable {
 		}
 	}
 
-	/*
+	/**
 	 * This method is extra for now, maybe it comes in handy later
 	 * -------------------------------------------------------------
 	 * This method looks up the hostIP in the register based on the hash
@@ -190,7 +190,7 @@ public class NameServerRegister implements Serializable {
 		}
 	}
 
-	/*
+	/**
 	 * This method is extra for now, maybe it comes in handy later
 	 * -------------------------------------------------------------
 	 * This method will look up the hashvalue of a node giving by it's IPAddres
