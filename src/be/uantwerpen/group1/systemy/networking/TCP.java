@@ -13,6 +13,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * TCP class. A distinction between client and server is initially made 
@@ -75,7 +80,8 @@ public class TCP
 		try
 		{
 			this.clientSocket = new Socket(host, port);
-			System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :" + clientSocket.getLocalPort());
+			System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :" + clientSocket
+					.getLocalPort());
 			System.out.println("- Socket connection established with server : " + host + ", port : " + port);
 		} catch (IOException e)
 		{
@@ -151,6 +157,76 @@ public class TCP
 	}
 
 	/**
+	 * plain receive tcp text stream method. 
+	 * 
+	 * You do not have to know who you're receiving data from, but your sender
+	 * will have to know. We're using this method on a particular port for
+	 * nodes or servers to respond with their unknown IP address.
+	 *
+	 * If you're trying to receive the DNS its IP address on the node client,
+	 * you'll have to use this method with the SERVER constructor, otherwise it will NOT
+	 * work.
+	 * 
+	 * @return
+	 */
+	public String receiveText()
+	{
+
+		String text = null;
+		try
+		{
+
+			Socket clientSocket = this.serverSocket.accept();
+			while (true)
+			{
+				try
+				{
+					InputStream is = clientSocket.getInputStream();
+					InputStreamReader isr = new InputStreamReader(is);
+					BufferedReader br = new BufferedReader(isr);
+					text = br.readLine();
+					System.out.println("DEBUG 1  ");
+				} catch (NumberFormatException | IOException nfe)
+				{
+					System.err.println("TCP/receiveText exception - Could not receive txt");
+				}
+				System.out.println("- Client responded with Text : " + text);
+				close(clientSocket);
+				return text;
+			}
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			close(clientSocket);
+			return text;
+		}
+
+	}
+
+	/**
+	 * Plain txp send text stream method. This public method will have to be
+	 * used with the CLIENT constructor. It is necessary to know the recipient.
+	 * 
+	 * @param textToSend
+	 */
+	public void sendText(String textToSend)
+	{
+		try
+		{
+			OutputStream os = this.clientSocket.getOutputStream();
+			OutputStreamWriter osw = new OutputStreamWriter(os);
+			BufferedWriter bw = new BufferedWriter(osw);
+			bw.write(textToSend);
+			System.out.println("Sending text : " + textToSend);
+			bw.flush();
+			close(clientSocket);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
 	 * Server method : This send the file size back to the client.
 	 * 
 	 * @param clientSocket
@@ -162,7 +238,7 @@ public class TCP
 		try
 		{
 			sizeToSend = Long.toString(fileToSend.length()) + "\n";
-			//sizeToSend = "0\n";
+			// sizeToSend = "0\n";
 			OutputStream os = clientSocket.getOutputStream();
 			OutputStreamWriter osw = new OutputStreamWriter(os);
 			BufferedWriter bw = new BufferedWriter(osw);
@@ -242,7 +318,7 @@ public class TCP
 	 */
 	private int receiveFileSize()
 	{
-		int fileSize=0;
+		int fileSize = 0;
 		try
 		{
 			InputStream is = this.clientSocket.getInputStream();
@@ -310,15 +386,14 @@ public class TCP
 				{
 					current += bytesRead;
 
-		 			// print progress every 10%. // using print and \r is nice in a system console, but fills the // eclipse console
+					// print progress every 10%. // using print and \r is nice in a system console, but fills the // eclipse console
 					progress = ((int) Math.floor((100 * current) / fileSize));
 					if (progress % 10 == 0 && prevProgress != progress)
 					{
 						prevProgress = progress;
 						System.out.println("- Progress: " + progress + "%");
 					}
-				
-					
+
 					try
 					{
 						bufferedOutputStream.write(byteArray, 0, bytesRead);

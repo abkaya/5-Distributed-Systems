@@ -19,11 +19,18 @@ public class Node
 
 		NameServerInterface nsi = null;
 		String remoteNSName = "NameServerInterface";
-		String dnsIP = "192.168.1.103";
+		/* this is our IP, we now assume not to have the DNS IP, which we'll receive after retransmission
+		 * by the DNS server over a TCP socket.
+		*/
+		String host = "192.168.1.103";
+		String dnsIP = null;
 		String hostnameIP = "Node1,192.168.1.103";
+		
+		/*Don't mind the awful port names. It's just to get everyone acquainted with them*/
 		int dnsPort = 1099;
 		int multicastPort = 2000;
 		int tcpFileTranferPort = 2001;
+		int tcpDNSRetransmissionPort = 2002;
 		String requestedFile = "HQImage.jpg";
 
 		/*
@@ -35,6 +42,14 @@ public class Node
 		 */
 		MulticastSender.send("234.0.113.0", multicastPort, hostnameIP);
 
+		/*
+		 * Now we imagine we don't have a clue what the DNS IP is, and hope for TCP retransmission
+		 * to get ahold of the DNS server's IP. We'll await for the DNS server to get back at us
+		 * and continue with RMI once we get it.
+		*/
+		TCP dnsIPReceiver = new TCP(host, tcpDNSRetransmissionPort);
+		dnsIP = dnsIPReceiver.receiveText();
+		
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
 
@@ -43,7 +58,7 @@ public class Node
 				+ nsi.getIPAddress(requestedFile));
 
 		//Temporarily using the same node as if it were some other node hosting files
-		String host = "192.168.1.103";
+		
 		TCP fileServer = new TCP(host, tcpFileTranferPort);
 		new Thread(() ->
 		{
