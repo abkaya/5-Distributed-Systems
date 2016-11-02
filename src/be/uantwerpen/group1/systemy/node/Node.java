@@ -19,12 +19,12 @@ public class Node
 
 		NameServerInterface nsi = null;
 		String remoteNSName = "NameServerInterface";
-		String dnsIP = "192.168.1.101";
-		String hostnameIP = "Node1,192.168.1.101";
+		String dnsIP = "192.168.1.103";
+		String hostnameIP = "Node1,192.168.1.103";
 		int dnsPort = 1099;
 		int multicastPort = 2000;
 		int tcpFileTranferPort = 2001;
-		String requestedFile = "HQImage";
+		String requestedFile = "HQImage.jpg";
 
 		/*
 		 * Assessing one's IP address can become tricky when multiple network interfaces are involved. For instance, I'm getting the APIPA
@@ -43,7 +43,7 @@ public class Node
 				+ nsi.getIPAddress(requestedFile));
 
 		//Temporarily using the same node as if it were some other node hosting files
-		String host = "192.168.1.101";
+		String host = "192.168.1.103";
 		TCP fileServer = new TCP(host, tcpFileTranferPort);
 		new Thread(() ->
 		{

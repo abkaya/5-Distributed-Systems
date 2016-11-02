@@ -162,7 +162,7 @@ public class TCP
 		try
 		{
 			sizeToSend = Long.toString(fileToSend.length()) + "\n";
-			sizeToSend = "0\n";
+			//sizeToSend = "0\n";
 			OutputStream os = clientSocket.getOutputStream();
 			OutputStreamWriter osw = new OutputStreamWriter(os);
 			BufferedWriter bw = new BufferedWriter(osw);
@@ -220,7 +220,7 @@ public class TCP
 	{
 		try
 		{
-			OutputStream os = clientSocket.getOutputStream();
+			OutputStream os = this.clientSocket.getOutputStream();
 			OutputStreamWriter osw = new OutputStreamWriter(os);
 			BufferedWriter bw = new BufferedWriter(osw);
 			String sendMessage = fileName + "\n";
@@ -253,8 +253,7 @@ public class TCP
 				fileSize = Integer.parseInt(br.readLine());
 			} catch (NumberFormatException nfe)
 			{
-				System.out.println("- Serverdrgrdhdrh responded with filesize : " + fileSize);
-				
+				System.err.println("Could not receive the file size");
 			}
 			System.out.println("- Server responded with filesize : " + fileSize);
 			return fileSize;
@@ -285,7 +284,7 @@ public class TCP
 
 		if (sendFileName(fileName))
 		{
-			//fileSize = receiveFileSize();
+			fileSize = receiveFileSize();
 			try
 			{
 
@@ -296,7 +295,7 @@ public class TCP
 				// reading file from socket
 				try
 				{
-					inputStream = clientSocket.getInputStream();
+					inputStream = this.clientSocket.getInputStream();
 				} catch (SocketException se)
 				{
 					se.printStackTrace();
@@ -311,10 +310,6 @@ public class TCP
 				{
 					current += bytesRead;
 
-					/* JAVA IS PASS BY VALUE DAMNIT!!
-					 * It's getting late. I'll fix this later - abdil
-					 * 
-					 * 
 		 			// print progress every 10%. // using print and \r is nice in a system console, but fills the // eclipse console
 					progress = ((int) Math.floor((100 * current) / fileSize));
 					if (progress % 10 == 0 && prevProgress != progress)
@@ -322,7 +317,7 @@ public class TCP
 						prevProgress = progress;
 						System.out.println("- Progress: " + progress + "%");
 					}
-					*/
+				
 					
 					try
 					{
@@ -337,7 +332,7 @@ public class TCP
 				bufferedOutputStream.flush();
 				bufferedOutputStream.close();
 				inputStream.close();
-				clientSocket.close();
+				this.clientSocket.close();
 				System.out.println("*-Requested file is downloaded");
 
 			} catch (IOException e)

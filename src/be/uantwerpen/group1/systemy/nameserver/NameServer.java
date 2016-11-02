@@ -13,7 +13,7 @@ public class NameServer implements NameServerInterface
 		String[] hostnameIP;
 
 		NameServerInterface nsi = new NameServer();
-		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>("192.168.1.101", "NameServerInterface", nsi);
+		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>("192.168.1.103", "NameServerInterface", nsi);
 		
 		
 		MulticastListener multicastListener = new MulticastListener("234.0.113.0", multicastPort);
