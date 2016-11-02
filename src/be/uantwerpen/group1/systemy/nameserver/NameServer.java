@@ -18,6 +18,11 @@ public class NameServer implements NameServerInterface
 		NameServerInterface nsi = new NameServer();
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>(nameServerIP, "NameServerInterface", nsi);
 		
+		
+		/*
+		 * New nodes will apply to join the multicast group, be added to the DNS registry,
+		 * and will receive the DNS IP through TCP retransmission
+		 */
 		MulticastListener multicastListener = new MulticastListener("234.0.113.0", multicastPort);
 		new Thread(() ->
 		{
