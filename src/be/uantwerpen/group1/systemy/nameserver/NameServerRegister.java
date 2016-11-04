@@ -118,7 +118,7 @@ public class NameServerRegister implements Serializable {
 		//loadRegister();
 		int nodeHash = hashing(hostName);
 		if (register.containsKey(nodeHash)) {
-			System.out.println("This node already exist");
+			System.out.println("NamseServerRegister/addNode >> This node already exist");
 		} else {
 			register.put(nodeHash, hostIP);
 			System.out.println(hostName + " (hashcode: " + nodeHash + "): " + hostIP + " is added to the register");
@@ -169,6 +169,43 @@ public class NameServerRegister implements Serializable {
 			//else get node with hash closest to filehash
 			return temp.get(temp.lastKey());
 		}
+	}
+	
+	/**
+	 * This method will calculate the hash value of the next node based on his own
+	 * hash value
+	 * @param nodeHash: This is de hash value of the current node
+	 * @return: this is the hash value of the next node (calculated with the parameter nodeHash)
+	 */
+	public String getNextNode(int nodeHash) {
+
+		int tempKey = 0;
+		//loadRegister();
+		//if there are no nodes in the network
+		if (register.size() == 0) {
+			System.out.println("getNextNode >> There are no nodes in the network");
+			return null;
+			// if there is one node in the network point to himself
+		} else if (register.size() == 1) {
+			System.out.println("getNextNode >> This node is the only one in the network");
+			return String.valueOf(nodeHash);
+			// if node is the last node in the network, point to the first one
+		} else if (register.lastKey() == nodeHash) {
+			System.out.println("getNextNode >> This is the nextNode " + register.firstKey() + " ("
+					+ register.get(register.firstKey()) + ")");
+			return String.valueOf(register.firstKey());
+		} else {
+			loop: for (Entry<Integer, String> entry : register.entrySet()) {
+				if (entry.getKey() > nodeHash) {
+					tempKey = entry.getKey();
+					break loop;
+				}
+			}
+
+			System.out.println("getNextNode >> This is the nextNode " + tempKey + " (" + register.get(tempKey) + ")");
+			return String.valueOf(tempKey);
+		}
+
 	}
 
 	/**
