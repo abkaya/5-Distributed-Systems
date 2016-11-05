@@ -77,7 +77,7 @@ public class TCP
 	 */
 	public TCP(int port, String host)
 	{
-		try
+		try	
 		{
 			this.clientSocket = new Socket(host, port);
 			System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :" + clientSocket

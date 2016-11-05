@@ -54,7 +54,7 @@ public class NameServerRegister implements Serializable {
 	 * @param clear: if clear = 'true' clear previous register, if clear = 'false' continue with previous register
 	 */
 	public NameServerRegister(boolean clear) {
-		// TODO Auto-generated constructor stub
+		// TODO Auto-generated 	constructor stub
 
 		// The integer value is the hash calculated and the String is the IPAddres of the host/node
 		register = new TreeMap<Integer, String>();
@@ -212,5 +212,14 @@ public class NameServerRegister implements Serializable {
 			System.out.println(nodeHash + ": " + nodeIP);
 			return nodeHash;
 		}
+	}
+	
+	/**
+	 * Get amount of entries in register
+	 * -------------------------------------------------------------
+	 * @return int: amount of entries
+	 */
+	public int getSize() {
+		return register.size();
 	}
 }
