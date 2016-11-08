@@ -30,7 +30,6 @@ import java.io.Serializable;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-
 public class NameServerRegister implements Serializable {
 
 	/*
@@ -62,12 +61,12 @@ public class NameServerRegister implements Serializable {
 		register = new TreeMap<String, String>();
 
 		//if (clear) {
-			//loadRegister();
-			//register.clear();
-			//saveRegister();
-			//System.out.println("Registered cleared and loaded");
+		//loadRegister();
+		//register.clear();
+		//saveRegister();
+		//System.out.println("Registered cleared and loaded");
 		//} else {
-			System.out.println("NameServerRegister >> Register loaded");
+		System.out.println("NameServerRegister >> Register loaded");
 		//}
 	}
 
@@ -102,7 +101,7 @@ public class NameServerRegister implements Serializable {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * This method returns the size of the register
 	 * @return: the size of the register is returned as an intiger
@@ -116,7 +115,7 @@ public class NameServerRegister implements Serializable {
 	 * @param name: the name where we need to calculate the hash from
 	 */
 	public int hashing(String nameToConvert) {
-		return Math.abs((nameToConvert.hashCode()) % 32768);
+		return (Math.abs((nameToConvert.hashCode())) % 32768);
 	}
 
 	/**
@@ -131,7 +130,8 @@ public class NameServerRegister implements Serializable {
 			System.out.println("addNode >> This node already exist");
 		} else {
 			register.put(nodeHash, hostIP);
-			System.out.println("addNode >> " + hostName + " (hashcode: " + nodeHash + "): " + hostIP + " is added to the register");
+			System.out.println("addNode >> " + hostName + " (hashcode: " + nodeHash + "): " + hostIP
+					+ " is added to the register");
 		}
 		//saveRegister();
 	}
@@ -140,12 +140,11 @@ public class NameServerRegister implements Serializable {
 	 * This method removes a node from the register based on his hash code
 	 * @param nodeName: this is the name of the node that's need to be removed
 	 */
-	public void removeNodeFromRegister(String nodeName) {
+	public void removeNodeFromRegister(int nodeHash) {
 		//loadRegister();
-		String nodeHash = String.valueOf(hashing(nodeName));
 		if (register.containsKey(nodeHash)) {
 			register.remove(nodeHash);
-			System.out.println("removeNodeFromRegister >> " + nodeName + " (" + nodeHash + "): " + " is removed from the register");
+			System.out.println("removeNodeFromRegister >> " + nodeHash + " is removed from the register");
 		} else {
 			System.out.println("removeNodeFromRegister >> This node doesn't exist in the network");
 		}
@@ -175,28 +174,29 @@ public class NameServerRegister implements Serializable {
 		}
 		// if the temp Treemap is empty take the node with biggest hash
 		if (temp.size() == 0) {
-			System.out.println("getFileLocation >> " + register.get(register.lastKey() + " (" + register.lastKey() + " ): is the owner of this file"));
+			System.out.println("getFileLocation >> "
+					+ register.get(register.lastKey() + " (" + register.lastKey() + " ): is the owner of this file"));
 			return register.get(register.lastKey());
 		} else {
 			//else get node with hash closest to filehash
-			System.out.println("getFileLocation >> " + temp.get(temp.lastKey() + " (" + temp.lastKey() + " ): is the owner of this file"));
+			System.out.println("getFileLocation >> "
+					+ temp.get(temp.lastKey() + " (" + temp.lastKey() + " ): is the owner of this file"));
 			return temp.get(temp.lastKey());
 		}
 	}
-	
+
 	/**
 	 * This method will calculate the hash value of the next node based on his own
 	 * hash value
 	 * @param nodeName: this is the name of the current node
 	 * @return: this is the hash value of the next node (calculated with the parameter nodeHash)
 	 */
-	public String getNextNode(String nodeName) {
+	public String getNextNode(int nodeHash) {
 
-		int nodeHash = hashing(nodeName);
 		int tempKey = 0;
-		
+
 		//loadRegister();
-		
+
 		//if there are no nodes in the network return null
 		if (register.size() == 0) {
 			System.out.println("getNextNode >> There are no nodes in the network");
@@ -223,7 +223,43 @@ public class NameServerRegister implements Serializable {
 			return String.valueOf(tempKey);
 		}
 
-	}	
+	}
+
+	/**
+	 * This method will calculate the hash value of the previous node based on his own
+	 * hash value
+	 * @param nodeName: this is the name of the current node
+	 * @return: this is the hash value of the previous node (calculated with the parameter nodeHash)
+	 */
+	public String getPreviousNode(int nodeHash) {
+
+		int tempKey = 0;
+
+		//loadRegister();
+
+		if (register.size() == 0) {
+			System.out.println("getPreviousNode >> There are no nodes in the network");
+			return null;
+		} else if (register.size() == 1) {
+			System.out.println("getPreviousNode >> This node is the only node in the network");
+			return String.valueOf(nodeHash);
+		} else if (Integer.parseInt(register.lastKey()) == nodeHash) {
+			System.out.println("getPreviousNode >> This is the nextNode " + register.firstKey() + " ("
+					+ register.get(register.firstKey()) + ")");
+			return String.valueOf(register.firstKey());
+		} else {
+			loop: for (Entry<String, String> entry : register.entrySet()) {
+				if (Integer.parseInt(entry.getKey()) > nodeHash) {
+					tempKey = Integer.parseInt(entry.getKey());
+					break loop;
+				}
+			}
+			System.out
+					.println("getPreviousNode >> This is the previousNode " + tempKey + " (" + register.get(tempKey) + ")");
+			return String.valueOf(tempKey);
+		}
+
+	}
 
 	/**
 	 * This method is extra for now, maybe it comes in handy later
@@ -236,7 +272,7 @@ public class NameServerRegister implements Serializable {
 		//loadRegister();
 		if (register.containsKey(String.valueOf(nodeHash))) {
 			String nodeIP = register.get(nodeHash);
-			System.out.println("getNodeIPFromHash >> The hash: " +nodeHash + " correspond with ip address: " + nodeIP);
+			System.out.println("getNodeIPFromHash >> The hash: " + nodeHash + " correspond with ip address: " + nodeIP);
 			return nodeIP;
 		} else {
 			System.out.println("getNodeIPFromHash >> The hash doesn't exist in the register");
@@ -263,7 +299,8 @@ public class NameServerRegister implements Serializable {
 			System.out.println("getHashFromNodeIP >> The ip address doesn't exist in the register");
 			return nodeHash;
 		} else {
-			System.out.println("getHashFromNodeIP >> The ip address: " + nodeIP + " corresponds with hash: " + nodeHash);
+			System.out
+					.println("getHashFromNodeIP >> The ip address: " + nodeIP + " corresponds with hash: " + nodeHash);
 			return nodeHash;
 		}
 	}
