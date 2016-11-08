@@ -1,5 +1,10 @@
 package be.uantwerpen.group1.systemy.node;
 
+/**
+ * abstract data type for storing node info
+ * 
+ * @author Robin Janssens
+ */
 public class NodeInfo {
 
 	private String name;
@@ -7,7 +12,7 @@ public class NodeInfo {
 	private String ip;
 	
 	/**
-	 * abstract data type for storing node info
+	 * constructor
 	 * 
 	 * @param nodeName
 	 * @param nodeHash
@@ -18,6 +23,15 @@ public class NodeInfo {
 		this.setHash(nodeHash);
 		this.setIP(nodeIP);
 	}
+	
+	/**
+	 * empty object Constructor
+	 */
+	public NodeInfo() {
+		this.setName(null);
+		this.setHash(0);
+		this.setIP(null);
+	}
 
 	// -----
 	// GET
@@ -27,6 +41,9 @@ public class NodeInfo {
 	}
 	public int getHash() {
 		return hash;
+	}
+	public int getPort() {
+		return 3000 + ( hash % 999 );
 	}
 	public String getIP() {
 		return ip;
@@ -52,6 +69,10 @@ public class NodeInfo {
 	 */
 	public String toString() {
 		return name + " (" + hash + ")";
+	}
+	
+	public String toData() {
+		return name + "," + hash + "," + ip;
 	}
 	
 	

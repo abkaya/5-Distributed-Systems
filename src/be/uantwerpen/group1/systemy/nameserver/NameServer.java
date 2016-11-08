@@ -21,7 +21,7 @@ public class NameServer implements NameServerInterface
 		String nameServerIP =  InetAddress.getLocalHost().getHostAddress();
 		int receiveMulticastPort = 2000;
 		int sendMulticastPort = 2001;
-		//int tcpDNSRetransmissionPort = 2003;
+		int tcpDNSRetransmissionPort = 2003;
 		
 
 		NameServerInterface nsi = new NameServer();
@@ -42,16 +42,17 @@ public class NameServer implements NameServerInterface
 			System.out.println("Received multicast message: " + multicastMessage);
 			hostnameIP = multicastMessage.split(",");
 			String hostName = hostnameIP[0];
-			String hostIP = hostnameIP[1];
+			String hostIP = hostnameIP[2];
 			System.out.println("Received hostname " + hostName + ", IP : " + hostIP);
 			nsr.addNode(hostName, hostIP);
 			/*After having received the IP address of a new node, we need to send it a reply,
 			 * letting it know what our DNS server IP is. He got to us, but it doesn't know
 			 * our IP yet. That what this retransmission is about.
 			 */
-			//TCP dnsIPRetransmission = new TCP(tcpDNSRetransmissionPort, hostnameIP[1]);
-			//dnsIPRetransmission.sendText(nameServerIP);
-			multicastMessage = nameServerIP + "," + hostName + "," + nsr.hashing(hostName) + "," + hostIP + "," + nsr.getSize();
+			TCP dnsIPRetransmission = new TCP(tcpDNSRetransmissionPort, hostnameIP[1]);
+			dnsIPRetransmission.sendText(nameServerIP);
+			// Multicast data about new node
+			multicastMessage = hostName + "," + nsr.hashing(hostName) + "," + hostIP + "," + nsr.getSize();
 			MulticastSender.send("234.0.113.0", sendMulticastPort, multicastMessage);
 		}
 		}).start();
@@ -59,21 +60,13 @@ public class NameServer implements NameServerInterface
 	}
 
 	@Override
-	public String getIPAddress(String fileName)
-	{
+	public String getIPAddress(String fileName) {
 		return nsr.getFileLocation(fileName);
 	}
 	
 	@Override
-	public String getNextNode()
-	{
-		return "next node IP";
-	}
-	
-	@Override
-	public String getPreviousNode()
-	{
-		return "previous node IP";
+	public void removeNode(int hash) {
+		nsr.removeNodeFromRegister(hash);
 	}
 
 }

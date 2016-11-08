@@ -8,6 +8,8 @@ import java.net.MulticastSocket;
 /**
  * MulticastSender class
  * Class for sending multicast messages
+ * 
+ * @author Robin Janssens
  */
 public class MulticastSender {
 	
@@ -27,7 +29,8 @@ public class MulticastSender {
 			DatagramPacket messageOut = new DatagramPacket(m, m.length, group, port);
 			s.send(messageOut);
 		} catch (IOException e) {
-			System.out.println("IO: " + e.getMessage());
+			System.out.println("MulticastSender >> " + e.getMessage());
+			System.exit(-1);
 		} finally {
 			if(s != null)
 				s.close(); 

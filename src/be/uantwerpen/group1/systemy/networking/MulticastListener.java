@@ -8,6 +8,8 @@ import java.net.MulticastSocket;
 /**
  * MulticastListener class
  * Class for listening to multicast messages
+ * 
+ * @author Robin Janssens
  */
 public class MulticastListener {
 
@@ -25,7 +27,8 @@ public class MulticastListener {
 			s = new MulticastSocket(port);
 			s.joinGroup(group);
 		} catch (IOException e) {
-			System.out.println("IO: " + e.getMessage());
+			System.out.println("MulticastSender >> " + e.getMessage());
+			System.exit(-1);
 		}
 	}
 	

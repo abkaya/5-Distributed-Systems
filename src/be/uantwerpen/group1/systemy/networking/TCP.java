@@ -61,10 +61,10 @@ public class TCP
 		try
 		{
 			this.serverSocket = new ServerSocket(port, 0, InetAddress.getByName(host));
-			System.out.println("- Opened server socket on IP: " + serverSocket.getInetAddress() + ", port (local) :" + port);
+			System.out.println("- Opened server socket on IP: " + serverSocket.getInetAddress().getHostAddress() + ", port (local) :" + port);
 		} catch (IOException e1)
 		{
-			System.err.println("Could not start the Server Socket on " + host + ":" + port);
+			e1.printStackTrace();
 		}
 	}
 
@@ -80,7 +80,7 @@ public class TCP
 		try	
 		{
 			this.clientSocket = new Socket(host, port);
-			System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :" + clientSocket
+			System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress().getHostAddress() + ", port :" + clientSocket
 					.getLocalPort());
 			System.out.println("- Socket connection established with server : " + host + ", port : " + port);
 		} catch (IOException e)
