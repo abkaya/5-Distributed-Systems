@@ -18,15 +18,17 @@ public class MulticastListener {
 	/**
 	 * create a multicast socket
 	 * 
-	 * @param IP: needs to be a multicast adress e.g. 234.0.113.0
+	 * @param IP: needs to be a multicast address e.g. 234.0.113.0
 	 * @param port 
 	 */
 	public MulticastListener(String IP, int port) {
 		try {
 			InetAddress group = InetAddress.getByName(IP);	
 			s = new MulticastSocket(port);
+			System.out.println(IP + ":" + port);
 			s.joinGroup(group);
 		} catch (IOException e) {
+			e.printStackTrace();
 			System.out.println("MulticastSender >> " + e.getMessage());
 			System.exit(-1);
 		}

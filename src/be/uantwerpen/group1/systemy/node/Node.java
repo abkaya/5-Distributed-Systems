@@ -18,6 +18,8 @@ public class Node
 	static NodeInfo me = null;
 	static NodeInfo nextNode = null;
 	static NodeInfo previousNode = null;
+	static NameServerInterface nsi = null;
+	
 	
 	/**
 	 * @param args: first argument is the nodeName
@@ -26,8 +28,6 @@ public class Node
 	 */
 	public static void main(String args[]) throws RemoteException, UnknownHostException
 	{
-
-		NameServerInterface nsi = null;
 		String remoteNSName = "NameServerInterface";
 		/* this is our IP, we now assume not to have the DNS IP, which we'll receive after retransmission
 		 * by the DNS server over a TCP socket.
@@ -66,6 +66,9 @@ public class Node
 		int tcpDNSRetransmissionPort = 2003;
 		String requestedFile = "HQImage.jpg";
 
+		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
+		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
+		
 		String multicastMessage = me.toData();
 		MulticastSender.send("234.0.113.0", sendMulticastPort, multicastMessage);
 
@@ -144,14 +147,12 @@ public class Node
 			neighborSender.sendText("next," + nextNode.toData());
 			neighborSender = new TCP(nextNode.getPort(), nextNode.getIP());
 			neighborSender.sendText("next," + previousNode.toData());
-			/*try {
-				RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-				NameServerInterface nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
+			try {
 				nsi.removeNode(me.getHash());
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}*/
+			}
 			System.out.println("shutdown procedure ended");
 		}) );
 		
@@ -164,8 +165,6 @@ public class Node
 		dnsIP = dnsIPReceiver.receiveText();
 		System.out.println("NameServer is on IP: " + dnsIP);
 		
-		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
 		
 		
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.

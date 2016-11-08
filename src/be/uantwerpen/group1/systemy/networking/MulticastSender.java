@@ -16,7 +16,7 @@ public class MulticastSender {
 	/**
 	 * send a multicast message
 	 * 
-	 * @param IP: needs to be a multicast adress e.g. 234.0.113.0
+	 * @param IP: needs to be a multicast address e.g. 234.0.113.0
 	 * @param port 
 	 * @param message
 	 */
