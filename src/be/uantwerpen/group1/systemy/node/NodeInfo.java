@@ -63,6 +63,90 @@ public class NodeInfo {
 	}
 	
 	/**
+	 * function to check if this node is a new next node
+	 * 
+	 * @param me: own NodeInfo
+	 * @param next: next node NodeInfo
+	 * @return boolean: true if this is a new next node
+	 */
+	public boolean isNewNext(NodeInfo me, NodeInfo next) {
+		if (me == null) {
+			// own hash not known
+			System.err.println("NodeInfo >> own hash not known");
+			return false;
+		} else if (next == null) {
+			// no next node known yet -> make this one next
+			return true;
+		} else {
+			// we need to look in to this
+			if (next.getHash() > me.getHash()) {
+				// next is bigger than me
+				if (me.getHash() < this.getHash() && this.getHash() < next.getHash()) {
+					// if between
+					return true;
+				} else {
+					// not relevant
+					return false;
+				}
+			} else if (next.getHash() < me.getHash()) {
+				// next is smaller than me
+				if (me.getHash() < this.getHash() || this.getHash() < next.getHash()) {
+					// only one bigger then me OR smaller than next
+					return true;
+				} else {
+					// not relevant
+					return false;
+				}
+			} else {
+				// next == me
+				return false;
+			}
+		}
+	}
+	
+	/**
+	 * function to check if this node is a new previous node
+	 * 
+	 * @param me: own NodeInfo
+	 * @param previous: previous node NodeInfo
+	 * @return boolean: true if this is a new previous node
+	 */
+	public boolean isNewPrevious(NodeInfo me, NodeInfo previous) {
+		if (me == null) {
+			// own hash not known
+			System.err.println("NodeInfo >> own hash not known");
+			return false;
+		} else if (previous == null) {
+			// no previous node known yet -> make this one previous
+			return true;
+		} else {
+			// we need to look in to this
+			if (previous.getHash() < me.getHash()) {
+				// previous is smaller than me
+				if (previous.getHash() < this.getHash() && this.getHash() < me.getHash()) {
+					// if between
+					return true;
+				} else {
+					// not relevant
+					return false;
+				}
+			} else if (me.getHash() < previous.getHash()) {
+				// previous is bigger than me
+				if (this.getHash() < me.getHash()  || previous.getHash() < this.getHash()) {
+					// only one smaller then me OR bigger than previous
+					return true;
+				} else {
+					// not relevant
+					return false;
+				}
+			} else {
+				// next == me
+				return false;
+			}
+		}
+	}
+	
+	/**
 	 * pretty output
 	 * 
 	 * @return String: formatted output

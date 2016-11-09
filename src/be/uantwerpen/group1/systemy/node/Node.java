@@ -88,18 +88,18 @@ public class Node
 					previousNode = newNode;
 					me.setHash(newNode.getHash());
 					System.out.println("setting myself as next and previous node");
-				} else if (nextNode.getHash() == me.getHash()) {
+				} else if ( nextNode.getHash() == me.getHash() ) {
 					// pointing to myself -> point in both ways to 2de known node
 					nextNode = newNode;
 					previousNode = newNode;
 					System.out.println("setting 2de as next and previous node");
-				} else if ( newNode.getHash() < nextNode.getHash() && newNode.getHash() > me.getHash() || newNode.getHash() < nextNode.getHash() && nextNode.getHash() < me.getHash() || nextNode.getHash() < me.getHash() && newNode.getHash() >= me.getHash() ) {
+				} else if ( newNode.isNewNext(me,nextNode) ) {
 					// New next node
 					nextNode = newNode;
 					System.out.println("New next node! " + nextNode.toString());
 					TCP neighborSender = new TCP(nextNode.getPort(), nextNode.getIP());
 					neighborSender.sendText("previous," + me.toData());
-				} else if ( newNode.getHash() > previousNode.getHash() && newNode.getHash() < me.getHash() || newNode.getHash() > previousNode.getHash() && previousNode.getHash() > me.getHash() || previousNode.getHash() > me.getHash() && newNode.getHash() <= me.getHash() ) {
+				} else if ( newNode.isNewPrevious(me,previousNode) ) {
 					// New previous node
 					previousNode = newNode;
 					System.out.println("New previous node! " + previousNode.toString());
