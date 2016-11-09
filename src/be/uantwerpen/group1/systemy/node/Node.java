@@ -18,6 +18,7 @@ public class Node
 	static NodeInfo nextNode = null;
 	static NodeInfo previousNode = null;
 	static NameServerInterface nsi = null;
+	static String dnsIP = null;
 	
 	/**
 	 * @param args: first argument is the nodeName
@@ -42,7 +43,7 @@ public class Node
 		
 		me = new NodeInfo();
 		me.setIP(InetAddress.getLocalHost().getHostAddress());
-		String dnsIP = null;
+		
 		
 		if (args.length != 0) {
 			// if nodeName is provided
@@ -56,23 +57,96 @@ public class Node
 		}
 		System.out.println("node '" + me.getName() + "' is on " + me.getIP());
 		
-		/*Don't mind the awful port names. It's just to get everyone acquainted with them*/
+		// define some important stuff
 		int dnsPort = 1099;
-		int sendMulticastPort = 2000;
-		int receiveMulticastPort = 2001;
+//		int sendMulticastPort = 2000;
+//		int receiveMulticastPort = 2001;
 		int tcpFileTranferPort = 2002;
-		int tcpDNSRetransmissionPort = 2003;
+//		int tcpDNSRetransmissionPort = 2003;
 		String requestedFile = "HQImage.jpg";
 
+		// init RMI
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
 		
-		String multicastMessage = me.toData();
-		MulticastSender.send("234.0.113.0", sendMulticastPort, multicastMessage);
 
+		initShutdownHook();
+		discover();
+		listenToNewNodes();
+		listenToNeighborRequests();
+
+		
+		
+		
+		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
+		System.out.println("DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n " + "DNS Server RMI tree map return : "
+				+ nsi.getIPAddress(requestedFile));
+
+		//Temporarily using the same node as if it were some other node hosting files
+		
+		TCP fileServer = new TCP(me.getIP(), tcpFileTranferPort);
+		new Thread(() ->
+		{
+				
+			fileServer.listenToSendFile();
+		}).start();
+		
+		
+		//request the file from the server hosting it, according to the dns server
+		TCP fileClient = new TCP(tcpFileTranferPort, nsi.getIPAddress(requestedFile));
+		fileClient.receiveFile(requestedFile);
+		//As simple as that!
+		
+	}
+	
+	
+	
+	
+	
+	/**
+	 * Method creates and starts the shutdown hook to notify neighbors and the nameserver
+	 */
+	private static void initShutdownHook() {
+		Runtime.getRuntime().addShutdownHook( new Thread(() -> {
+			System.out.println("shutdown procedure started");
+			TCP neighborSender = new TCP(previousNode.getPort(), previousNode.getIP());
+			neighborSender.sendText("next," + nextNode.toData());
+			neighborSender = new TCP(nextNode.getPort(), nextNode.getIP());
+			neighborSender.sendText("next," + previousNode.toData());
+			try {
+				nsi.removeNode(me.getHash());
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("shutdown procedure ended");
+		}) );
+	}
+	
+	/**
+	 * Send discover request with node data to nameserver
+	 */
+	private static void discover() {
+		// Request
+		int sendMulticastPort = 2000;
+		String Message = me.toData();
+		MulticastSender.send("234.0.113.0", sendMulticastPort, Message);
+		// Response
+		int tcpDNSRetransmissionPort = 2003;
+		TCP dnsIPReceiver = new TCP(me.getIP(), tcpDNSRetransmissionPort);
+		dnsIP = dnsIPReceiver.receiveText();
+		System.out.println("NameServer is on IP: " + dnsIP);
+	}
+	
+	/**
+	 * Listen to multicast responses on discover requests
+	 * This method creates and starts a thread
+	 */
+	private static void listenToNewNodes() {
 		/*
 		 * Listen for new nodes
 		 */
+		int receiveMulticastPort = 2001;
 		MulticastListener multicastListener = new MulticastListener("234.0.113.0", receiveMulticastPort);
 		new Thread(() -> {
 			while (true) {
@@ -109,10 +183,12 @@ public class Node
 				
 			}
 		}).start();
-		
-		/*
-		 * Listen for new neighbor request
-		 */
+	}
+	
+	/**
+	 * Listen to incoming TCP requests from neighbor
+	 */
+	private static void listenToNeighborRequests() {
 		new Thread(() -> {
 			while( me.getHash() == 0 ) {
 				
@@ -135,55 +211,7 @@ public class Node
 				}
 			}
 		}).start();
-		
-		/*
-		 * Shutdown hook
-		 */
-		Runtime.getRuntime().addShutdownHook( new Thread(() -> {
-			System.out.println("shutdown procedure started");
-			TCP neighborSender = new TCP(previousNode.getPort(), previousNode.getIP());
-			neighborSender.sendText("next," + nextNode.toData());
-			neighborSender = new TCP(nextNode.getPort(), nextNode.getIP());
-			neighborSender.sendText("next," + previousNode.toData());
-			try {
-				nsi.removeNode(me.getHash());
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			System.out.println("shutdown procedure ended");
-		}) );
-		
-		/*
-		 * Now we imagine we don't have a clue what the DNS IP is, and hope for TCP retransmission
-		 * to get ahold of the DNS server's IP. We'll await for the DNS server to get back at us
-		 * and continue with RMI once we get it.
-		*/
-		TCP dnsIPReceiver = new TCP(me.getIP(), tcpDNSRetransmissionPort);
-		dnsIP = dnsIPReceiver.receiveText();
-		System.out.println("NameServer is on IP: " + dnsIP);
-		
-		
-		
-		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
-		System.out.println("DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n " + "DNS Server RMI tree map return : "
-				+ nsi.getIPAddress(requestedFile));
-
-		//Temporarily using the same node as if it were some other node hosting files
-		
-		TCP fileServer = new TCP(me.getIP(), tcpFileTranferPort);
-		new Thread(() ->
-		{
-				
-			fileServer.listenToSendFile();
-		}).start();
-		
-		
-		//request the file from the server hosting it, according to the dns server
-		TCP fileClient = new TCP(tcpFileTranferPort, nsi.getIPAddress(requestedFile));
-		fileClient.receiveFile(requestedFile);
-		//As simple as that!
-		
 	}
+
 	
 }
