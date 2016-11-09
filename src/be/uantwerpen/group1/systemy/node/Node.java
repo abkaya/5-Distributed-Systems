@@ -185,12 +185,5 @@ public class Node
 		//As simple as that!
 		
 	}
-
-	static void discover() {
-		new Thread(() ->
-		{
-			
-			
-		}).start();
-	}
+	
 }
