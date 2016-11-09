@@ -3,7 +3,6 @@ package be.uantwerpen.group1.systemy.node;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
-import java.util.Arrays;
 import java.util.Random;
 
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
