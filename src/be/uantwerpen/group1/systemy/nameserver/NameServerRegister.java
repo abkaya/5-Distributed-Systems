@@ -140,7 +140,7 @@ public class NameServerRegister implements Serializable {
 	 * This method removes a node from the register based on his hash code
 	 * @param nodeName: this is the name of the node that's need to be removed
 	 */
-	public void removeNodeFromRegister(int nodeHash) {
+	public void removeNodeFromRegister(String nodeHash) {
 		//loadRegister();
 		if (register.containsKey(nodeHash)) {
 			register.remove(nodeHash);
@@ -155,9 +155,10 @@ public class NameServerRegister implements Serializable {
 	 * @param fileName: the name of the file we want the IPAddress from where it is stored
 	 * @return nodeIP: this is string that will contains the IPAddress of the node containing the file
 	 */
-	public String getFileLocation(String fileName) {
+	public String getFileLocation(String fileHash) {
+
 		//loadRegister();
-		int fileHash = hashing(fileName);
+
 		System.out.println(fileHash);
 		TreeMap<String, String> temp = new TreeMap<>();
 		//if register is empty
@@ -167,7 +168,7 @@ public class NameServerRegister implements Serializable {
 		} else {
 			// if register is not empty iterate over the register and search for hashvalues smaller than the filehash
 			for (Entry<String, String> entry : register.entrySet()) {
-				if (Integer.parseInt(entry.getKey()) < fileHash) {
+				if (Integer.parseInt(entry.getKey()) < Integer.parseInt(fileHash)) {
 					temp.put(entry.getKey(), entry.getValue());
 				}
 			}
@@ -188,12 +189,12 @@ public class NameServerRegister implements Serializable {
 	/**
 	 * This method will calculate the hash value of the next node based on his own
 	 * hash value
-	 * @param nodeName: this is the name of the current node
-	 * @return: this is the hash value of the next node (calculated with the parameter nodeHash)
+	 * @param nodeHash: this is the hashvalue of the current node in the form of a string 
+	 * @return This returns the next node IPAddress in the form of a string
 	 */
-	public String getNextNode(int nodeHash) {
+	public String getNextNode(String nodeHash) {
 
-		int tempKey = 0;
+		String tempKey = null;
 
 		//loadRegister();
 
@@ -204,23 +205,23 @@ public class NameServerRegister implements Serializable {
 			// if there is one node in the network point to himself
 		} else if (register.size() == 1) {
 			System.out.println("getNextNode >> This node is the only node in the network");
-			return String.valueOf(nodeHash);
+			return register.get(nodeHash);
 			// if node is the last node in the network, point to the first one (ring network)
-		} else if (Integer.parseInt(register.lastKey()) == nodeHash) {
+		} else if (register.lastKey() == nodeHash) {
 			System.out.println("getNextNode >> This is the nextNode " + register.firstKey() + " ("
 					+ register.get(register.firstKey()) + ")");
-			return String.valueOf(register.firstKey());
+			return register.get(register.firstKey());
 			//if this is all not the case then find the nextnode in the network
 		} else {
 			loop: for (Entry<String, String> entry : register.entrySet()) {
-				if (Integer.parseInt(entry.getKey()) > nodeHash) {
-					tempKey = Integer.parseInt(entry.getKey());
+				if (Integer.parseInt(entry.getKey()) > Integer.parseInt(nodeHash)) {
+					tempKey = entry.getKey();
 					break loop;
 				}
 			}
 
 			System.out.println("getNextNode >> This is the nextNode " + tempKey + " (" + register.get(tempKey) + ")");
-			return String.valueOf(tempKey);
+			return register.get(tempKey);
 		}
 
 	}
@@ -231,7 +232,7 @@ public class NameServerRegister implements Serializable {
 	 * @param nodeName: this is the name of the current node
 	 * @return: this is the hash value of the previous node (calculated with the parameter nodeHash)
 	 */
-	public String getPreviousNode(int nodeHash) {
+	public String getPreviousNode(String nodeHash) {
 
 		int tempKey = 0;
 
@@ -242,21 +243,21 @@ public class NameServerRegister implements Serializable {
 			return null;
 		} else if (register.size() == 1) {
 			System.out.println("getPreviousNode >> This node is the only node in the network");
-			return String.valueOf(nodeHash);
-		} else if (Integer.parseInt(register.lastKey()) == nodeHash) {
+			return register.get(nodeHash);
+		} else if (register.firstKey() == nodeHash) {
 			System.out.println("getPreviousNode >> This is the nextNode " + register.firstKey() + " ("
 					+ register.get(register.firstKey()) + ")");
 			return String.valueOf(register.firstKey());
 		} else {
 			loop: for (Entry<String, String> entry : register.entrySet()) {
-				if (Integer.parseInt(entry.getKey()) > nodeHash) {
+				if (Integer.parseInt(entry.getKey()) < Integer.parseInt(nodeHash)) {
 					tempKey = Integer.parseInt(entry.getKey());
 					break loop;
 				}
 			}
-			System.out
-					.println("getPreviousNode >> This is the previousNode " + tempKey + " (" + register.get(tempKey) + ")");
-			return String.valueOf(tempKey);
+			System.out.println(
+					"getPreviousNode >> This is the previousNode " + tempKey + " (" + register.get(tempKey) + ")");
+			return register.get(tempKey);
 		}
 
 	}
