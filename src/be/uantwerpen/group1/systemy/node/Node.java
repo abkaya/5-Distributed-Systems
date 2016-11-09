@@ -80,32 +80,29 @@ public class Node
 				String receivedMulticastMessage = multicastListener.receive().trim();
 				System.out.println("Received multicast message: " + receivedMulticastMessage);
 				String messageComponents[] = receivedMulticastMessage.split(",");
-				String newNodeName = messageComponents[0];
-				int newNodeHash = Integer.parseInt(messageComponents[1]);
-				String newNodeIP = messageComponents[2];
+				NodeInfo newNode = new NodeInfo(messageComponents[0], Integer.parseInt(messageComponents[1]), messageComponents[2]);
 				int nodeCount = Integer.parseInt(messageComponents[3]);
-				System.out.println("New node! " + newNodeName + " (" + newNodeHash +") at " + newNodeIP + "  total nodes: " + nodeCount);
-				
+				System.out.println("New node! " + newNode.toString() + " at " + newNode.getIP() + "  total nodes: " + nodeCount);
 				if (nextNode == null) {
 					// no nodes -> point to self
-					nextNode = new NodeInfo(newNodeName, newNodeHash, newNodeIP);
-					previousNode = new NodeInfo(newNodeName, newNodeHash, newNodeIP);
-					me.setHash(newNodeHash);
+					nextNode = newNode;
+					previousNode = newNode;
+					me.setHash(newNode.getHash());
 					System.out.println("setting myself as next and previous node");
 				} else if (nextNode.getHash() == me.getHash()) {
 					// pointing to myself -> point in both ways to 2de known node
-					nextNode = new NodeInfo(newNodeName, newNodeHash, newNodeIP);
-					previousNode = new NodeInfo(newNodeName, newNodeHash, newNodeIP);
+					nextNode = newNode;
+					previousNode = newNode;
 					System.out.println("setting 2de as next and previous node");
-				} else if ( newNodeHash < nextNode.getHash() && newNodeHash > me.getHash() || newNodeHash < nextNode.getHash() && nextNode.getHash() < me.getHash() || nextNode.getHash() < me.getHash() && newNodeHash >= me.getHash() ) {
+				} else if ( newNode.getHash() < nextNode.getHash() && newNode.getHash() > me.getHash() || newNode.getHash() < nextNode.getHash() && nextNode.getHash() < me.getHash() || nextNode.getHash() < me.getHash() && newNode.getHash() >= me.getHash() ) {
 					// New next node
-					nextNode = new NodeInfo(newNodeName, newNodeHash, newNodeIP);
+					nextNode = newNode;
 					System.out.println("New next node! " + nextNode.toString());
 					TCP neighborSender = new TCP(nextNode.getPort(), nextNode.getIP());
 					neighborSender.sendText("previous," + me.toData());
-				} else if ( newNodeHash > previousNode.getHash() && newNodeHash < me.getHash() || newNodeHash > previousNode.getHash() && previousNode.getHash() > me.getHash() || previousNode.getHash() > me.getHash() && newNodeHash <= me.getHash() ) {
+				} else if ( newNode.getHash() > previousNode.getHash() && newNode.getHash() < me.getHash() || newNode.getHash() > previousNode.getHash() && previousNode.getHash() > me.getHash() || previousNode.getHash() > me.getHash() && newNode.getHash() <= me.getHash() ) {
 					// New previous node
-					previousNode = new NodeInfo(newNodeName, newNodeHash, newNodeIP);
+					previousNode = newNode;
 					System.out.println("New previous node! " + previousNode.toString());
 					TCP neighborSender = new TCP(previousNode.getPort(), previousNode.getIP());
 					neighborSender.sendText("next," + me.toData());
@@ -178,7 +175,7 @@ public class Node
 		TCP fileServer = new TCP(me.getIP(), tcpFileTranferPort);
 		new Thread(() ->
 		{
-			
+				
 			fileServer.listenToSendFile();
 		}).start();
 		
@@ -190,4 +187,11 @@ public class Node
 		
 	}
 
+	static void discover() {
+		new Thread(() ->
+		{
+			
+			
+		}).start();
+	}
 }
