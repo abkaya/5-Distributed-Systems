@@ -71,6 +71,12 @@ public class NodeInfo {
 		return name + " (" + hash + ")";
 	}
 	
+	/**
+	 * output data as "<name>,<hash>,<ip>"
+	 * ideal for sending data as a package
+	 * 
+	 * @return String: formatted output
+	 */
 	public String toData() {
 		return name + "," + hash + "," + ip;
 	}
