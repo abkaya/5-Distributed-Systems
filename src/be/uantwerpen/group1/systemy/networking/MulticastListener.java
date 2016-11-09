@@ -25,7 +25,6 @@ public class MulticastListener {
 		try {
 			InetAddress group = InetAddress.getByName(IP);	
 			s = new MulticastSocket(port);
-			System.out.println(IP + ":" + port);
 			s.joinGroup(group);
 		} catch (IOException e) {
 			e.printStackTrace();

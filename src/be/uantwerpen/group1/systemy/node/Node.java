@@ -20,7 +20,6 @@ public class Node
 	static NodeInfo previousNode = null;
 	static NameServerInterface nsi = null;
 	
-	
 	/**
 	 * @param args: first argument is the nodeName
 	 * @throws RemoteException
@@ -72,11 +71,10 @@ public class Node
 		String multicastMessage = me.toData();
 		MulticastSender.send("234.0.113.0", sendMulticastPort, multicastMessage);
 
-		MulticastListener multicastListener = new MulticastListener("234.0.113.0", receiveMulticastPort);
-		
 		/*
 		 * Listen for new nodes
 		 */
+		MulticastListener multicastListener = new MulticastListener("234.0.113.0", receiveMulticastPort);
 		new Thread(() -> {
 			while (true) {
 				String receivedMulticastMessage = multicastListener.receive().trim();
@@ -112,28 +110,32 @@ public class Node
 					TCP neighborSender = new TCP(previousNode.getPort(), previousNode.getIP());
 					neighborSender.sendText("next," + me.toData());
 				}
+				
 			}
 		}).start();
 		
 		/*
-		 * Listen for new neigbour request
+		 * Listen for new neighbor request
 		 */
 		new Thread(() -> {
+			while( me.getHash() == 0 ) {
+				
+			}
 			TCP neighborReceiver = new TCP(me.getIP(), me.getPort());
-			System.out.println("Listening for neighbours on port " + me.getPort());
+			System.out.println("Listening for neighbors on port " + me.getPort());
 			while(true) {
 				// packet layout "next,name,hash,ip"
-				String neighbourMessage = neighborReceiver.receiveText();
-				System.out.println("Received neighbour packet: " + neighbourMessage);
-				String[] messageComponents = neighbourMessage.split(",");
-				if (messageComponents[0].equals("next")) {
-					nextNode = new NodeInfo(messageComponents[1],Integer.parseInt(messageComponents[2]),messageComponents[3]);
+				String neighborMessage = neighborReceiver.receiveText();
+				System.out.println("Received neighbor packet: " + neighborMessage);
+				String[] neighborMessageComponents = neighborMessage.split(",");
+				if (neighborMessageComponents[0].equals("next")) {
+					nextNode = new NodeInfo(neighborMessageComponents[1],Integer.parseInt(neighborMessageComponents[2]),neighborMessageComponents[3]);
 					System.out.println("New next node! " + nextNode.toString());
-				} else if (messageComponents[0].equals("previous")) {					
-					previousNode = new NodeInfo(messageComponents[1],Integer.parseInt(messageComponents[2]),messageComponents[3]);
+				} else if (neighborMessageComponents[0].equals("previous")) {					
+					previousNode = new NodeInfo(neighborMessageComponents[1],Integer.parseInt(neighborMessageComponents[2]),neighborMessageComponents[3]);
 					System.out.println("New previous node! " + previousNode.toString());
 				} else {
-					System.err.println("Neighbour package identifier not recognized! " + messageComponents[0]);
+					System.err.println("Neighbour package identifier not recognized! " + neighborMessageComponents[0]);
 				}
 			}
 		}).start();
