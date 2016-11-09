@@ -12,8 +12,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
-import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
-
 /**
  * RMI class which can be used bind objects from different types in the
  * registry, using Generics, or simply request registries on remote or local
