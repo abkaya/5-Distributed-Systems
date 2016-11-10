@@ -5,7 +5,7 @@ package be.uantwerpen.group1.systemy.node;
  * 
  * @author Robin Janssens
  */
-public class NodeInfo {
+public class NodeInfo implements Comparable<NodeInfo> {
 
 	private String name;
 	private int hash;
@@ -163,6 +163,17 @@ public class NodeInfo {
 	 */
 	public String toData() {
 		return name + "," + hash + "," + ip;
+	}
+	
+	/**
+	 * Comparable implementation
+	 * 
+	 * @param other: NodeInfo to compare with
+	 * @return int: outcome of comparison
+	 */
+	@Override
+	public int compareTo(NodeInfo other) {
+		return Integer.compare( this.getHash(), other.getHash() );
 	}
 	
 	
