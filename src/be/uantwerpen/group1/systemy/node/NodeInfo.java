@@ -99,7 +99,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 				}
 			} else {
 				// next == me
-				return false;
+				return true;
 			}
 		}
 	}
@@ -141,7 +141,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 				}
 			} else {
 				// next == me
-				return false;
+				return true;
 			}
 		}
 	}
@@ -173,7 +173,12 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	 */
 	@Override
 	public int compareTo(NodeInfo other) {
-		return Integer.compare( this.getHash(), other.getHash() );
+		if ( this.getHash() > other.getHash() )
+			return 1;
+		else if ( this.getHash() < other.getHash() )
+			return -1;
+		else
+			return 0;
 	}
 	
 	
