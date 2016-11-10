@@ -51,7 +51,7 @@ public class Node
 		} else {
 			// else generate one random
 			Random random = new Random();
-			int r = random.nextInt(1000);
+			int r = random.nextInt(100);
 			random = null;
 			me.setName("node" + r);
 		}

@@ -5,6 +5,11 @@ import java.util.Random;
 
 import be.uantwerpen.group1.systemy.node.NodeInfo;
 
+/**
+ * Test class for NodeInfo.java
+ * 
+ * @author Robin Janssens
+ */
 public class NodeInfo_test {
 
 	public static void main(String args[]) {
