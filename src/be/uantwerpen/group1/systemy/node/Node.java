@@ -51,9 +51,9 @@ public class Node
 		} else {
 			// else generate one random
 			Random random = new Random();
-			int r = random.nextInt(100);
+			int number = random.nextInt(1000);
 			random = null;
-			me.setName("node" + r);
+			me.setName("node" + String.format("%03d", number));
 		}
 		System.out.println("node '" + me.getName() + "' is on " + me.getIP());
 		

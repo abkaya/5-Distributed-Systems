@@ -35,7 +35,7 @@ public class HashCollissionTest {
 		NodeInfo[] nodes = new NodeInfo[amount];
 		for (int i = 0; i<amount; i++ ) {
 			NodeInfo newNode = new NodeInfo();
-			newNode.setName("node" + i);
+			newNode.setName("node" + String.format("%03d", i));
 			newNode.setHash( hash(newNode.getName()) );
 			nodes[i] = newNode;
 		}
@@ -52,6 +52,7 @@ public class HashCollissionTest {
 			if( nodes[i].compareTo(nodes[i+1]) == 0 ) {
 				System.out.println( nodes[i].toString() + " = " + nodes[i+1].toString() );
 			}
+			System.out.println( nodes[i].toString() );
 		}
 	
 	}
