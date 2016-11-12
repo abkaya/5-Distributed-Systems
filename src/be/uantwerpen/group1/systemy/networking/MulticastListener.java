@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.logging.Level;
+
+import be.uantwerpen.group1.systemy.logging.SystemyLogger;
 
 /**
  * MulticastListener class
@@ -11,8 +14,10 @@ import java.net.MulticastSocket;
  */
 public class MulticastListener {
 
+	private static String logName = MulticastListener.class.getName() + " >> ";
+
 	private MulticastSocket s = null;
-	
+
 	/**
 	 * create a multicast socket
 	 * 
@@ -21,33 +26,33 @@ public class MulticastListener {
 	 */
 	public MulticastListener(String IP, int port) {
 		try {
-			InetAddress group = InetAddress.getByName(IP);	
+			InetAddress group = InetAddress.getByName(IP);
 			s = new MulticastSocket(port);
 			s.joinGroup(group);
 		} catch (IOException e) {
-			System.out.println("IO: " + e.getMessage());
+			SystemyLogger.log(Level.SEVERE, logName + "IO: " + e.getMessage());
+			//System.out.println("IO: " + e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * receive on multicast socket
 	 * 
 	 * @return String: received message (max 64 characters) 
 	 */
 	public String receive() {
-		try
-		{
+		try {
 			// clearing buffer
 			byte[] buffer = null;
 			buffer = new byte[64];
 			DatagramPacket message = new DatagramPacket(buffer, buffer.length);
 			s.receive(message);
 			return new String(message.getData());
-		} catch (IOException e)
-		{
-			System.out.println("IO: " + e.getMessage());
+		} catch (IOException e) {
+			SystemyLogger.log(Level.SEVERE, logName + "IO: " + e.getMessage());
+			//System.out.println("IO: " + e.getMessage());
 			return null;
 		}
 	}
-	
+
 }

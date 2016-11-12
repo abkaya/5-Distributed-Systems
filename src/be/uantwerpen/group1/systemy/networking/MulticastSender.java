@@ -4,12 +4,17 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.logging.Level;
+
+import be.uantwerpen.group1.systemy.logging.SystemyLogger;
 
 /**
  * MulticastSender class
  * Class for sending multicast messages
  */
 public class MulticastSender {
+	
+	private static String logName = MulticastSender.class.getName() + " >> ";
 	
 	/**
 	 * send a multicast message
@@ -27,7 +32,8 @@ public class MulticastSender {
 			DatagramPacket messageOut = new DatagramPacket(m, m.length, group, port);
 			s.send(messageOut);
 		} catch (IOException e) {
-			System.out.println("IO: " + e.getMessage());
+			SystemyLogger.log(Level.SEVERE, logName + "IO: " + e.getMessage());
+			//System.out.println("IO: " + e.getMessage());
 		} finally {
 			if(s != null)
 				s.close(); 

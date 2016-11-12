@@ -1,21 +1,16 @@
 package be.uantwerpen.group1.systemy.node;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.Registry;
-
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
-public class Node
-{
+public class Node {
 
-	public static void main(String args[]) throws RemoteException
-	{
+	private static String logName = Node.class.getName() + " >> ";
+
+	public static void main(String args[]) throws RemoteException {
 
 		NameServerInterface nsi = null;
 		String remoteNSName = "NameServerInterface";
@@ -25,7 +20,7 @@ public class Node
 		String host = "192.168.1.103";
 		String dnsIP = null;
 		String hostnameIP = "Node1,192.168.1.103";
-		
+
 		/*Don't mind the awful port names. It's just to get everyone acquainted with them*/
 		int dnsPort = 1099;
 		int multicastPort = 2000;
@@ -49,28 +44,26 @@ public class Node
 		*/
 		TCP dnsIPReceiver = new TCP(host, tcpDNSRetransmissionPort);
 		dnsIP = dnsIPReceiver.receiveText();
-		
+
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
 
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
-		System.out.println("DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n " + "DNS Server RMI tree map return : "
-				+ nsi.getIPAddress(requestedFile));
+		System.out.println("DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n "
+				+ "DNS Server RMI tree map return : " + nsi.getIPAddress(requestedFile));
 
 		//Temporarily using the same node as if it were some other node hosting files
-		
+
 		TCP fileServer = new TCP(host, tcpFileTranferPort);
-		new Thread(() ->
-		{
+		new Thread(() -> {
 			fileServer.listenToSendFile();
 		}).start();
-		
-		
+
 		//request the file from the server hosting it, according to the dns server
 		TCP fileClient = new TCP(tcpFileTranferPort, nsi.getIPAddress(requestedFile));
 		fileClient.receiveFile(requestedFile);
 		//As simple as that!
-		
+
 	}
 
 }
