@@ -268,12 +268,14 @@ public class TCP {
 				BufferedInputStream bis = new BufferedInputStream(fis);
 				bis.read(mybytearray, 0, mybytearray.length);
 				OutputStream os = clientSocket.getOutputStream();
-				System.out.println("- Sending : " + fileToSend + "(" + mybytearray.length + " bytes)");
+				SystemyLogger.log(Level.INFO, logName + "- Sending : " + fileToSend + "(" + mybytearray.length + " bytes)");
+				//System.out.println("- Sending : " + fileToSend + "(" + mybytearray.length + " bytes)");
 				os.write(mybytearray, 0, mybytearray.length);
 				os.flush();
 				os.close();
 				bis.close();
-				System.out.println("*- File uploaded. Job well done.");
+				SystemyLogger.log(Level.INFO, logName + "*- File uploaded. Job well done.");
+				//System.out.println("*- File uploaded. Job well done.");
 			} catch (Exception e) {
 				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 				//e.printStackTrace();
@@ -297,7 +299,8 @@ public class TCP {
 			String sendMessage = fileName + "\n";
 			bw.write(sendMessage);
 			bw.flush();
-			System.out.println("- Requesting following file from the server : " + fileName);
+			SystemyLogger.log(Level.INFO, logName + "- Requesting following file from the server : " + fileName);
+			//System.out.println("- Requesting following file from the server : " + fileName);
 			return true;
 		} catch (Exception e) {
 			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
@@ -320,9 +323,11 @@ public class TCP {
 			try {
 				fileSize = Integer.parseInt(br.readLine());
 			} catch (NumberFormatException nfe) {
-				System.err.println("Could not receive the file size");
+				SystemyLogger.log(Level.SEVERE, logName + "Could not receive the file size");
+				//System.err.println("Could not receive the file size");
 			}
-			System.out.println("- Server responded with filesize : " + fileSize);
+			SystemyLogger.log(Level.INFO, logName + "- Server responded with filesize : " + fileSize);
+			//System.out.println("- Server responded with filesize : " + fileSize);
 			return fileSize;
 		} catch (Exception e) {
 			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
@@ -354,7 +359,8 @@ public class TCP {
 
 				// A buffer, used to splice and receive data in chunks
 				byte[] byteArray = new byte[1024];
-				System.out.println("- Downloading file: ");
+				SystemyLogger.log(Level.INFO, logName + "- Downloading file: ");
+				//System.out.println("- Downloading file: ");
 
 				// reading file from socket
 				try {
@@ -376,7 +382,8 @@ public class TCP {
 					progress = ((int) Math.floor((100 * current) / fileSize));
 					if (progress % 10 == 0 && prevProgress != progress) {
 						prevProgress = progress;
-						System.out.println("- Progress: " + progress + "%");
+						SystemyLogger.log(Level.INFO, logName + "- Progress: " + progress + "%");
+						//System.out.println("- Progress: " + progress + "%");
 					}
 
 					try {
@@ -392,8 +399,8 @@ public class TCP {
 				bufferedOutputStream.close();
 				inputStream.close();
 				this.clientSocket.close();
-				
-				System.out.println("*-Requested file is downloaded");
+				SystemyLogger.log(Level.INFO, logName + "*-Requested file is downloaded");
+				//System.out.println("*-Requested file is downloaded");
 
 			} catch (IOException e) {
 				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
@@ -412,7 +419,8 @@ public class TCP {
 	 */
 	private void close(Socket clientSocket) {
 		{
-			System.out.println("*- Closing client socket on port: " + clientSocket.getPort());
+			SystemyLogger.log(Level.INFO, logName + "*- Closing client socket on port: " + clientSocket.getPort());
+			//System.out.println("*- Closing client socket on port: " + clientSocket.getPort());
 			try {
 				clientSocket.close();
 			} catch (IOException e) {

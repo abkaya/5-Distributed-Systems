@@ -1,6 +1,9 @@
 package be.uantwerpen.group1.systemy.node;
 
 import java.rmi.RemoteException;
+import java.util.logging.Level;
+
+import be.uantwerpen.group1.systemy.logging.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
@@ -49,8 +52,10 @@ public class Node {
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
 
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
-		System.out.println("DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n "
+		SystemyLogger.log(Level.INFO, logName + "DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n "
 				+ "DNS Server RMI tree map return : " + nsi.getIPAddress(requestedFile));
+		//System.out.println("DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n "
+		//		+ "DNS Server RMI tree map return : " + nsi.getIPAddress(requestedFile));
 
 		//Temporarily using the same node as if it were some other node hosting files
 
