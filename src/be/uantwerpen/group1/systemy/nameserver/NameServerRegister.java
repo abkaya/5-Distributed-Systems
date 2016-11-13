@@ -28,9 +28,17 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+
+import javax.swing.text.LabelView;
+
 import java.util.TreeMap;
 
+import be.uantwerpen.group1.systemy.logging.SystemyLogger;;
+
 public class NameServerRegister implements Serializable {
+
+	private static String logName = NameServerRegister.class.getName() + " >> ";
 
 	/*
 	 * Default number
@@ -66,7 +74,8 @@ public class NameServerRegister implements Serializable {
 		//saveRegister();
 		//System.out.println("Registered cleared and loaded");
 		//} else {
-		System.out.println("NameServerRegister >> Register loaded");
+		SystemyLogger.log(Level.INFO, logName + "Register loaded");
+		//System.out.println("NameServerRegister >> Register loaded");
 		//}
 	}
 
@@ -83,7 +92,7 @@ public class NameServerRegister implements Serializable {
 
 		} catch (Exception e) {
 			// TODO: handle exception
-			e.printStackTrace();
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 		}
 	}
 
@@ -98,7 +107,7 @@ public class NameServerRegister implements Serializable {
 
 		} catch (Exception e) {
 			// TODO: handle exception
-			e.printStackTrace();
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 		}
 	}
 
@@ -127,11 +136,14 @@ public class NameServerRegister implements Serializable {
 		//loadRegister();
 		String nodeHash = String.valueOf(hashing(hostName));
 		if (register.containsKey(nodeHash)) {
-			System.out.println("addNode >> This node already exist");
+			SystemyLogger.log(Level.WARNING, logName + "This node already exist");
+			//System.out.println("addNode >> This node already exist");
 		} else {
 			register.put(nodeHash, hostIP);
-			System.out.println("addNode >> " + hostName + " (hashcode: " + nodeHash + "): " + hostIP
-					+ " is added to the register");
+			SystemyLogger.log(Level.INFO,
+					logName + hostName + " (hashcode: " + nodeHash + ")" + hostIP + " is added to the register");
+			//System.out.println("addNode >> " + hostName + " (hashcode: " + nodeHash + "): " + hostIP
+			//		+ " is added to the register");
 		}
 		//saveRegister();
 	}
@@ -144,9 +156,11 @@ public class NameServerRegister implements Serializable {
 		//loadRegister();
 		if (register.containsKey(nodeHash)) {
 			register.remove(nodeHash);
-			System.out.println("removeNodeFromRegister >> " + nodeHash + " is removed from the register");
+			SystemyLogger.log(Level.INFO, logName + nodeHash + " is removed from the register");
+			//System.out.println("removeNodeFromRegister >> " + nodeHash + " is removed from the register");
 		} else {
-			System.out.println("removeNodeFromRegister >> This node doesn't exist in the network");
+			SystemyLogger.log(Level.WARNING, logName + "This node doesn't exist in the network");
+			//System.out.println("removeNodeFromRegister >> This node doesn't exist in the network");
 		}
 	}
 
@@ -163,7 +177,8 @@ public class NameServerRegister implements Serializable {
 		TreeMap<String, String> temp = new TreeMap<>();
 		//if register is empty
 		if (register.size() == 0) {
-			System.out.println("getFileLocation >> there are no nodes in the network");
+			SystemyLogger.log(Level.WARNING, logName + "There are no nodes in the network");
+			//System.out.println("getFileLocation >> there are no nodes in the network");
 			return null;
 		} else {
 			// if register is not empty iterate over the register and search for hashvalues smaller than the filehash
@@ -175,13 +190,17 @@ public class NameServerRegister implements Serializable {
 		}
 		// if the temp Treemap is empty take the node with biggest hash
 		if (temp.size() == 0) {
-			System.out.println("getFileLocation >> "
-					+ register.get(register.lastKey() + " (" + register.lastKey() + " ): is the owner of this file"));
+			SystemyLogger.log(Level.INFO, logName + register.get(register.lastKey()) + " (" + register.lastKey()
+					+ " ): is the owner of this file");
+			//System.out.println("getFileLocation >> "
+			//		+ register.get(register.lastKey() + " (" + register.lastKey() + " ): is the owner of this file"));
 			return register.get(register.lastKey());
 		} else {
 			//else get node with hash closest to filehash
-			System.out.println("getFileLocation >> "
-					+ temp.get(temp.lastKey() + " (" + temp.lastKey() + " ): is the owner of this file"));
+			SystemyLogger.log(Level.INFO,
+					logName + temp.get(temp.lastKey()) + " (" + temp.lastKey() + " ): is the owner of this file");
+			//System.out.println("getFileLocation >> "
+			//		+ temp.get(temp.lastKey() + " (" + temp.lastKey() + " ): is the owner of this file"));
 			return temp.get(temp.lastKey());
 		}
 	}
@@ -200,16 +219,20 @@ public class NameServerRegister implements Serializable {
 
 		//if there are no nodes in the network return null
 		if (register.size() == 0) {
-			System.out.println("getNextNode >> There are no nodes in the network");
+			SystemyLogger.log(Level.WARNING, logName + "There are no nodes in the network");
+			//System.out.println("getNextNode >> There are no nodes in the network");
 			return null;
 			// if there is one node in the network point to himself
 		} else if (register.size() == 1) {
-			System.out.println("getNextNode >> This node is the only node in the network");
+			SystemyLogger.log(Level.INFO, logName + "This node is the only node in the network");
+			//System.out.println("getNextNode >> This node is the only node in the network");
 			return register.get(nodeHash);
 			// if node is the last node in the network, point to the first one (ring network)
 		} else if (register.lastKey() == nodeHash) {
-			System.out.println("getNextNode >> This is the nextNode " + register.firstKey() + " ("
+			SystemyLogger.log(Level.INFO, logName + "This is the nextNode " + register.firstKey() + " ("
 					+ register.get(register.firstKey()) + ")");
+			//System.out.println("getNextNode >> This is the nextNode " + register.firstKey() + " ("
+			//		+ register.get(register.firstKey()) + ")");
 			return register.get(register.firstKey());
 			//if this is all not the case then find the nextnode in the network
 		} else {
@@ -220,7 +243,9 @@ public class NameServerRegister implements Serializable {
 				}
 			}
 
-			System.out.println("getNextNode >> This is the nextNode " + tempKey + " (" + register.get(tempKey) + ")");
+			SystemyLogger.log(Level.INFO,
+					logName + "This is the nextNode " + tempKey + " (" + register.get(tempKey) + ")");
+			//System.out.println("getNextNode >> This is the nextNode " + tempKey + " (" + register.get(tempKey) + ")");
 			return register.get(tempKey);
 		}
 
@@ -239,14 +264,18 @@ public class NameServerRegister implements Serializable {
 		//loadRegister();
 
 		if (register.size() == 0) {
-			System.out.println("getPreviousNode >> There are no nodes in the network");
+			SystemyLogger.log(Level.WARNING, logName + "There are no nodes in the network");
+			//System.out.println("getPreviousNode >> There are no nodes in the network");
 			return null;
 		} else if (register.size() == 1) {
-			System.out.println("getPreviousNode >> This node is the only node in the network");
+			SystemyLogger.log(Level.INFO, logName + "This node is the only node in the network");
+			//System.out.println("getPreviousNode >> This node is the only node in the network");
 			return register.get(nodeHash);
 		} else if (register.firstKey() == nodeHash) {
-			System.out.println("getPreviousNode >> This is the nextNode " + register.firstKey() + " ("
+			SystemyLogger.log(Level.INFO, logName + "This is the nextNode " + register.firstKey() + " ("
 					+ register.get(register.firstKey()) + ")");
+			//System.out.println("getPreviousNode >> This is the nextNode " + register.firstKey() + " ("
+			//		+ register.get(register.firstKey()) + ")");
 			return String.valueOf(register.firstKey());
 		} else {
 			loop: for (Entry<String, String> entry : register.entrySet()) {
@@ -255,8 +284,10 @@ public class NameServerRegister implements Serializable {
 					break loop;
 				}
 			}
-			System.out.println(
-					"getPreviousNode >> This is the previousNode " + tempKey + " (" + register.get(tempKey) + ")");
+			SystemyLogger.log(Level.INFO, logName + "getPreviousNode >> This is the previousNode " + tempKey + " ("
+					+ register.get(tempKey) + ")");
+			//System.out.println(
+			//		"getPreviousNode >> This is the previousNode " + tempKey + " (" + register.get(tempKey) + ")");
 			return register.get(tempKey);
 		}
 
@@ -273,10 +304,12 @@ public class NameServerRegister implements Serializable {
 		//loadRegister();
 		if (register.containsKey(String.valueOf(nodeHash))) {
 			String nodeIP = register.get(nodeHash);
-			System.out.println("getNodeIPFromHash >> The hash: " + nodeHash + " correspond with ip address: " + nodeIP);
+			SystemyLogger.log(Level.INFO, logName + "The hash: " + nodeHash + " correspond with ip address: " + nodeIP);
+			//System.out.println("getNodeIPFromHash >> The hash: " + nodeHash + " correspond with ip address: " + nodeIP);
 			return nodeIP;
 		} else {
-			System.out.println("getNodeIPFromHash >> The hash doesn't exist in the register");
+			SystemyLogger.log(Level.WARNING, logName + "The hash doesn't exist in the register");
+			//System.out.println("getNodeIPFromHash >> The hash doesn't exist in the register");
 			return null;
 		}
 	}
@@ -297,11 +330,14 @@ public class NameServerRegister implements Serializable {
 			}
 		}
 		if (nodeHash == -1) {
-			System.out.println("getHashFromNodeIP >> The ip address doesn't exist in the register");
+			SystemyLogger.log(Level.WARNING, logName + "The ip address doesn't exist in the register");
+			//System.out.println("getHashFromNodeIP >> The ip address doesn't exist in the register");
 			return nodeHash;
 		} else {
-			System.out
-					.println("getHashFromNodeIP >> The ip address: " + nodeIP + " corresponds with hash: " + nodeHash);
+			SystemyLogger.log(Level.INFO,
+					logName + "The ip address: " + nodeIP + " corresponds with hash: " + nodeHash);
+			//System.out
+			//		.println("getHashFromNodeIP >> The ip address: " + nodeIP + " corresponds with hash: " + nodeHash);
 			return nodeHash;
 		}
 	}
