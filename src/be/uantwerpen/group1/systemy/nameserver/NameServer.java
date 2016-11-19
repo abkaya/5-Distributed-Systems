@@ -1,24 +1,40 @@
 package be.uantwerpen.group1.systemy.nameserver;
 
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
 
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
-import be.uantwerpen.group1.systemy.networking.MulticastListener;;
+import be.uantwerpen.group1.systemy.networking.MulticastListener;
 
 public class NameServer implements NameServerInterface
 {
 	static NameServerRegister nsr = new NameServerRegister(false);
-
-	public static void main(String args[]) throws UnknownHostException
+	static String nameServerIP = null;
+	
+	public static void main(String args[]) throws UnknownHostException, SocketException
 	{
 		/*
 		 * String myIP = InetAddress.getLocalHost().getHostAddress();	// Automatic
 		 * String myIP = "192.168.1.103";								// Manual
 		 */
-		String nameServerIP =  InetAddress.getLocalHost().getHostAddress();
+		Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
+		while(en.hasMoreElements()){
+			NetworkInterface ni =(NetworkInterface) en.nextElement();
+			Enumeration<InetAddress> ee = ni.getInetAddresses();
+			while(ee.hasMoreElements()) {
+				InetAddress ia = (InetAddress) ee.nextElement();
+				if(!ia.isLoopbackAddress()) {
+					nameServerIP = ia.getHostAddress();
+					System.out.println("Detected address: " + ia.getHostAddress());
+				}
+			}
+		}
+		
 		int receiveMulticastPort = 2000;
 		int sendMulticastPort = 2001;
 		int tcpDNSRetransmissionPort = 2003;
