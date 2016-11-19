@@ -23,6 +23,7 @@ public class NameServer implements NameServerInterface
 		int sendMulticastPort = 2001;
 		int tcpDNSRetransmissionPort = 2003;
 		
+		System.out.println("NameServer started on " + nameServerIP);
 
 		NameServerInterface nsi = new NameServer();
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>(nameServerIP, "NameServerInterface", nsi);
