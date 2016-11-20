@@ -22,7 +22,7 @@ public class Node
 	static String dnsIP = null;
 	
 	/**
-	 * @param args: first argument is the nodeName
+	 * @param args: first argument is the nodeName (optional)
 	 * @throws RemoteException
 	 * @throws UnknownHostException
 	 * @throws SocketException 
