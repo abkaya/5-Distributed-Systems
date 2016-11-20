@@ -1,7 +1,5 @@
 package be.uantwerpen.group1.systemy.nameserver;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
@@ -18,10 +16,6 @@ public class NameServer implements NameServerInterface
 	
 	public static void main(String args[]) throws UnknownHostException, SocketException
 	{
-		/*
-		 * String myIP = InetAddress.getLocalHost().getHostAddress();	// Automatic
-		 * String myIP = "192.168.1.103";								// Manual
-		 */
 		
 		nameServerIP = Interface.getIP();
 		
