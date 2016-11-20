@@ -1,14 +1,12 @@
 package be.uantwerpen.group1.systemy.node;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
-import java.util.Enumeration;
 import java.util.Random;
 
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
+import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
 import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
@@ -32,34 +30,9 @@ public class Node
 	public static void main(String args[]) throws RemoteException, UnknownHostException, SocketException
 	{
 		String remoteNSName = "NameServerInterface";
-		/* this is our IP, we now assume not to have the DNS IP, which we'll receive after retransmission
-		 * by the DNS server over a TCP socket.
-		 *
-		 * Assessing one's IP address can become tricky when multiple network interfaces are involved. For instance, I'm getting the APIPA
-		 * address 169.254.202.83, which is undesirable. We could work this out in the future, but let's use the manually determined IP
-		 * address for now - abdil
-		 * 
-		 * I fixed this issue by disabling my virtual adapters from VMWare and VBox - Robin
-		 * 
-		 * me.setIP(InetAddress.getLocalHost().getHostAddress());	// Automatic
-		 * me.setIP("192.168.1.103");								// Manual
-		 */
-		
 
 		me = new NodeInfo();
-		Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
-		while(en.hasMoreElements()){
-			NetworkInterface ni =(NetworkInterface) en.nextElement();
-			Enumeration<InetAddress> ee = ni.getInetAddresses();
-			while(ee.hasMoreElements()) {
-				InetAddress ia = (InetAddress) ee.nextElement();
-				if(!ia.isLoopbackAddress()) {
-					me.setIP(ia.getHostAddress());
-					System.out.println("Detected address: " + ia.getHostAddress());
-				}
-			}
-		}
-		
+		me.setIP(Interface.getIP());
 		
 		if (args.length != 0) {
 			// if nodeName is provided

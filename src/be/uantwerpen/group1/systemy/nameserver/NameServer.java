@@ -4,8 +4,8 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.Enumeration;
 
+import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
@@ -22,18 +22,8 @@ public class NameServer implements NameServerInterface
 		 * String myIP = InetAddress.getLocalHost().getHostAddress();	// Automatic
 		 * String myIP = "192.168.1.103";								// Manual
 		 */
-		Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
-		while(en.hasMoreElements()){
-			NetworkInterface ni =(NetworkInterface) en.nextElement();
-			Enumeration<InetAddress> ee = ni.getInetAddresses();
-			while(ee.hasMoreElements()) {
-				InetAddress ia = (InetAddress) ee.nextElement();
-				if(!ia.isLoopbackAddress()) {
-					nameServerIP = ia.getHostAddress();
-					System.out.println("Detected address: " + ia.getHostAddress());
-				}
-			}
-		}
+		
+		nameServerIP = Interface.getIP();
 		
 		int receiveMulticastPort = 2000;
 		int sendMulticastPort = 2001;
