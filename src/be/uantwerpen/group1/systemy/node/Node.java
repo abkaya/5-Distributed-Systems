@@ -54,19 +54,17 @@ public class Node
 //		int tcpDNSRetransmissionPort = 2003;
 		String requestedFile = "HQImage.jpg";
 
-		// init RMI
-		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
-		
 
 		initShutdownHook();
 		discover();
 		listenToNewNodes();
 		listenToNeighborRequests();
 
+		// init RMI
+		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
+		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);		
 		
-		
-		
+		/*
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
 		System.out.println("DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n " + "DNS Server RMI tree map return : "
 				+ nsi.getIPAddress(requestedFile));
@@ -85,6 +83,7 @@ public class Node
 		TCP fileClient = new TCP(tcpFileTranferPort, nsi.getIPAddress(requestedFile));
 		fileClient.receiveFile(requestedFile);
 		//As simple as that!
+		*/
 		
 	}
 	
@@ -116,6 +115,7 @@ public class Node
 	 * Send discover request with node data to nameserver
 	 */
 	private static void discover() {
+		System.out.println("Discover");
 		// Request
 		int sendMulticastPort = 2000;
 		String Message = me.toData();

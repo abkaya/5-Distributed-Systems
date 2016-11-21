@@ -180,7 +180,6 @@ public class TCP
 					InputStreamReader isr = new InputStreamReader(is);
 					BufferedReader br = new BufferedReader(isr);
 					text = br.readLine();
-					System.out.println("DEBUG 1  ");
 				} catch (NumberFormatException | IOException nfe)
 				{
 					System.err.println("TCP/receiveText exception - Could not receive txt");

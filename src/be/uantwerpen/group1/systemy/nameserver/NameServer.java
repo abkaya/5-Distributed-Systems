@@ -50,7 +50,7 @@ public class NameServer implements NameServerInterface
 			 * letting it know what our DNS server IP is. He got to us, but it doesn't know
 			 * our IP yet. That what this retransmission is about.
 			 */
-			TCP dnsIPRetransmission = new TCP(tcpDNSRetransmissionPort, hostnameIP[1]);
+			TCP dnsIPRetransmission = new TCP(tcpDNSRetransmissionPort, hostIP);
 			dnsIPRetransmission.sendText(nameServerIP);
 			// Multicast data about new node
 			multicastMessage = hostName + "," + nsr.hashing(hostName) + "," + hostIP + "," + nsr.getSize();
