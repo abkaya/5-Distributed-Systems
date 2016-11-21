@@ -5,12 +5,21 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
+import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
+import be.uantwerpen.group1.systemy.networking.RMI;
+import be.uantwerpen.group1.systemy.networking.TCP;
+
 public class Replicator implements ReplicatorInterface, Runnable
 {
 	List<String> ownedFiles;
 	List<String> localFiles;
 	List<String> downloadedFiles;
+	String nodeIP = null;
 	String dnsIP = null;
+	int dnsPort = 0;
+	int tcpFileTranferPort = 0;
+	String remoteNSName = "NameServerInterface";
+	NameServerInterface nsi = null;
 	
 	@Override
 	public String getOwnerLocation(String fileName) throws RemoteException
@@ -70,8 +79,8 @@ public class Replicator implements ReplicatorInterface, Runnable
 	 * @param nameToConvert : the string of which a hash will be returned
 	 * @return the hash of nameToConvert
 	 */
-	public int hashing(String nameToConvert) {
-		return (Math.abs((nameToConvert.hashCode())) % 32768);
+	public String hash(String nameToConvert) {
+		return Integer.toString((Math.abs((nameToConvert.hashCode())) % 32768));
 	}
 	
 	/**
@@ -92,18 +101,57 @@ public class Replicator implements ReplicatorInterface, Runnable
 		return localFiles;
 	}
 
+    /**
+     * @param nodeIP
+     * @param tcpFileTranferPort
+     * @param dnsIP
+     * @param dnsPort
+     */
+    public Replicator(String nodeIP, int tcpFileTranferPort, String dnsIP, int dnsPort)
+	{
+    	this.tcpFileTranferPort = tcpFileTranferPort;
+    	this.nodeIP = nodeIP;
+		this.dnsIP = dnsIP;
+		this.dnsPort = dnsPort;
+	}
 	
 	@Override
 	public void run()
 	{
-		/*
-		 * This method will iteratively gain its functionality.
-		 * It currently lists its own local files.
-		 */
 		localFiles = getLocalFiles();
+		
+		/*
+		 * This block listens for incoming requests to send files.
+		 */
+		TCP fileServer = new TCP(nodeIP, tcpFileTranferPort);
+		new Thread(() ->
+		{
+			fileServer.listenToSendFile();
+		}).start();
+		
+		
+		/*
+		 * This block creates the name server stub to use the NS its remote methods
+		 */
+		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
+		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
+		
+		/*
+		 * Get the file location for all current files
+		 */
 		for (String localFile : localFiles)
 		{
+			System.out.println("---Replication Thread----");
 			System.out.println(localFile);
+			try
+			{
+				System.out.println(nsi.getFileLocation(hash(localFile)));
+			} catch (RemoteException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+		
 	}
 }

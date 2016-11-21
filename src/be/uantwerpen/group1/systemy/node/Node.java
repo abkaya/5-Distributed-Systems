@@ -27,9 +27,9 @@ public class Node implements NodeInterface
 		 * this is our IP, we now assume not to have the DNS IP, which we'll receive after retransmission by the DNS server over a TCP
 		 * socket.
 		 */
-		String host = "192.168.1.103";
+		String nodeIP = "192.168.1.101";
 		String dnsIP = null;
-		String hostnameIP = "Node1,192.168.1.103";
+		String hostnameIP = "Node1,192.168.1.101";
 
 		/* Don't mind the awful port names. It's just to get everyone acquainted with them */
 		int dnsPort = 1099;
@@ -50,7 +50,7 @@ public class Node implements NodeInterface
 		 * Now we imagine we don't have a clue what the DNS IP is, and hope for TCP retransmission to get ahold of the DNS server's IP.
 		 * We'll await for the DNS server to get back at us and continue with RMI once we get it.
 		 */
-		TCP dnsIPReceiver = new TCP(host, tcpDNSRetransmissionPort);
+		TCP dnsIPReceiver = new TCP(nodeIP, tcpDNSRetransmissionPort);
 		dnsIP = dnsIPReceiver.receiveText();
 
 		/*
@@ -62,27 +62,19 @@ public class Node implements NodeInterface
 		/*
 		 * once the DNS IP address is known, the replicator can start and run autonomously.
 		 */
-		Replicator rep = new Replicator();
+		Replicator rep = new Replicator(nodeIP, tcpFileTranferPort, dnsIP, dnsPort);
+		rep.run();
 
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
 		SystemyLogger.log(Level.INFO, logName + "DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n "
-				+ "DNS Server RMI tree map return : " + nsi.getIPAddress(requestedFile));
+				+ "DNS Server RMI tree map return : " + nsi.getFileLocation(rep.hash(requestedFile)));
 		// System.out.println("DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n "
 		// + "DNS Server RMI tree map return : " + nsi.getIPAddress(requestedFile));
 
-		// Temporarily using the same node as if it were some other node hosting files
-
-		TCP fileServer = new TCP(host, tcpFileTranferPort);
-		new Thread(() ->
-		{
-			fileServer.listenToSendFile();
-		}).start();
 
 		// request the file from the server hosting it, according to the dns server
-		TCP fileClient = new TCP(tcpFileTranferPort, nsi.getIPAddress(requestedFile));
+		TCP fileClient = new TCP(tcpFileTranferPort, nsi.getFileLocation(rep.hash(requestedFile)));
 		fileClient.receiveFile(requestedFile);
-		// As simple as that!
-
 	}
 
 }
