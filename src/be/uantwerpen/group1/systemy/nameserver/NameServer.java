@@ -8,15 +8,18 @@ import be.uantwerpen.group1.systemy.logging.SystemyLogger;
 import java.util.logging.Level;
 
 public class NameServer implements NameServerInterface {
-	
+
 	private static String logName = NameServer.class.getName() + " >> ";
+	private static String nameServerIP;
+	private static String multicastPort;
+	private static String tcpDNSRetransmissionPort;
 
 	static NameServerRegister nsr = new NameServerRegister(false);
 
 	public static void main(String args[]) {
-		String nameServerIP = "192.168.1.103";
-		int multicastPort = 2000;
-		int tcpDNSRetransmissionPort = 2002;
+		nameServerIP = "192.168.1.103";
+		multicastPort = "2000";
+		tcpDNSRetransmissionPort = "2002";
 
 		NameServerInterface nsi = new NameServer();
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>(nameServerIP, "NameServerInterface", nsi);
@@ -25,7 +28,7 @@ public class NameServer implements NameServerInterface {
 		 * New nodes will apply to join the multicast group, be added to the DNS registry,
 		 * and will receive the DNS IP through TCP retransmission
 		 */
-		MulticastListener multicastListener = new MulticastListener("234.0.113.0", multicastPort);
+		MulticastListener multicastListener = new MulticastListener("234.0.113.0", Integer.parseInt(multicastPort));
 		new Thread(() -> {
 			while (true) {
 				String[] hostnameIP;
@@ -39,7 +42,7 @@ public class NameServer implements NameServerInterface {
 				 * letting it know what our DNS server IP is. He got to us, but it doesn't know
 				 * our IP yet. That what this retransmission is about.
 				 */
-				TCP dnsIPRetransmission = new TCP(tcpDNSRetransmissionPort, hostnameIP[1]);
+				TCP dnsIPRetransmission = new TCP(Integer.parseInt(tcpDNSRetransmissionPort), hostnameIP[1]);
 				dnsIPRetransmission.sendText(nameServerIP);
 			}
 		}).start();

@@ -12,18 +12,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-public class SystemyLogger {
+public class DebugLogger {
 
-	static Logger SystemyLogger;
+	static Logger DebugLogger;
 	FileHandler fileHandler;
 
-	private SystemyLogger() throws IOException {
+	private DebugLogger() throws IOException {
 
-		SystemyLogger = Logger.getLogger("SystemyLogger");
-		SystemyLogger.setLevel(Level.ALL);
-		SystemyLogger.setUseParentHandlers(false);
-		fileHandler = new FileHandler("SystemyLogger.log");
-		SystemyLogger.addHandler(fileHandler);
+		DebugLogger = Logger.getLogger("DebugLogger");
+		DebugLogger.setLevel(Level.ALL);
+		DebugLogger.setUseParentHandlers(false);
+		fileHandler = new FileHandler("DebugLogger.log");
+		DebugLogger.addHandler(fileHandler);
 		fileHandler.setFormatter(new SimpleFormatter());
 	}
 
@@ -32,15 +32,15 @@ public class SystemyLogger {
 	 * @return the logger
 	 */
 	private static Logger getLogger() {
-		if (SystemyLogger == null) {
+		if (DebugLogger == null) {
 			try {
-				new SystemyLogger();
+				new DebugLogger();
 			} catch (Exception e) {
 				// TODO: handle exception
 				e.printStackTrace();
 			}
 		}
-		return SystemyLogger;
+		return DebugLogger;
 	}
 
 	/**
