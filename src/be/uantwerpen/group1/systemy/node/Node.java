@@ -120,6 +120,7 @@ public class Node
 		int sendMulticastPort = 2000;
 		String Message = me.toData();
 		MulticastSender.send("234.0.113.0", sendMulticastPort, Message);
+		System.out.println("Send multicast message: " + Message);
 		// Response
 		int tcpDNSRetransmissionPort = 2003;
 		TCP dnsIPReceiver = new TCP(me.getIP(), tcpDNSRetransmissionPort);

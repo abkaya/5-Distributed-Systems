@@ -48,7 +48,7 @@ public class NameServer implements NameServerInterface
 			nsr.addNode(hostName, hostIP);
 			/*After having received the IP address of a new node, we need to send it a reply,
 			 * letting it know what our DNS server IP is. He got to us, but it doesn't know
-			 * our IP yet. That what this retransmission is about.
+			 * our IP yet. That what this retran	smission is about.
 			 */
 			TCP dnsIPRetransmission = new TCP(tcpDNSRetransmissionPort, hostIP);
 			dnsIPRetransmission.sendText(nameServerIP);

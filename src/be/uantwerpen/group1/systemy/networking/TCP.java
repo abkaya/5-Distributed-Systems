@@ -72,15 +72,17 @@ public class TCP
 	 */
 	public TCP(int port, String host)
 	{
-		try	
-		{
-			this.clientSocket = new Socket(host, port);
-			System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress().getHostAddress() + ", port :" + clientSocket
-					.getLocalPort());
-			System.out.println("- Socket connection established with server : " + host + ", port : " + port);
-		} catch (IOException e)
-		{
-			System.err.println("clientsocket exception : could not connect to " + host + ":" + port);
+		while(clientSocket == null) {
+			try	
+			{
+				this.clientSocket = new Socket(host, port);
+				System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress().getHostAddress() + ", port :" + clientSocket
+						.getLocalPort());
+				System.out.println("- Socket connection established with server : " + host + ", port : " + port);
+			} catch (IOException e)
+			{
+				System.err.println("clientsocket exception : could not connect to " + host + ":" + port);
+			}
 		}
 	}
 
