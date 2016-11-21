@@ -10,51 +10,7 @@ import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
 public class Node implements NodeInterface
-{
-	List<String> ownedFiles;
-	List<String> localFiles;
-	List<String> downloadedFiles;
-	
-	/**
-	 * RMI method used by other nodes to check whether or not this node already knows it owns a file
-	 */
-	@Override
-	public boolean hasOwnedFile(String fileName) throws RemoteException
-	{
-		for(String files : ownedFiles)
-		{
-			if(files == fileName)
-				return true;
-		}
-		return false;
-	}
-
-	/**
-	 * RMI method used by other nodes to check whether or not this node has a file available locally
-	 */
-	@Override
-	public boolean hasLocalFile(String fileName) throws RemoteException
-	{
-		for(String files : ownedFiles)
-		{
-			if(files == fileName)
-				return true;
-		}
-		return false;
-	}
-	
-	@Override
-	public void addOwnedFile(String fileName) throws RemoteException
-	{
-		ownedFiles.add(fileName);
-	}
-
-	@Override
-	public void addLocalFile(String fileName) throws RemoteException
-	{
-		localFiles.add(fileName);
-	}
-	
+{	
 	private static String logName = Node.class.getName() + " >> ";
 
 	public static void main(String args[]) throws RemoteException
@@ -97,8 +53,16 @@ public class Node implements NodeInterface
 		TCP dnsIPReceiver = new TCP(host, tcpDNSRetransmissionPort);
 		dnsIP = dnsIPReceiver.receiveText();
 
+		/*
+		 * Once the DNS IP address is known, RMI on the nameserver can commence
+		 */
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
+		
+		/*
+		 * once the DNS IP address is known, the replicator can start and run autonomously.
+		 */
+		Replicator rep = new Replicator();
 
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
 		SystemyLogger.log(Level.INFO, logName + "DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n "
