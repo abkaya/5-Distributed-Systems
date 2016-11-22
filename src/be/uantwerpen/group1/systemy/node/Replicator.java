@@ -20,13 +20,13 @@ public class Replicator implements ReplicatorInterface, Runnable
 	int tcpFileTranferPort = 0;
 	String remoteNSName = "NameServerInterface";
 	NameServerInterface nsi = null;
-	
+
 	@Override
 	public String getOwnerLocation(String fileName) throws RemoteException
 	{
 		return null;
 	}
-	
+
 	/**
 	 * RMI method used by other nodes to check whether or not this node already knows it owns a file
 	 */
@@ -44,22 +44,23 @@ public class Replicator implements ReplicatorInterface, Runnable
 	{
 		return isFileInList(fileName, localFiles);
 	}
-	
+
 	/**
 	 * Private method used to check whether or not a list of strings contains a String
 	 * @param str
 	 * @param list
 	 * @return boolean : true if list contains string
 	 */
-	private boolean isFileInList(String str, List<String> list){
-		for(String files : list)
+	private boolean isFileInList(String str, List<String> list)
+	{
+		for (String files : list)
 		{
-			if(files == str)
+			if (files == str)
 				return true;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * The ownership of a file is set remotely by another node
 	 */
@@ -77,17 +78,18 @@ public class Replicator implements ReplicatorInterface, Runnable
 	{
 		localFiles.add(fileName);
 	}
-	
+
 	/**
 	 * Hashes the passed string
 	 * The has is bound to range : 0 - 32768
 	 * @param nameToConvert : the string of which a hash will be returned
 	 * @return the hash of nameToConvert
 	 */
-	public String hash(String nameToConvert) {
+	public String hash(String nameToConvert)
+	{
 		return Integer.toString((Math.abs((nameToConvert.hashCode())) % 32768));
 	}
-	
+
 	/**
 	 * Returns a list of the local files within the relative directory localFiles/
 	 * @return List<String> localFiles
@@ -106,27 +108,27 @@ public class Replicator implements ReplicatorInterface, Runnable
 		return localFiles;
 	}
 
-    /**
-     * Replicator constructor 
-     * @param nodeIP
-     * @param tcpFileTranferPort
-     * @param dnsIP
-     * @param dnsPort
-     */
-    public Replicator(String nodeIP, int tcpFileTranferPort, String dnsIP, int dnsPort)
+	/**
+	 * Replicator constructor 
+	 * @param nodeIP
+	 * @param tcpFileTranferPort
+	 * @param dnsIP
+	 * @param dnsPort
+	 */
+	public Replicator(String nodeIP, int tcpFileTranferPort, String dnsIP, int dnsPort)
 	{
-    	this.tcpFileTranferPort = tcpFileTranferPort;
-    	this.nodeIP = nodeIP;
+		this.tcpFileTranferPort = tcpFileTranferPort;
+		this.nodeIP = nodeIP;
 		this.dnsIP = dnsIP;
 		this.dnsPort = dnsPort;
 	}
-	
+
 	@Override
 	public void run()
 	{
 		localFiles = getLocalFiles();
 		TCP fileClient = null;
-		
+
 		/*
 		 * This block listens for incoming requests by other nodes who wish to receive files
 		 */
@@ -135,15 +137,13 @@ public class Replicator implements ReplicatorInterface, Runnable
 		{
 			fileServer.listenToSendFile();
 		}).start();
-		
-		
+
 		/*
 		 * This block creates the name server stub to use the NS its remote methods
 		 */
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
-		
-		
+
 		/*
 		 * Get the file location for all current files
 		 */
@@ -153,23 +153,22 @@ public class Replicator implements ReplicatorInterface, Runnable
 			System.out.println(localFile);
 			try
 			{
-			fileClient = new TCP(tcpFileTranferPort, nsi.getFileLocation(hash(localFile)));
-			fileClient.receiveFile(localFile);
-			System.out.println(localFile + " owner request from name server returns: " + nsi.getFileLocation(hash(localFile)));
+				fileClient = new TCP(tcpFileTranferPort, nsi.getFileLocation(hash(localFile)));
+				fileClient.receiveFile(localFile);
+				System.out.println(localFile + " owner request from name server returns: " + nsi.getFileLocation(hash(localFile)));
 			} catch (RemoteException e)
 			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		
-		//This line is where startup ends! From here on out, everything update related is handled.
-		
+
+		// This line is where startup ends! From here on out, everything update related is handled.
+
 		/*
-		 * Update will check for events in the directory containing the local files. 
-		 * Rather than polling, we will use event based checks. https://docs.oracle.com/javase/tutorial/essential/io/notification.html
+		 * Update will check for events in the directory containing the local files. Rather than polling, we will use event based checks.
+		 * https://docs.oracle.com/javase/tutorial/essential/io/notification.html
 		 */
-		
-		
+
 	}
 }
