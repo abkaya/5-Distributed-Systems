@@ -119,9 +119,10 @@ public class Replicator implements ReplicatorInterface, Runnable
 	public void run()
 	{
 		localFiles = getLocalFiles();
+		TCP fileClient = null;
 		
 		/*
-		 * This block listens for incoming requests to send files.
+		 * This block listens for incoming requests by other nodes who wish to receive files
 		 */
 		TCP fileServer = new TCP(nodeIP, tcpFileTranferPort);
 		new Thread(() ->
@@ -136,6 +137,7 @@ public class Replicator implements ReplicatorInterface, Runnable
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
 		
+		
 		/*
 		 * Get the file location for all current files
 		 */
@@ -145,7 +147,9 @@ public class Replicator implements ReplicatorInterface, Runnable
 			System.out.println(localFile);
 			try
 			{
-				System.out.println(nsi.getFileLocation(hash(localFile)));
+			fileClient = new TCP(tcpFileTranferPort, nsi.getFileLocation(hash(localFile)));
+			fileClient.receiveFile(localFile);
+			System.out.println(localFile + " owner request from name server returns: " + nsi.getFileLocation(hash(localFile)));
 			} catch (RemoteException e)
 			{
 				// TODO Auto-generated catch block

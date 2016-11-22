@@ -14,7 +14,7 @@ public class NameServer implements NameServerInterface {
 	static NameServerRegister nsr = new NameServerRegister(false);
 
 	public static void main(String args[]) {
-		String nameServerIP = "192.168.1.101";
+		String nameServerIP = "192.168.56.1";
 		int multicastPort = 2000;
 		int tcpDNSRetransmissionPort = 2002;
 

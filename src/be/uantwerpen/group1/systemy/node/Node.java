@@ -27,9 +27,9 @@ public class Node implements NodeInterface
 		 * this is our IP, we now assume not to have the DNS IP, which we'll receive after retransmission by the DNS server over a TCP
 		 * socket.
 		 */
-		String nodeIP = "192.168.1.101";
+		String nodeIP = "192.168.56.1";
 		String dnsIP = null;
-		String hostnameIP = "Node1,192.168.1.101";
+		String hostnameIP = "Node1,192.168.56.1";
 
 		/* Don't mind the awful port names. It's just to get everyone acquainted with them */
 		int dnsPort = 1099;
@@ -64,17 +64,6 @@ public class Node implements NodeInterface
 		 */
 		Replicator rep = new Replicator(nodeIP, tcpFileTranferPort, dnsIP, dnsPort);
 		rep.run();
-
-		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
-		SystemyLogger.log(Level.INFO, logName + "DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n "
-				+ "DNS Server RMI tree map return : " + nsi.getFileLocation(rep.hash(requestedFile)));
-		// System.out.println("DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n "
-		// + "DNS Server RMI tree map return : " + nsi.getIPAddress(requestedFile));
-
-
-		// request the file from the server hosting it, according to the dns server
-		TCP fileClient = new TCP(tcpFileTranferPort, nsi.getFileLocation(rep.hash(requestedFile)));
-		fileClient.receiveFile(requestedFile);
 	}
 
 }
