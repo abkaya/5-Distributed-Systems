@@ -36,7 +36,6 @@ public class Node implements NodeInterface
 		int multicastPort = 2000;
 		int tcpFileTranferPort = 2001;
 		int tcpDNSRetransmissionPort = 2002;
-		String requestedFile = "HQImage.jpg";
 
 		/*
 		 * Assessing one's IP address can become tricky when multiple network interfaces are involved. For instance, I'm getting the APIPA

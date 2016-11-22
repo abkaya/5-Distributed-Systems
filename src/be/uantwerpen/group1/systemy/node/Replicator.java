@@ -153,9 +153,9 @@ public class Replicator implements ReplicatorInterface, Runnable
 			System.out.println(localFile);
 			try
 			{
-				fileClient = new TCP(tcpFileTranferPort, nsi.getIPAddress(hash(localFile)));
+				fileClient = new TCP(tcpFileTranferPort, nsi.getFileLocation(hash(localFile)));
 				fileClient.receiveFile(localFile);
-				System.out.println(localFile + " owner request from name server returns: " + nsi.getIPAddress(hash(localFile)));
+				System.out.println(localFile + " owner request from name server returns: " + nsi.getFileLocation(hash(localFile)));
 			} catch (RemoteException e)
 			{
 				// TODO Auto-generated catch block

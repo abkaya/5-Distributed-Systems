@@ -47,7 +47,7 @@ public class NameServer implements NameServerInterface {
 	}
 
 	@Override
-	public String getIPAddress(String fileName) {
+	public String getFileLocation(String fileName) {
 		return nsr.getFileLocation(fileName);
 	}
 

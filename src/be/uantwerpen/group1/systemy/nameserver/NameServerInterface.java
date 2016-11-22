@@ -11,5 +11,5 @@ import java.rmi.RemoteException;
  *
  */
 public interface NameServerInterface extends Remote {
-	String getIPAddress(String fileName) throws RemoteException;
+	String getFileLocation(String fileName) throws RemoteException;
 }
