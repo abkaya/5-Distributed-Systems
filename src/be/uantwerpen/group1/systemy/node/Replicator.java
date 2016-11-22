@@ -33,12 +33,7 @@ public class Replicator implements ReplicatorInterface, Runnable
 	@Override
 	public boolean hasOwnedFile(String fileName) throws RemoteException
 	{
-		for(String files : ownedFiles)
-		{
-			if(files == fileName)
-				return true;
-		}
-		return false;
+		return isFileInList(fileName, ownedFiles);
 	}
 
 	/**
@@ -47,9 +42,19 @@ public class Replicator implements ReplicatorInterface, Runnable
 	@Override
 	public boolean hasLocalFile(String fileName) throws RemoteException
 	{
-		for(String files : localFiles)
+		return isFileInList(fileName, localFiles);
+	}
+	
+	/**
+	 * Private method used to check whether or not a list of strings contains a String
+	 * @param str
+	 * @param list
+	 * @return boolean : true if list contains string
+	 */
+	private boolean isFileInList(String str, List<String> list){
+		for(String files : list)
 		{
-			if(files == fileName)
+			if(files == str)
 				return true;
 		}
 		return false;
@@ -102,6 +107,7 @@ public class Replicator implements ReplicatorInterface, Runnable
 	}
 
     /**
+     * Replicator constructor 
      * @param nodeIP
      * @param tcpFileTranferPort
      * @param dnsIP
@@ -156,6 +162,14 @@ public class Replicator implements ReplicatorInterface, Runnable
 				e.printStackTrace();
 			}
 		}
+		
+		//This line is where startup ends! From here on out, everything update related is handled.
+		
+		/*
+		 * Update will check for events in the directory containing the local files. 
+		 * Rather than polling, we will use event based checks. https://docs.oracle.com/javase/tutorial/essential/io/notification.html
+		 */
+		
 		
 	}
 }
