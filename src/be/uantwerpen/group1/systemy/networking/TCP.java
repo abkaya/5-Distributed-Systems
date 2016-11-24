@@ -13,6 +13,18 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.*;
+<<<<<<< HEAD
+=======
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+
+import be.uantwerpen.group1.systemy.logging.SystemyLogger;
+import be.uantwerpen.group1.systemy.nameserver.NameServer;
+>>>>>>> master
 
 /**
  * TCP class. A distinction between client and server is initially made 
@@ -30,6 +42,9 @@ import java.net.*;
  */
 public class TCP
 {
+
+	private static String logName = TCP.class.getName() + " >> ";
+
 	/* sockets */
 	private ServerSocket serverSocket = null;
 
@@ -56,10 +71,21 @@ public class TCP
 		try
 		{
 			this.serverSocket = new ServerSocket(port, 0, InetAddress.getByName(host));
+<<<<<<< HEAD
 			System.out.println("- Opened server socket on IP: " + serverSocket.getInetAddress().getHostAddress() + ", port (local) :" + port);
 		} catch (IOException e1)
 		{
 			e1.printStackTrace();
+=======
+			SystemyLogger.log(Level.INFO, logName + "- Opened server socket on IP: " + serverSocket.getInetAddress() + ", port (local) :"
+					+ port);
+			// System.out.println(
+			// "- Opened server socket on IP: " + serverSocket.getInetAddress() + ", port (local) :" + port);
+		} catch (IOException e1)
+		{
+			SystemyLogger.log(Level.SEVERE, logName + "Could not start the Server Socket on " + host + ":" + port);
+			// System.err.println("Could not start the Server Socket on " + host + ":" + port);
+>>>>>>> master
 		}
 	}
 
@@ -72,6 +98,7 @@ public class TCP
 	 */
 	public TCP(int port, String host)
 	{
+<<<<<<< HEAD
 		while(clientSocket == null) {
 			try	
 			{
@@ -83,6 +110,21 @@ public class TCP
 			{
 				System.err.println("clientsocket exception : could not connect to " + host + ":" + port);
 			}
+=======
+		try
+		{
+			this.clientSocket = new Socket(host, port);
+			SystemyLogger.log(Level.INFO, logName + "- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :"
+					+ clientSocket.getLocalPort());
+			SystemyLogger.log(Level.INFO, logName + "- Socket connection established with server : " + host + ", port : " + port);
+			// System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :"
+			// + clientSocket.getLocalPort());
+			// System.out.println("- Socket connection established with server : " + host + ", port : " + port);
+		} catch (IOException e)
+		{
+			SystemyLogger.log(Level.SEVERE, logName + "clientsocket exception : could not connect to " + host + ":" + port);
+			// System.err.println("clientsocket exception : could not connect to " + host + ":" + port);
+>>>>>>> master
 		}
 	}
 
@@ -119,7 +161,8 @@ public class TCP
 
 			} catch (IOException e)
 			{
-				System.err.println("Could not accept a client socket connection");
+				SystemyLogger.log(Level.SEVERE, logName + "Could not accept a client socket connection");
+				// System.err.println("Could not accept a client socket connection");
 			}
 
 		}
@@ -139,16 +182,18 @@ public class TCP
 			InputStreamReader isr = new InputStreamReader(is);
 			BufferedReader br = new BufferedReader(isr);
 			String fileName = br.readLine();
-			if (new File("tosend\\" + fileName).isFile())
-				fileToSend = new File("tosend\\" + fileName);
+			if (new File("localFiles/" + fileName).isFile())
+				fileToSend = new File("localFiles/" + fileName);
 			else
 				return null;
-			System.out.println("- Client requests file with name: " + fileName);
+			SystemyLogger.log(Level.INFO, logName + "- Client requests file with name: " + fileName);
+			// System.out.println("- Client requests file with name: " + fileName);
 			return fileToSend;
 
 		} catch (Exception e)
 		{
-			e.printStackTrace();
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			// e.printStackTrace();
 			return null;
 		}
 	}
@@ -182,17 +227,24 @@ public class TCP
 					InputStreamReader isr = new InputStreamReader(is);
 					BufferedReader br = new BufferedReader(isr);
 					text = br.readLine();
+<<<<<<< HEAD
+=======
+					SystemyLogger.log(Level.INFO, logName + "DEBUG 1  ");
+					// System.out.println("DEBUG 1 ");
+>>>>>>> master
 				} catch (NumberFormatException | IOException nfe)
 				{
-					System.err.println("TCP/receiveText exception - Could not receive txt");
+					SystemyLogger.log(Level.SEVERE, logName + "TCP/receiveText exception - Could not receive txt");
 				}
-				System.out.println("- Client responded with Text : " + text);
+				SystemyLogger.log(Level.INFO, logName + "- Client responded with Text : " + text);
+				// System.out.println("- Client responded with Text : " + text);
 				close(clientSocket);
 				return text;
 			}
 		} catch (Exception e)
 		{
-			e.printStackTrace();
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			// e.printStackTrace();
 			close(clientSocket);
 			return text;
 		}
@@ -213,12 +265,14 @@ public class TCP
 			OutputStreamWriter osw = new OutputStreamWriter(os);
 			BufferedWriter bw = new BufferedWriter(osw);
 			bw.write(textToSend);
-			System.out.println("Sending text : " + textToSend);
+			SystemyLogger.log(Level.INFO, logName + "Sending text : " + textToSend);
+			// System.out.println("Sending text : " + textToSend);
 			bw.flush();
 			close(clientSocket);
 		} catch (Exception e)
 		{
-			e.printStackTrace();
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			// e.printStackTrace();
 		}
 	}
 
@@ -244,7 +298,8 @@ public class TCP
 			return true;
 		} catch (Exception e)
 		{
-			e.printStackTrace();
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			// e.printStackTrace();
 			return false;
 		}
 	}
@@ -267,15 +322,18 @@ public class TCP
 				BufferedInputStream bis = new BufferedInputStream(fis);
 				bis.read(mybytearray, 0, mybytearray.length);
 				OutputStream os = clientSocket.getOutputStream();
-				System.out.println("- Sending : " + fileToSend + "(" + mybytearray.length + " bytes)");
+				SystemyLogger.log(Level.INFO, logName + "- Sending : " + fileToSend + "(" + mybytearray.length + " bytes)");
+				// System.out.println("- Sending : " + fileToSend + "(" + mybytearray.length + " bytes)");
 				os.write(mybytearray, 0, mybytearray.length);
 				os.flush();
 				os.close();
 				bis.close();
-				System.out.println("*- File uploaded. Job well done.");
+				SystemyLogger.log(Level.INFO, logName + "*- File uploaded. Job well done.");
+				// System.out.println("*- File uploaded. Job well done.");
 			} catch (Exception e)
 			{
-				e.printStackTrace();
+				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+				// e.printStackTrace();
 			}
 		}
 
@@ -298,11 +356,13 @@ public class TCP
 			String sendMessage = fileName + "\n";
 			bw.write(sendMessage);
 			bw.flush();
-			System.out.println("- Requesting following file from the server : " + fileName);
+			SystemyLogger.log(Level.INFO, logName + "- Requesting following file from the server : " + fileName);
+			// System.out.println("- Requesting following file from the server : " + fileName);
 			return true;
 		} catch (Exception e)
 		{
-			e.printStackTrace();
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			// e.printStackTrace();
 			return false;
 		}
 	}
@@ -325,13 +385,16 @@ public class TCP
 				fileSize = Integer.parseInt(br.readLine());
 			} catch (NumberFormatException nfe)
 			{
-				System.err.println("Could not receive the file size");
+				SystemyLogger.log(Level.SEVERE, logName + "Could not receive the file size");
+				// System.err.println("Could not receive the file size");
 			}
-			System.out.println("- Server responded with filesize : " + fileSize);
+			SystemyLogger.log(Level.INFO, logName + "- Server responded with filesize : " + fileSize);
+			// System.out.println("- Server responded with filesize : " + fileSize);
 			return fileSize;
 		} catch (Exception e)
 		{
-			e.printStackTrace();
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			// e.printStackTrace();
 			return 0;
 		}
 	}
@@ -362,7 +425,8 @@ public class TCP
 
 				// A buffer, used to splice and receive data in chunks
 				byte[] byteArray = new byte[1024];
-				System.out.println("- Downloading file: ");
+				SystemyLogger.log(Level.INFO, logName + "- Downloading file: ");
+				// System.out.println("- Downloading file: ");
 
 				// reading file from socket
 				try
@@ -370,7 +434,8 @@ public class TCP
 					inputStream = this.clientSocket.getInputStream();
 				} catch (SocketException se)
 				{
-					se.printStackTrace();
+					SystemyLogger.log(Level.SEVERE, logName + se.getMessage());
+					// se.printStackTrace();
 				}
 				FileOutputStream fileOutputStream = new FileOutputStream(fileName);
 				BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
@@ -387,7 +452,8 @@ public class TCP
 					if (progress % 10 == 0 && prevProgress != progress)
 					{
 						prevProgress = progress;
-						System.out.println("- Progress: " + progress + "%");
+						SystemyLogger.log(Level.INFO, logName + "- Progress: " + progress + "%");
+						// System.out.println("- Progress: " + progress + "%");
 					}
 
 					try
@@ -395,7 +461,8 @@ public class TCP
 						bufferedOutputStream.write(byteArray, 0, bytesRead);
 					} catch (SocketException se)
 					{
-						se.printStackTrace();
+						SystemyLogger.log(Level.SEVERE, logName + se.getMessage());
+						// se.printStackTrace();
 					}
 
 				} while ((bytesRead = inputStream.read(byteArray)) >= 0);
@@ -404,11 +471,13 @@ public class TCP
 				bufferedOutputStream.close();
 				inputStream.close();
 				this.clientSocket.close();
-				System.out.println("*-Requested file is downloaded");
+				SystemyLogger.log(Level.INFO, logName + "*-Requested file is downloaded");
+				// System.out.println("*-Requested file is downloaded");
 
 			} catch (IOException e)
 			{
-				e.printStackTrace();
+				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+				// e.printStackTrace();
 			}
 		}
 
@@ -424,13 +493,15 @@ public class TCP
 	private void close(Socket clientSocket)
 	{
 		{
-			System.out.println("*- Closing client socket on port: " + clientSocket.getPort());
+			SystemyLogger.log(Level.INFO, logName + "*- Closing client socket on port: " + clientSocket.getPort());
+			// System.out.println("*- Closing client socket on port: " + clientSocket.getPort());
 			try
 			{
 				clientSocket.close();
 			} catch (IOException e)
 			{
-				e.printStackTrace();
+				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+				// e.printStackTrace();
 			}
 		}
 	}

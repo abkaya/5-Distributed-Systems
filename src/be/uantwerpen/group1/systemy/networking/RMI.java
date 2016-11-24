@@ -11,21 +11,27 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.logging.Level;
+
+import be.uantwerpen.group1.systemy.logging.SystemyLogger;
 
 /**
  * RMI class which can be used bind objects from different types in the
  * registry, using Generics, or simply request registries on remote or local
  * machines. usage: RMI<Type> rmi = new RMI<Type>(...);
- * 
+ *
  * @author Abdil Kaya
  *
  */
 public class RMI<T>
 {
+
+	private static String logName = RMI.class.getName() + " >> ";
+
 	/** Remote method invocation registry */
 	private Registry registry = null;
 
-	/** 
+	/**
 	 * Constructor w/o parameters typically used by nodes which don't need to start
 	 * an rmi registry or bind objects to it
 	 */
@@ -36,7 +42,7 @@ public class RMI<T>
 
 	/**
 	 * Constructor for RMI servers Starts the rmi registry on this machine on a given port.
-	 * 
+	 *
 	 * @param hostName : The IP address of the name server
 	 * @param name : name to bind the remote reference to in the registry
 	 * @param obj : Object of which to create a stub
@@ -52,7 +58,7 @@ public class RMI<T>
 
 	/**
 	 * Constructor for RMI servers Starts the rmi registry on this machine on port 1099.
-	 * 
+	 *
 	 * @param hostName : The IP address of the name server
 	 * @param name : name to bind the remote reference to in the registry
 	 * @param obj : Object of which to create a stub
@@ -73,14 +79,15 @@ public class RMI<T>
 			registry = LocateRegistry.createRegistry(port);
 		} catch (RemoteException e)
 		{
-			System.err.println("The rmi registry might already be running or port " + port + " is in use.");
+			SystemyLogger.log(Level.SEVERE, logName + "The rmi registry might already be running or port " + port + " is in use.");
+			// System.err.println("The rmi registry might already be running or port " + port + " is in use.");
 		}
 	}
 
 	/**
 	 * Returns the rmi registry on host with `hostName`, or null if the registry
 	 * doesn't exist This method will typically be used by the client nodes.
-	 * 
+	 *
 	 * @param hostName : name of the server on which the registry is running
 	 * @return registry
 	 */
@@ -92,6 +99,7 @@ public class RMI<T>
 			registry = LocateRegistry.getRegistry(hostName, port);
 		} catch (RemoteException e)
 		{
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 			return null;
 		}
 		return registry;
@@ -99,8 +107,8 @@ public class RMI<T>
 
 	/**
 	 * Method to bind a remote object in the rmi registry of the local server
-	 * (may or may not be the local port). 
-	 * 
+	 * (may or may not be the local port).
+	 *
 	 * @param name : name to bind the remote object to in the registry
 	 * @param obj  : skeleton of the remote object to bind in the registry
 	 * @return boolean result to check whether or not calling this method failed
@@ -112,10 +120,12 @@ public class RMI<T>
 		{
 			T stub = (T) UnicastRemoteObject.exportObject((Remote) obj, 0);
 			registry.rebind(name, (Remote) stub);
-			System.out.println(name + " bound");
+			SystemyLogger.log(Level.INFO, logName + name + "bound");
+			// System.out.println(name + " bound");
 			return true;
 		} catch (RemoteException e)
 		{
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 			return false;
 		}
 	}
@@ -123,7 +133,7 @@ public class RMI<T>
 	/**
 	 * Returns the stub of the remote object requested. Requires the name it was bound to in the registry.
 	 * This method is to be used by nodes utilising
-	 *  
+	 *
 	 * @param obj : an object of the interface to which the stub will be returned
 	 * @param name : name of the remote object as it was bound in the registry
 	 * @param hostName : hostName running  the rmi registry
@@ -139,6 +149,7 @@ public class RMI<T>
 			obj = (T) registry.lookup(name);
 		} catch (RemoteException | NotBoundException e)
 		{
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 			return null;
 		}
 		return obj;
@@ -148,7 +159,7 @@ public class RMI<T>
 	 * Sets required user java policies in their home folder. By default, the
 	 * security manager searches for java.policy in a user's home directory We
 	 * will set the required policy and create the security manager afterwards.
-	 * 
+	 *
 	 */
 	private void setPermissions()
 	{
@@ -161,15 +172,17 @@ public class RMI<T>
 			if (IS_OS_UNIX)
 			{
 				out = new PrintWriter(System.getProperty("user.home") + "/.java.policy");
-				System.out.println("Detected OS: UNIX");
+				SystemyLogger.log(Level.INFO, logName + "Detected OS: UNIX");
+				// System.out.println("Detected OS: UNIX");
 			} else if (IS_OS_WINDOWS)
 			{
-				System.out.println("Detected OS: Windows");
+				SystemyLogger.log(Level.INFO, logName + "Detected OS: Windows");
+				// System.out.println("Detected OS: Windows");
 				out = new PrintWriter(System.getProperty("user.home") + "\\.java.policy");
 			}
 			/*
-			 * In order to use the security manager, we'll have to give executables the right permissions. 
-			 * Not using the security manager gives errors and setting these up for each client separately is tedious work.
+			 * In order to use the security manager, we'll have to give executables the right permissions. Not using the security manager
+			 * gives errors and setting these up for each client separately is tedious work.
 			 */
 			if (out != null)
 			{
@@ -180,7 +193,7 @@ public class RMI<T>
 			}
 		} catch (FileNotFoundException e)
 		{
-			e.printStackTrace();
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 		}
 
 		if (System.getSecurityManager() == null)

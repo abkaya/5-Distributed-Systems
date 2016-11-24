@@ -4,7 +4,11 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.Random;
+import java.rmi.RemoteException;
+import java.util.List;
+import java.util.logging.Level;
 
+import be.uantwerpen.group1.systemy.logging.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
@@ -12,20 +16,21 @@ import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
-public class Node
+public class Node implements NodeInterface
 {
+	private static String logName = Node.class.getName() + " >> ";
 
 	static NodeInfo me = null;
 	static NodeInfo nextNode = null;
 	static NodeInfo previousNode = null;
 	static NameServerInterface nsi = null;
 	static String dnsIP = null;
-	
+
 	/**
 	 * @param args: first argument is the nodeName (optional)
 	 * @throws RemoteException
 	 * @throws UnknownHostException
-	 * @throws SocketException 
+	 * @throws SocketException
 	 */
 	public static void main(String args[]) throws RemoteException, UnknownHostException, SocketException
 	{
@@ -33,7 +38,7 @@ public class Node
 
 		me = new NodeInfo();
 		me.setIP(Interface.getIP());
-		
+
 		if (args.length != 0) {
 			// if nodeName is provided
 			me.setName(args[0]);
@@ -45,8 +50,7 @@ public class Node
 			me.setName("node" + String.format("%03d", number));
 		}
 		System.out.println("node '" + me.getName() + "' is on " + me.getIP());
-		
-		// define some important stuff
+
 		int dnsPort = 1099;
 //		int sendMulticastPort = 2000;
 //		int receiveMulticastPort = 2001;
@@ -62,35 +66,40 @@ public class Node
 
 		// init RMI
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);		
-		
+		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
+
 		/*
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
 		System.out.println("DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n " + "DNS Server RMI tree map return : "
 				+ nsi.getIPAddress(requestedFile));
 
 		//Temporarily using the same node as if it were some other node hosting files
-		
+
 		TCP fileServer = new TCP(me.getIP(), tcpFileTranferPort);
 		new Thread(() ->
 		{
-				
+
 			fileServer.listenToSendFile();
 		}).start();
-		
-		
+
+
 		//request the file from the server hosting it, according to the dns server
 		TCP fileClient = new TCP(tcpFileTranferPort, nsi.getIPAddress(requestedFile));
 		fileClient.receiveFile(requestedFile);
 		//As simple as that!
 		*/
-		
+
+		/*
+		 * once the DNS IP address is known, the replicator can start and run autonomously.
+		 */
+		Replicator rep = new Replicator(nodeIP, tcpFileTranferPort, dnsIP, dnsPort);
+		rep.run();
 	}
-	
-	
-	
-	
-	
+
+
+
+
+
 	/**
 	 * Method creates and starts the shutdown hook to notify neighbors and the nameserver
 	 */
@@ -110,7 +119,7 @@ public class Node
 			System.out.println("shutdown procedure ended");
 		}) );
 	}
-	
+
 	/**
 	 * Send discover request with node data to nameserver
 	 */
@@ -127,7 +136,7 @@ public class Node
 		dnsIP = dnsIPReceiver.receiveText();
 		System.out.println("NameServer is on IP: " + dnsIP);
 	}
-	
+
 	/**
 	 * Listen to multicast responses on discover requests
 	 * This method creates and starts a thread
@@ -170,18 +179,18 @@ public class Node
 					TCP neighborSender = new TCP(previousNode.getPort(), previousNode.getIP());
 					neighborSender.sendText("next," + me.toData());
 				}
-				
+
 			}
 		}).start();
 	}
-	
+
 	/**
 	 * Listen to incoming TCP requests from neighbor
 	 */
 	private static void listenToNeighborRequests() {
 		new Thread(() -> {
 			while( me.getHash() == 0 ) {
-				
+
 			}
 			TCP neighborReceiver = new TCP(me.getIP(), me.getPort());
 			System.out.println("Listening for neighbors on port " + me.getPort());
@@ -193,7 +202,7 @@ public class Node
 				if (neighborMessageComponents[0].equals("next")) {
 					nextNode = new NodeInfo(neighborMessageComponents[1],Integer.parseInt(neighborMessageComponents[2]),neighborMessageComponents[3]);
 					System.out.println("New next node! " + nextNode.toString());
-				} else if (neighborMessageComponents[0].equals("previous")) {					
+				} else if (neighborMessageComponents[0].equals("previous")) {
 					previousNode = new NodeInfo(neighborMessageComponents[1],Integer.parseInt(neighborMessageComponents[2]),neighborMessageComponents[3]);
 					System.out.println("New previous node! " + previousNode.toString());
 				} else {
@@ -203,5 +212,5 @@ public class Node
 		}).start();
 	}
 
-	
+
 }
