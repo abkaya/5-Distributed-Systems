@@ -29,12 +29,10 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Map.Entry;
 import java.util.logging.Level;
-
-import javax.swing.text.LabelView;
-
 import java.util.TreeMap;
 
-import be.uantwerpen.group1.systemy.logging.SystemyLogger;;
+import be.uantwerpen.group1.systemy.logging.SystemyLogger;
+import be.uantwerpen.group1.systemy.networking.Hashing;
 
 public class NameServerRegister implements Serializable {
 
@@ -113,7 +111,7 @@ public class NameServerRegister implements Serializable {
 
 	/**
 	 * This method returns the size of the register
-	 * @return: the size of the register is returned as an intiger
+	 * @return: the size of the register is returned as an integer
 	 */
 	public int getSize() {
 		return register.size();
@@ -124,7 +122,7 @@ public class NameServerRegister implements Serializable {
 	 * @param name: the name where we need to calculate the hash from
 	 */
 	public int hashing(String nameToConvert) {
-		return (Math.abs((nameToConvert.hashCode())) % 32768);
+		return Hashing.hash(nameToConvert);
 	}
 
 	/**
@@ -152,7 +150,7 @@ public class NameServerRegister implements Serializable {
 	 * This method removes a node from the register based on his hash code
 	 * @param nodeName: this is the name of the node that's need to be removed
 	 */
-	public void removeNodeFromRegister(String nodeHash) {
+	public void removeNodeFromRegister(int nodeHash) {
 		//loadRegister();
 		if (register.containsKey(nodeHash)) {
 			register.remove(nodeHash);
@@ -340,14 +338,5 @@ public class NameServerRegister implements Serializable {
 			//		.println("getHashFromNodeIP >> The ip address: " + nodeIP + " corresponds with hash: " + nodeHash);
 			return nodeHash;
 		}
-	}
-	
-	/**
-	 * Get amount of entries in register
-	 * -------------------------------------------------------------
-	 * @return int: amount of entries
-	 */
-	public int getSize() {
-		return register.size();
 	}
 }

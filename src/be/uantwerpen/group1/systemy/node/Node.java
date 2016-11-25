@@ -4,8 +4,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.Random;
-import java.rmi.RemoteException;
-import java.util.List;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.logging.SystemyLogger;
@@ -16,7 +14,7 @@ import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
-public class Node implements NodeInterface
+public class Node
 {
 	private static String logName = Node.class.getName() + " >> ";
 
@@ -25,7 +23,10 @@ public class Node implements NodeInterface
 	static NodeInfo previousNode = null;
 	static NameServerInterface nsi = null;
 	static String dnsIP = null;
-
+	
+	static final int NEIGHBORPORT = 2003;
+	static final int MULTICASTPORT = 2000;
+	
 	/**
 	 * @param args: first argument is the nodeName (optional)
 	 * @throws RemoteException
@@ -52,16 +53,14 @@ public class Node implements NodeInterface
 		System.out.println("node '" + me.getName() + "' is on " + me.getIP());
 
 		int dnsPort = 1099;
-//		int sendMulticastPort = 2000;
-//		int receiveMulticastPort = 2001;
-		int tcpFileTranferPort = 2002;
-//		int tcpDNSRetransmissionPort = 2003;
+		int tcpFileTranferPort = 2001;
+		int tcpDNSRetransmissionPort = 2002;
 		String requestedFile = "HQImage.jpg";
 
 
 		initShutdownHook();
-		discover();
 		listenToNewNodes();
+		discover();
 		listenToNeighborRequests();
 
 		// init RMI
@@ -92,8 +91,8 @@ public class Node implements NodeInterface
 		/*
 		 * once the DNS IP address is known, the replicator can start and run autonomously.
 		 */
-		Replicator rep = new Replicator(nodeIP, tcpFileTranferPort, dnsIP, dnsPort);
-		rep.run();
+		//Replicator rep = new Replicator(me.getIP(), tcpFileTranferPort, dnsIP, dnsPort);
+		//rep.run();
 	}
 
 
@@ -106,9 +105,9 @@ public class Node implements NodeInterface
 	private static void initShutdownHook() {
 		Runtime.getRuntime().addShutdownHook( new Thread(() -> {
 			System.out.println("shutdown procedure started");
-			TCP neighborSender = new TCP(previousNode.getPort(), previousNode.getIP());
+			TCP neighborSender = new TCP(NEIGHBORPORT, previousNode.getIP());
 			neighborSender.sendText("next," + nextNode.toData());
-			neighborSender = new TCP(nextNode.getPort(), nextNode.getIP());
+			neighborSender = new TCP(NEIGHBORPORT, nextNode.getIP());
 			neighborSender.sendText("next," + previousNode.toData());
 			try {
 				nsi.removeNode(me.getHash());
@@ -124,14 +123,12 @@ public class Node implements NodeInterface
 	 * Send discover request with node data to nameserver
 	 */
 	private static void discover() {
-		System.out.println("Discover");
 		// Request
-		int sendMulticastPort = 2000;
 		String Message = me.toData();
-		MulticastSender.send("234.0.113.0", sendMulticastPort, Message);
+		MulticastSender.send("234.0.113.0", MULTICASTPORT, Message);
 		System.out.println("Send multicast message: " + Message);
 		// Response
-		int tcpDNSRetransmissionPort = 2003;
+		int tcpDNSRetransmissionPort = 2002;
 		TCP dnsIPReceiver = new TCP(me.getIP(), tcpDNSRetransmissionPort);
 		dnsIP = dnsIPReceiver.receiveText();
 		System.out.println("NameServer is on IP: " + dnsIP);
@@ -145,21 +142,19 @@ public class Node implements NodeInterface
 		/*
 		 * Listen for new nodes
 		 */
-		int receiveMulticastPort = 2001;
-		MulticastListener multicastListener = new MulticastListener("234.0.113.0", receiveMulticastPort);
+		MulticastListener multicastListener = new MulticastListener("234.0.113.0", MULTICASTPORT);
 		new Thread(() -> {
 			while (true) {
 				String receivedMulticastMessage = multicastListener.receive().trim();
 				System.out.println("Received multicast message: " + receivedMulticastMessage);
 				String messageComponents[] = receivedMulticastMessage.split(",");
-				NodeInfo newNode = new NodeInfo(messageComponents[0], Integer.parseInt(messageComponents[1]), messageComponents[2]);
-				int nodeCount = Integer.parseInt(messageComponents[3]);
-				System.out.println("New node! " + newNode.toString() + " at " + newNode.getIP() + "  total nodes: " + nodeCount);
+				NodeInfo newNode = new NodeInfo(messageComponents[0], messageComponents[2]);
+				//int nodeCount = Integer.parseInt(messageComponents[3]);
+				System.out.println("New node! " + newNode.toString() + " at " + newNode.getIP());
 				if (nextNode == null) {
 					// no nodes -> point to self
 					nextNode = newNode;
 					previousNode = newNode;
-					me.setHash(newNode.getHash());
 					System.out.println("setting myself as next and previous node");
 				} else if ( nextNode.getHash() == me.getHash() ) {
 					// pointing to myself -> point in both ways to 2de known node
@@ -170,13 +165,13 @@ public class Node implements NodeInterface
 					// New next node
 					nextNode = newNode;
 					System.out.println("New next node! " + nextNode.toString());
-					TCP neighborSender = new TCP(nextNode.getPort(), nextNode.getIP());
+					TCP neighborSender = new TCP(NEIGHBORPORT, nextNode.getIP());
 					neighborSender.sendText("previous," + me.toData());
 				} else if ( newNode.isNewPrevious(me,previousNode) ) {
 					// New previous node
 					previousNode = newNode;
 					System.out.println("New previous node! " + previousNode.toString());
-					TCP neighborSender = new TCP(previousNode.getPort(), previousNode.getIP());
+					TCP neighborSender = new TCP(NEIGHBORPORT, previousNode.getIP());
 					neighborSender.sendText("next," + me.toData());
 				}
 
@@ -189,21 +184,18 @@ public class Node implements NodeInterface
 	 */
 	private static void listenToNeighborRequests() {
 		new Thread(() -> {
-			while( me.getHash() == 0 ) {
-
-			}
-			TCP neighborReceiver = new TCP(me.getIP(), me.getPort());
-			System.out.println("Listening for neighbors on port " + me.getPort());
+			TCP neighborReceiver = new TCP(me.getIP(), NEIGHBORPORT);
+			System.out.println("Listening for neighbors on port " + NEIGHBORPORT);
 			while(true) {
 				// packet layout "next,name,hash,ip"
 				String neighborMessage = neighborReceiver.receiveText();
 				System.out.println("Received neighbor packet: " + neighborMessage);
 				String[] neighborMessageComponents = neighborMessage.split(",");
 				if (neighborMessageComponents[0].equals("next")) {
-					nextNode = new NodeInfo(neighborMessageComponents[1],Integer.parseInt(neighborMessageComponents[2]),neighborMessageComponents[3]);
+					nextNode = new NodeInfo(neighborMessageComponents[1],neighborMessageComponents[3]);
 					System.out.println("New next node! " + nextNode.toString());
 				} else if (neighborMessageComponents[0].equals("previous")) {
-					previousNode = new NodeInfo(neighborMessageComponents[1],Integer.parseInt(neighborMessageComponents[2]),neighborMessageComponents[3]);
+					previousNode = new NodeInfo(neighborMessageComponents[1],neighborMessageComponents[3]);
 					System.out.println("New previous node! " + previousNode.toString());
 				} else {
 					System.err.println("Neighbour package identifier not recognized! " + neighborMessageComponents[0]);

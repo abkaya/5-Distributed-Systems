@@ -1,5 +1,7 @@
 package be.uantwerpen.group1.systemy.node;
 
+import be.uantwerpen.group1.systemy.networking.Hashing;
+
 /**
  * abstract data type for storing node info
  * 
@@ -18,9 +20,8 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	 * @param nodeHash
 	 * @param nodeIP
 	 */
-	public NodeInfo(String nodeName, int nodeHash, String nodeIP) {
+	public NodeInfo(String nodeName, String nodeIP) {
 		this.setName(nodeName);
-		this.setHash(nodeHash);
 		this.setIP(nodeIP);
 	}
 	
@@ -29,7 +30,6 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	 */
 	public NodeInfo() {
 		this.setName(null);
-		this.setHash(0);
 		this.setIP(null);
 	}
 
@@ -42,9 +42,6 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	public int getHash() {
 		return hash;
 	}
-	public int getPort() {
-		return 3000 + ( hash % 999 );
-	}
 	public String getIP() {
 		return ip;
 	}
@@ -54,9 +51,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	// -----
 	public void setName(String nodeName) {
 		this.name = nodeName;
-	}
-	public void setHash(int nodeHash) {
-		this.hash = nodeHash;
+		this.hash = Hashing.hash(nodeName);
 	}
 	public void setIP(String nodeIP) {
 		this.ip = nodeIP;

@@ -1,0 +1,6 @@
+nov 25, 2016 1:28:54 AM be.uantwerpen.group1.systemy.logging.SystemyLogger log
+INFO: be.uantwerpen.group1.systemy.nameserver.NameServerRegister >> Register loaded
+nov 25, 2016 1:28:55 AM be.uantwerpen.group1.systemy.logging.SystemyLogger log
+INFO: be.uantwerpen.group1.systemy.networking.RMI >> Detected OS: Windows
+nov 25, 2016 1:28:55 AM be.uantwerpen.group1.systemy.logging.SystemyLogger log
+INFO: be.uantwerpen.group1.systemy.networking.RMI >> NameServerInterfacebound
