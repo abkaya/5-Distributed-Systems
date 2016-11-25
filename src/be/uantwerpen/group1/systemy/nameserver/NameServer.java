@@ -68,7 +68,7 @@ public class NameServer implements NameServerInterface {
 
 	@Override
 	public void removeNode(int hash) {
-		nsr.removeNodeFromRegister(hash);
+		nsr.removeNodeFromRegister(Integer.toString(hash));
 	}
 
 }

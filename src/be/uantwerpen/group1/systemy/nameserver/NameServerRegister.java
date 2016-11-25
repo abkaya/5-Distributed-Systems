@@ -150,7 +150,7 @@ public class NameServerRegister implements Serializable {
 	 * This method removes a node from the register based on his hash code
 	 * @param nodeName: this is the name of the node that's need to be removed
 	 */
-	public void removeNodeFromRegister(int nodeHash) {
+	public void removeNodeFromRegister(String nodeHash) {
 		//loadRegister();
 		if (register.containsKey(nodeHash)) {
 			register.remove(nodeHash);

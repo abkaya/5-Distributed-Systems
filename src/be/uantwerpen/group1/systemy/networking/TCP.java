@@ -81,19 +81,21 @@ public class TCP
 	 */
 	public TCP(int port, String host)
 	{
-		try
-		{
-			this.clientSocket = new Socket(host, port);
-			SystemyLogger.log(Level.INFO, logName + "- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :"
-					+ clientSocket.getLocalPort());
-			SystemyLogger.log(Level.INFO, logName + "- Socket connection established with server : " + host + ", port : " + port);
-			// System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :"
-			// + clientSocket.getLocalPort());
-			// System.out.println("- Socket connection established with server : " + host + ", port : " + port);
-		} catch (IOException e)
-		{
-			SystemyLogger.log(Level.SEVERE, logName + "clientsocket exception : could not connect to " + host + ":" + port);
-			// System.err.println("clientsocket exception : could not connect to " + host + ":" + port);
+		while (this.clientSocket == null) {
+			try
+			{
+				this.clientSocket = new Socket(host, port);
+				SystemyLogger.log(Level.INFO, logName + "- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :"
+						+ clientSocket.getLocalPort());
+				SystemyLogger.log(Level.INFO, logName + "- Socket connection established with server : " + host + ", port : " + port);
+				// System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :"
+				// + clientSocket.getLocalPort());
+				// System.out.println("- Socket connection established with server : " + host + ", port : " + port);
+			} catch (IOException e)
+			{
+				SystemyLogger.log(Level.SEVERE, logName + "clientsocket exception : could not connect to " + host + ":" + port);
+				// System.err.println("clientsocket exception : could not connect to " + host + ":" + port);
+			}
 		}
 	}
 

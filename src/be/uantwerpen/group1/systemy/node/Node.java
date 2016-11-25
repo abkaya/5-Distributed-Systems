@@ -4,6 +4,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.logging.SystemyLogger;
@@ -50,7 +51,7 @@ public class Node
 			random = null;
 			me.setName("node" + String.format("%03d", number));
 		}
-		System.out.println("node '" + me.getName() + "' is on " + me.getIP());
+		System.out.println("node '" + me.toString() + "' is on " + me.getIP());
 
 		int dnsPort = 1099;
 		int tcpFileTranferPort = 2001;
@@ -60,12 +61,13 @@ public class Node
 
 		initShutdownHook();
 		listenToNewNodes();
-		discover();
 		listenToNeighborRequests();
+		discover();
 
 		// init RMI
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
+
 
 		/*
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
@@ -108,7 +110,7 @@ public class Node
 			TCP neighborSender = new TCP(NEIGHBORPORT, previousNode.getIP());
 			neighborSender.sendText("next," + nextNode.toData());
 			neighborSender = new TCP(NEIGHBORPORT, nextNode.getIP());
-			neighborSender.sendText("next," + previousNode.toData());
+			neighborSender.sendText("previous," + previousNode.toData());
 			try {
 				nsi.removeNode(me.getHash());
 			} catch (Exception e) {
@@ -151,16 +153,22 @@ public class Node
 				NodeInfo newNode = new NodeInfo(messageComponents[0], messageComponents[2]);
 				//int nodeCount = Integer.parseInt(messageComponents[3]);
 				System.out.println("New node! " + newNode.toString() + " at " + newNode.getIP());
-				if (nextNode == null) {
+				if ( nextNode == null || previousNode == null ) {
 					// no nodes -> point to self
 					nextNode = newNode;
 					previousNode = newNode;
-					System.out.println("setting myself as next and previous node");
+					System.out.println("setting new node (probably myself) as next and previous node");
+				} else if ( newNode.getHash() == me.getHash() ) {
+					System.out.println("New node is myself while already having neigbors");
 				} else if ( nextNode.getHash() == me.getHash() ) {
 					// pointing to myself -> point in both ways to 2de known node
 					nextNode = newNode;
 					previousNode = newNode;
 					System.out.println("setting 2de as next and previous node");
+					TCP neighborSender = new TCP(NEIGHBORPORT, nextNode.getIP());
+					neighborSender.sendText("previous," + me.toData());
+					neighborSender = new TCP(NEIGHBORPORT, previousNode.getIP());
+					neighborSender.sendText("next," + me.toData());
 				} else if ( newNode.isNewNext(me,nextNode) ) {
 					// New next node
 					nextNode = newNode;
@@ -173,8 +181,10 @@ public class Node
 					System.out.println("New previous node! " + previousNode.toString());
 					TCP neighborSender = new TCP(NEIGHBORPORT, previousNode.getIP());
 					neighborSender.sendText("next," + me.toData());
+				} else {
+					System.out.println("Node is not a (new) neighbor");
 				}
-
+				System.out.println("Current situation: " + previousNode.toString() + " | " + me.toString() + " | " + nextNode.toString() );
 			}
 		}).start();
 	}
@@ -200,6 +210,7 @@ public class Node
 				} else {
 					System.err.println("Neighbour package identifier not recognized! " + neighborMessageComponents[0]);
 				}
+				System.out.println("Current situation: " + previousNode.toString() + " | " + me.toString() + " | " + nextNode.toString() );
 			}
 		}).start();
 	}

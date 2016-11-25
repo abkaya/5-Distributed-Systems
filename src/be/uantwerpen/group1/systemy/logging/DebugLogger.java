@@ -51,7 +51,6 @@ public class DebugLogger {
 	 */
 	public static void log(Level level, String msg) {
 		getLogger().log(level, msg);
-		System.out.println(level + " > " + msg);
 	}
 
 }
