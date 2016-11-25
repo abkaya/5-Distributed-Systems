@@ -1,5 +1,8 @@
 package be.uantwerpen.group1.systemy.node;
 
+import java.util.logging.Level;
+
+import be.uantwerpen.group1.systemy.logging.SystemyLogger;
 import be.uantwerpen.group1.systemy.networking.Hashing;
 
 /**
@@ -9,6 +12,8 @@ import be.uantwerpen.group1.systemy.networking.Hashing;
  */
 public class NodeInfo implements Comparable<NodeInfo> {
 
+	private static String logName = NodeInfo.class.getName() + " >> ";
+	
 	private String name;
 	private int hash;
 	private String ip;
@@ -67,7 +72,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	public boolean isNewNext(NodeInfo me, NodeInfo next) {
 		if (me == null) {
 			// own hash not known
-			System.err.println("NodeInfo >> own hash not known");
+			SystemyLogger.log(Level.SEVERE, logName + "NodeInfo >> own hash not known");
 			return false;
 		} else if (next == null) {
 			// no next node known yet -> make this one next
@@ -109,7 +114,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	public boolean isNewPrevious(NodeInfo me, NodeInfo previous) {
 		if (me == null) {
 			// own hash not known
-			System.err.println("NodeInfo >> own hash not known");
+			SystemyLogger.log(Level.SEVERE, logName + "NodeInfo >> own hash not known");
 			return false;
 		} else if (previous == null) {
 			// no previous node known yet -> make this one previous

@@ -28,7 +28,7 @@ public class NameServer implements NameServerInterface {
 		int multicastPort = 2000;
 		int tcpDNSRetransmissionPort = 2002;
 
-		System.out.println("NameServer started on " + nameServerIP);
+		SystemyLogger.log(Level.INFO, logName + "NameServer started on " + nameServerIP);
 
 		NameServerInterface nsi = new NameServer();
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>(nameServerIP, "NameServerInterface", nsi);
@@ -44,11 +44,11 @@ public class NameServer implements NameServerInterface {
 		{
 			String[] hostnameIP;
 			String multicastMessage = multicastListener.receive().trim();
-			System.out.println("Received multicast message: " + multicastMessage);
+			SystemyLogger.log(Level.INFO, logName + "Received multicast message: " + multicastMessage);
 			hostnameIP = multicastMessage.split(",");
 			String hostName = hostnameIP[0];
 			String hostIP = hostnameIP[2];
-			System.out.println("Received hostname " + hostName + ", IP : " + hostIP);
+			SystemyLogger.log(Level.INFO, logName + "Received hostname " + hostName + ", IP : " + hostIP);
 			nsr.addNode(hostName, hostIP);
 			/*After having received the IP address of a new node, we need to send it a reply,
 			 * letting it know what our DNS server IP is. He got to us, but it doesn't know

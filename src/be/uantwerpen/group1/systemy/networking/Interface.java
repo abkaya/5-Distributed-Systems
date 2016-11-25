@@ -5,6 +5,9 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
+import java.util.logging.Level;
+
+import be.uantwerpen.group1.systemy.logging.SystemyLogger;
 
 /**
  * Class to get 
@@ -12,6 +15,8 @@ import java.util.Enumeration;
  * @author Robin
  */
 public class Interface {
+	
+	private static String logName = Interface.class.getName() + " >> ";
 	
 	/**
 	 * Method to get IP of local machine and preventing loopback, link local and IPv6 addresses
@@ -38,7 +43,7 @@ public class Interface {
 				if( !ia.isLoopbackAddress() && !ia.isLinkLocalAddress() && ia instanceof Inet4Address ) {
 					// prevent loopback, link-local and IPv6
 					IP = ia.getHostAddress();
-					System.out.println("Detected address: " + ia.getHostAddress());
+					SystemyLogger.log(Level.INFO, logName + "Detected address: " + ia.getHostAddress());
 				}
 			}
 		}
