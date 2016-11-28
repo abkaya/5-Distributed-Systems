@@ -70,5 +70,15 @@ public class NameServer implements NameServerInterface {
 	public void removeNode(int hash) {
 		nsr.removeNodeFromRegister(Integer.toString(hash));
 	}
+	
+	@Override
+	public String getNextNode(int hash) {
+		return nsr.getNextNode(Integer.toString(hash));
+	}
+	
+	@Override
+	public String getPreviousNode(int hash) {
+		return nsr.getPreviousNode(Integer.toString(hash));
+	}
 
 }

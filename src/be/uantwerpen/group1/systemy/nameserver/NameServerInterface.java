@@ -9,4 +9,6 @@ import java.rmi.RemoteException;
 public interface NameServerInterface extends Remote {
     String getIPAddress (String fileName) throws RemoteException;
     void removeNode(int hash) throws RemoteException;
+	String getNextNode(int hash) throws RemoteException;
+	String getPreviousNode(int hash) throws RemoteException;
 }
