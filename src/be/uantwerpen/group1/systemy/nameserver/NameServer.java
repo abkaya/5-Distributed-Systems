@@ -72,13 +72,13 @@ public class NameServer implements NameServerInterface {
 	}
 	
 	@Override
-	public String getNextNode(int hash) {
-		return nsr.getNextNode(Integer.toString(hash));
+	public int getNextNode(int hash) {
+		return Integer.parseInt(nsr.getNextNode(Integer.toString(hash)));
 	}
 	
 	@Override
-	public String getPreviousNode(int hash) {
-		return nsr.getPreviousNode(Integer.toString(hash));
+	public int getPreviousNode(int hash) {
+		return Integer.parseInt(nsr.getPreviousNode(Integer.toString(hash)));
 	}
 
 }
