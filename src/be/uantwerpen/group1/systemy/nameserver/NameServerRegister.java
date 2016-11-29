@@ -29,12 +29,10 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Map.Entry;
 import java.util.logging.Level;
-
-import javax.swing.text.LabelView;
-
 import java.util.TreeMap;
 
-import be.uantwerpen.group1.systemy.logging.SystemyLogger;;
+import be.uantwerpen.group1.systemy.logging.SystemyLogger;
+import be.uantwerpen.group1.systemy.networking.Hashing;
 
 public class NameServerRegister implements Serializable {
 
@@ -63,7 +61,7 @@ public class NameServerRegister implements Serializable {
 	 * @param clear: if clear = 'true' clear previous register, if clear = 'false' continue with previous register
 	 */
 	public NameServerRegister(boolean clear) {
-		// TODO Auto-generated constructor stub
+		// TODO Auto-generated 	constructor stub
 
 		// The integer value is the hash calculated and the String is the IPAddres of the host/node
 		register = new TreeMap<String, String>();
@@ -113,7 +111,7 @@ public class NameServerRegister implements Serializable {
 
 	/**
 	 * This method returns the size of the register
-	 * @return: the size of the register is returned as an intiger
+	 * @return: the size of the register is returned as an integer
 	 */
 	public int getSize() {
 		return register.size();
@@ -124,7 +122,7 @@ public class NameServerRegister implements Serializable {
 	 * @param name: the name where we need to calculate the hash from
 	 */
 	public int hashing(String nameToConvert) {
-		return (Math.abs((nameToConvert.hashCode())) % 32768);
+		return Hashing.hash(nameToConvert);
 	}
 
 	/**

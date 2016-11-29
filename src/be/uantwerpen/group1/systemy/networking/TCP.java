@@ -13,15 +13,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.logging.SystemyLogger;
-import be.uantwerpen.group1.systemy.nameserver.NameServer;
 
 /**
  * TCP class. A distinction between client and server is initially made 
@@ -75,7 +69,6 @@ public class TCP
 		} catch (IOException e1)
 		{
 			SystemyLogger.log(Level.SEVERE, logName + "Could not start the Server Socket on " + host + ":" + port);
-			// System.err.println("Could not start the Server Socket on " + host + ":" + port);
 		}
 	}
 
@@ -88,19 +81,21 @@ public class TCP
 	 */
 	public TCP(int port, String host)
 	{
-		try
-		{
-			this.clientSocket = new Socket(host, port);
-			SystemyLogger.log(Level.INFO, logName + "- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :"
-					+ clientSocket.getLocalPort());
-			SystemyLogger.log(Level.INFO, logName + "- Socket connection established with server : " + host + ", port : " + port);
-			// System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :"
-			// + clientSocket.getLocalPort());
-			// System.out.println("- Socket connection established with server : " + host + ", port : " + port);
-		} catch (IOException e)
-		{
-			SystemyLogger.log(Level.SEVERE, logName + "clientsocket exception : could not connect to " + host + ":" + port);
-			// System.err.println("clientsocket exception : could not connect to " + host + ":" + port);
+		while (this.clientSocket == null) {
+			try
+			{
+				this.clientSocket = new Socket(host, port);
+				SystemyLogger.log(Level.INFO, logName + "- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :"
+						+ clientSocket.getLocalPort());
+				SystemyLogger.log(Level.INFO, logName + "- Socket connection established with server : " + host + ", port : " + port);
+				// System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :"
+				// + clientSocket.getLocalPort());
+				// System.out.println("- Socket connection established with server : " + host + ", port : " + port);
+			} catch (IOException e)
+			{
+				SystemyLogger.log(Level.SEVERE, logName + "clientsocket exception : could not connect to " + host + ":" + port);
+				// System.err.println("clientsocket exception : could not connect to " + host + ":" + port);
+			}
 		}
 	}
 
@@ -203,8 +198,6 @@ public class TCP
 					InputStreamReader isr = new InputStreamReader(is);
 					BufferedReader br = new BufferedReader(isr);
 					text = br.readLine();
-					SystemyLogger.log(Level.INFO, logName + "DEBUG 1  ");
-					// System.out.println("DEBUG 1 ");
 				} catch (NumberFormatException | IOException nfe)
 				{
 					SystemyLogger.log(Level.SEVERE, logName + "TCP/receiveText exception - Could not receive txt");

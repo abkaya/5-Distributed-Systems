@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
+import be.uantwerpen.group1.systemy.networking.Hashing;
 import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
 
@@ -87,7 +88,7 @@ public class Replicator implements ReplicatorInterface, Runnable
 	 */
 	public String hash(String nameToConvert)
 	{
-		return Integer.toString((Math.abs((nameToConvert.hashCode())) % 32768));
+		return Integer.toString(Hashing.hash(nameToConvert));
 	}
 
 	/**

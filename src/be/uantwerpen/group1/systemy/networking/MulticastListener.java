@@ -11,6 +11,8 @@ import be.uantwerpen.group1.systemy.logging.SystemyLogger;
 /**
  * MulticastListener class
  * Class for listening to multicast messages
+ *
+ * @author Robin Janssens
  */
 public class MulticastListener {
 
@@ -20,9 +22,9 @@ public class MulticastListener {
 
 	/**
 	 * create a multicast socket
-	 * 
-	 * @param IP: needs to be a multicast adress e.g. 234.0.113.0
-	 * @param port 
+	 *
+	 * @param IP: needs to be a multicast address e.g. 234.0.113.0
+	 * @param port
 	 */
 	public MulticastListener(String IP, int port) {
 		try {
@@ -37,8 +39,8 @@ public class MulticastListener {
 
 	/**
 	 * receive on multicast socket
-	 * 
-	 * @return String: received message (max 64 characters) 
+	 *
+	 * @return String: received message (max 64 characters)
 	 */
 	public String receive() {
 		try {
