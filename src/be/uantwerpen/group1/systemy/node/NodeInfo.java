@@ -4,20 +4,22 @@ import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.logging.SystemyLogger;
 import be.uantwerpen.group1.systemy.networking.Hashing;
+import be.uantwerpen.group1.systemy.xml.ParserXML;
 
 /**
  * abstract data type for storing node info
  * 
  * @author Robin Janssens
  */
+
 public class NodeInfo implements Comparable<NodeInfo> {
 
 	private static String logName = NodeInfo.class.getName() + " >> ";
-	
+
 	private String name;
 	private int hash;
 	private String ip;
-	
+
 	/**
 	 * constructor
 	 * 
@@ -29,14 +31,17 @@ public class NodeInfo implements Comparable<NodeInfo> {
 		this.setName(nodeName);
 		this.setIP(nodeIP);
 	}
-	
+
 	/**
 	 * empty object Constructor
 	 */
+	/*
 	public NodeInfo() {
 		this.setName(null);
 		this.setIP(null);
+		parserXML.parse();
 	}
+	*/
 
 	// -----
 	// GET
@@ -44,9 +49,11 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	public String getName() {
 		return name;
 	}
+
 	public int getHash() {
 		return hash;
 	}
+
 	public String getIP() {
 		return ip;
 	}
@@ -58,10 +65,11 @@ public class NodeInfo implements Comparable<NodeInfo> {
 		this.name = nodeName;
 		this.hash = Hashing.hash(nodeName);
 	}
+
 	public void setIP(String nodeIP) {
 		this.ip = nodeIP;
 	}
-	
+
 	/**
 	 * function to check if this node is a new next node
 	 * 
@@ -103,7 +111,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 			}
 		}
 	}
-	
+
 	/**
 	 * function to check if this node is a new previous node
 	 * 
@@ -132,7 +140,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 				}
 			} else if (me.getHash() < previous.getHash()) {
 				// previous is bigger than me
-				if (this.getHash() < me.getHash()  || previous.getHash() < this.getHash()) {
+				if (this.getHash() < me.getHash() || previous.getHash() < this.getHash()) {
 					// only one smaller then me OR bigger than previous
 					return true;
 				} else {
@@ -145,7 +153,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 			}
 		}
 	}
-	
+
 	/**
 	 * pretty output
 	 * 
@@ -154,7 +162,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	public String toString() {
 		return name + " (" + hash + ")";
 	}
-	
+
 	/**
 	 * output data as "<name>,<hash>,<ip>"
 	 * ideal for sending data as a package
@@ -164,7 +172,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	public String toData() {
 		return name + "," + hash + "," + ip;
 	}
-	
+
 	/**
 	 * Comparable implementation
 	 * 
@@ -173,13 +181,12 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	 */
 	@Override
 	public int compareTo(NodeInfo other) {
-		if ( this.getHash() > other.getHash() )
+		if (this.getHash() > other.getHash())
 			return 1;
-		else if ( this.getHash() < other.getHash() )
+		else if (this.getHash() < other.getHash())
 			return -1;
 		else
 			return 0;
 	}
-	
-	
+
 }
