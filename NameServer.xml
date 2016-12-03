@@ -1,1 +1,1 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><SystemY><NameServer><IPAddress>192.168.1.103</IPAddress><MulticastPort>2000</MulticastPort><tcpDNSRetransmissionPort>2002</tcpDNSRetransmissionPort><MulticastIP>234.0.113.0</MulticastIP></NameServer></SystemY>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><SystemY><NameServer><MulticastPort>2000</MulticastPort><TcpDnsRetransmissionPort>2002</TcpDnsRetransmissionPort><MulticastIp>234.0.113.0</MulticastIp><RemoteNsName>NameServerInterface</RemoteNsName></NameServer></SystemY>

@@ -3,7 +3,6 @@ package be.uantwerpen.group1.systemy.node;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
-import java.util.Random;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.logging.SystemyLogger;
@@ -22,11 +21,15 @@ public class Node {
 	static NodeInfo nextNode = null;
 	static NodeInfo previousNode = null;
 	static NameServerInterface nsi = null;
-	static String dnsIP = null;
-	static ParserXML parserXML = null;
+	static ParserXML parserXML = new ParserXML(logName);
+	static String dnsIP = parserXML.getDnsIPN();
 
-	static final int NEIGHBORPORT = 2003;
-	static final int MULTICASTPORT = 2000;
+	static final String HOSTNAME = parserXML.getHostNameN();
+	static final int NEIGHBORPORT = parserXML.getNeighborPortN();
+	static final int MULTICASTPORT = parserXML.getMulticastPortN();
+	static final String REMOTENSNAME = parserXML.getRemoteNsNameN();
+	static final int DNSPORT = parserXML.getDnsPortN();
+	static final int TCPDNSRETRANSMISSIONPORT = parserXML.getTcpDnsRetransmissionPortN();
 
 	/**
 	 * @param args: first argument is the nodeName (optional)
@@ -35,31 +38,10 @@ public class Node {
 	 * @throws SocketException
 	 */
 	public static void main(String args[]) throws RemoteException, UnknownHostException, SocketException {
-		parserXML.parse();
-		//Interface nameserver (moet via XML ingelezen worden)
-		String remoteNSName = "NameServerInterface";
 
-		me = new NodeInfo(parserXML.getHostNameN(), Interface.getIP());
-		//me.setIP(Interface.getIP());
+		me = new NodeInfo(HOSTNAME, Interface.getIP());
 
-		// Old way for generating hostname
-		/*
-		if (args.length != 0) {
-			// if nodeName is provided
-			me.setName(args[0]);
-		} else {
-			// else generate one random
-			Random random = new Random();
-			int number = random.nextInt(1000);
-			random = null;
-			me.setName("node" + String.format("%03d", number));
-		}
-		*/
 		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
-
-		int dnsPort = 1099;
-		//int tcpFileTranferPort = 2001;
-		//String requestedFile = "HQImage.jpg";
 
 		initShutdownHook();
 		listenToNewNodes();
@@ -68,7 +50,7 @@ public class Node {
 
 		// init RMI
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
+		nsi = rmi.getStub(nsi, REMOTENSNAME, dnsIP, DNSPORT);
 
 		/*
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
@@ -126,8 +108,7 @@ public class Node {
 		MulticastSender.send("234.0.113.0", MULTICASTPORT, Message);
 		SystemyLogger.log(Level.INFO, logName + "Send multicast message: " + Message);
 		// Response
-		int tcpDNSRetransmissionPort = 2002;
-		TCP dnsIPReceiver = new TCP(me.getIP(), tcpDNSRetransmissionPort);
+		TCP dnsIPReceiver = new TCP(me.getIP(), TCPDNSRETRANSMISSIONPORT);
 		dnsIP = dnsIPReceiver.receiveText();
 		SystemyLogger.log(Level.INFO, logName + "NameServer is on IP: " + dnsIP);
 	}
