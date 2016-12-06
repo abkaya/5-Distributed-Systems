@@ -4,7 +4,7 @@
  * Documentation is added later
  *
  */
-package be.uantwerpen.group1.systemy.logging;
+package be.uantwerpen.group1.systemy.log_debug;
 
 import java.io.IOException;
 import java.util.logging.FileHandler;
@@ -12,18 +12,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-public class DebugLogger {
+public class SystemyLogger {
 
-	static Logger DebugLogger;
+	static Logger SystemyLogger;
 	FileHandler fileHandler;
 
-	private DebugLogger() throws IOException {
+	private SystemyLogger() throws IOException {
 
-		DebugLogger = Logger.getLogger("DebugLogger");
-		DebugLogger.setLevel(Level.ALL);
-		DebugLogger.setUseParentHandlers(false);
-		fileHandler = new FileHandler("DebugLogger.log");
-		DebugLogger.addHandler(fileHandler);
+		SystemyLogger = Logger.getLogger("SystemyLogger");
+		SystemyLogger.setLevel(Level.ALL);
+		SystemyLogger.setUseParentHandlers(false);
+		fileHandler = new FileHandler("SystemyLogger.log");
+		SystemyLogger.addHandler(fileHandler);
 		fileHandler.setFormatter(new SimpleFormatter());
 	}
 
@@ -32,15 +32,15 @@ public class DebugLogger {
 	 * @return the logger
 	 */
 	private static Logger getLogger() {
-		if (DebugLogger == null) {
+		if (SystemyLogger == null) {
 			try {
-				new DebugLogger();
+				new SystemyLogger();
 			} catch (Exception e) {
 				// TODO: handle exception
 				e.printStackTrace();
 			}
 		}
-		return DebugLogger;
+		return SystemyLogger;
 	}
 
 	/**
@@ -51,6 +51,7 @@ public class DebugLogger {
 	 */
 	public static void log(Level level, String msg) {
 		getLogger().log(level, msg);
+		System.out.println(level + " > " + msg);
 	}
 
 }

@@ -12,60 +12,74 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class NodeXML
-{
+public class NodeXML {
 
-	public void create()
-	{
+	public void create() {
 
-		try
-		{
+		try {
+
+			//Create the DocumentBuilder for the XML file
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 
-			// root element ==> SYSTEMY
-			Document docNameServer = docBuilder.newDocument();
-			Element rootElement = docNameServer.createElement("SystemY");
-			docNameServer.appendChild(rootElement);
+			//Define the root element
+			Document docNode = docBuilder.newDocument();
+			Element rootElement = docNode.createElement("SystemY");
+			docNode.appendChild(rootElement);
 
-			// NameServer
-			Element Node = docNameServer.createElement("Node");
+			//Define the base element 
+			Element Node = docNode.createElement("Node");
 			rootElement.appendChild(Node);
 
-			Element NodeIpAddress = docNameServer.createElement("IPAddress");
-			NodeIpAddress.appendChild(docNameServer.createTextNode("192.168.1.110"));
-			Node.appendChild(NodeIpAddress);
+			//Define the hostname of the node
+			Element Hostname = docNode.createElement("Hostname");
+			Hostname.appendChild(docNode.createTextNode("Node1"));
+			Node.appendChild(Hostname);
 
-			Element NodeHostname = docNameServer.createElement("hostname");
-			NodeHostname.appendChild(docNameServer.createTextNode("Node1"));
-			Node.appendChild(NodeHostname);
+			//Define the dnsIP for the node
+			Element DnsIp = docNode.createElement("DnsIp");
+			DnsIp.appendChild(docNode.createTextNode("null"));
+			Node.appendChild(DnsIp);
 
-			Element NodeDnsIP = docNameServer.createElement("dnsIP");
-			NodeDnsIP.appendChild(docNameServer.createTextNode("null"));
-			Node.appendChild(NodeDnsIP);
+			//Define the NodeDnsPort for the node
+			Element DnsPort = docNode.createElement("DnsPort");
+			DnsPort.appendChild(docNode.createTextNode("1099"));
+			Node.appendChild(DnsPort);
 
-			Element NodeMulticastPort = docNameServer.createElement("MulticastPort");
-			NodeMulticastPort.appendChild(docNameServer.createTextNode("2000"));
-			Node.appendChild(NodeMulticastPort);
+			//Define the multicastport for the node
+			Element MulticastPort = docNode.createElement("MulticastPort");
+			MulticastPort.appendChild(docNode.createTextNode("2000"));
+			Node.appendChild(MulticastPort);
 
-			Element NodeTcpFileTranferPort = docNameServer.createElement("tcpFileTranferPort");
-			NodeTcpFileTranferPort.appendChild(docNameServer.createTextNode("2001"));
-			Node.appendChild(NodeTcpFileTranferPort);
+			//Define the tcpFileTransferPort for the node 
+			Element TcpFileTranferPort = docNode.createElement("TcpFileTranferPort");
+			TcpFileTranferPort.appendChild(docNode.createTextNode("2001"));
+			Node.appendChild(TcpFileTranferPort);
 
-			Element NodeTcpDNSRetransmissionPort = docNameServer.createElement("tcpDNSRetransmissionPort");
-			NodeTcpDNSRetransmissionPort.appendChild(docNameServer.createTextNode("2002"));
-			Node.appendChild(NodeTcpDNSRetransmissionPort);
+			//Define the tcpDNSRetransmissionPort for the node
+			Element TcpDnsRetransmissionPort = docNode.createElement("TcpDnsRetransmissionPort");
+			TcpDnsRetransmissionPort.appendChild(docNode.createTextNode("2002"));
+			Node.appendChild(TcpDnsRetransmissionPort);
 
-			// write the content into XML file
+			//Define the neighborport for the Node
+			Element NeighborPort = docNode.createElement("NeighborPort");
+			NeighborPort.appendChild(docNode.createTextNode("2003"));
+			Node.appendChild(NeighborPort);
+
+			//Define the interface of the NameServer
+			Element RemoteNsName = docNode.createElement("RemoteNsName");
+			RemoteNsName.appendChild(docNode.createTextNode("NameServerInterface"));
+			Node.appendChild(RemoteNsName);
+
+			// write the content into XML file calles Node.xml
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
 			Transformer transformer = transformerFactory.newTransformer();
-			DOMSource source = new DOMSource(docNameServer);
+			DOMSource source = new DOMSource(docNode);
 			StreamResult result = new StreamResult(new File("Node.xml"));
 
 			transformer.transform(source, result);
 
-		} catch (Exception e)
-		{
+		} catch (Exception e) {
 			// TODO: handle exception
 		}
 	}

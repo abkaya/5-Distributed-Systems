@@ -10,157 +10,154 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class ParserXML
-{
+public class ParserXML {
 
 	// boolean for checking if it's a Node or Server
 	// False for node, True for server
-	private boolean NodeOrServer;
-	private File file;
+	private static boolean NodeOrServer;
+	private static File file;
 
 	// Declarations of the variables for the node
-	private String IPAddressN;
-	private String hostNameN;
-	private String dnsIPN;
-	private int MulticastPortN;
-	private int tcpFileTranferPortN;
-	private int tcpDNSRetransmissionPortN;
+	private static String hostNameN;
+	private static String dnsIpN;
+	private static int dnsPortN;
+	private static int multicastPortN;
+	private static int tcpFileTranferPortN;
+	private static int tcpDnsRetransmissionPortN;
+	private static int neighborPortN;
+	private static String remoteNsNameN;
 
 	// Declarations of the variables for the NameServer
-	private String IPAddressNS;
-	private int MulticastPortNS;
-	private int tcpDNSRetransmissionPortNS;
-	private String MulticastIPNS;
+	private static int multicastPortNS;
+	private static int tcpDnsRetransmissionPortNS;
+	private static String multicastIpNS;
+	private static String remoteNsNameNS;
 
-	public ParserXML(String NodeOrServer)
-	{
-		if (NodeOrServer.contains("NameServer"))
-		{
-			this.NodeOrServer = true;
-			this.file = new File("NameServer.xml");
-		} else
-		{
-			this.NodeOrServer = false;
-			this.file = new File("Node.xml");
+	public ParserXML(String NodeOrServer) {
+		if (NodeOrServer.contains("NameServer")) {
+			ParserXML.NodeOrServer = true;
+			ParserXML.file = new File("NameServer.xml");
+			parse();
+		} else {
+			ParserXML.NodeOrServer = false;
+			ParserXML.file = new File("Node.xml");
+			parse();
 		}
 	}
 
 	/*
 	 * Getters for the Node
 	 */
-	public String getIPAddressN()
-	{
-		return this.IPAddressN;
+
+	public String getHostNameN() {
+		return hostNameN;
 	}
 
-	public String getHostNameN()
-	{
-		return this.hostNameN;
+	public String getDnsIPN() {
+		return dnsIpN;
 	}
 
-	public String getDNSIPN()
-	{
-		return this.dnsIPN;
+	public int getDnsPortN() {
+		return dnsPortN;
 	}
 
-	public int getMulticastPortN()
-	{
-		return this.MulticastPortN;
+	public int getMulticastPortN() {
+		return multicastPortN;
 	}
 
-	public int geTtcpFileTranferPortN()
-	{
-		return this.tcpFileTranferPortN;
+	public int geTcpFileTranferPortN() {
+		return tcpFileTranferPortN;
 	}
 
-	public int getTcpDNSRetransmissionPortN()
-	{
-		return this.tcpDNSRetransmissionPortN;
+	public int getTcpDnsRetransmissionPortN() {
+		return tcpDnsRetransmissionPortN;
+	}
+
+	public int getNeighborPortN() {
+		return neighborPortN;
+	}
+
+	public String getRemoteNsNameN() {
+		return remoteNsNameN;
 	}
 
 	/*
 	 * Getters for the NameServer
 	 */
-	public String getIPAddressNS()
-	{
-		return this.IPAddressNS;
+
+	public int getMulticastPortNS() {
+		return multicastPortNS;
 	}
 
-	public int getMulticastPortNS()
-	{
-		return this.MulticastPortNS;
+	public int getTcpDNSRetransmissionPortNS() {
+		return tcpDnsRetransmissionPortNS;
 	}
 
-	public int getTcpDNSRetransmissionPortNS()
-	{
-		return this.tcpDNSRetransmissionPortNS;
+	public String getMulticastIpNS() {
+		return multicastIpNS;
+	}
+	
+	public String getRemoteNsNameNS() {
+		return remoteNsNameNS;
 	}
 
-	public String getMulticastIPNS()
-	{
-		return this.MulticastIPNS;
-	}
-
-	public void parse()
-	{
-		try
-		{
+	private void parse() {
+		try {
 			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-			Document document = documentBuilder.parse(this.file);
+			Document document = documentBuilder.parse(file);
 
 			document.getDocumentElement().normalize();
 
 			// if NameServer
-			if (this.NodeOrServer)
-			{
+			if (NodeOrServer) {
 				NodeList nodeList = document.getElementsByTagName("NameServer");
 
-				for (int i = 0; i < nodeList.getLength(); i++)
-				{
+				for (int i = 0; i < nodeList.getLength(); i++) {
 
 					Node node = nodeList.item(i);
 
-					if (node.getNodeType() == Node.ELEMENT_NODE)
-					{
+					if (node.getNodeType() == Node.ELEMENT_NODE) {
 						Element element = (Element) node;
 
-						IPAddressNS = element.getElementsByTagName("IPAddress").item(0).getTextContent();
-						MulticastPortNS = Integer.parseInt(element.getElementsByTagName("MulticastPort").item(0).getTextContent());
-						tcpDNSRetransmissionPortNS = Integer.parseInt(element.getElementsByTagName("tcpDNSRetransmissionPort").item(0)
-								.getTextContent());
-						MulticastIPNS = element.getElementsByTagName("MulticastIP").item(0).getTextContent();
+						multicastPortNS = Integer
+								.parseInt(element.getElementsByTagName("MulticastPort").item(0).getTextContent());
+						tcpDnsRetransmissionPortNS = Integer.parseInt(
+								element.getElementsByTagName("TcpDnsRetransmissionPort").item(0).getTextContent());
+						multicastIpNS = element.getElementsByTagName("MulticastIp").item(0).getTextContent();
+						remoteNsNameNS = element.getElementsByTagName("RemoteNsName").item(0).getTextContent();
 
 					}
 				}
 
-			} else
-			{
+			} else {
 				NodeList nodeList = document.getElementsByTagName("Node");
 
-				for (int i = 0; i < nodeList.getLength(); i++)
-				{
+				for (int i = 0; i < nodeList.getLength(); i++) {
 
 					Node node = nodeList.item(i);
 
-					if (node.getNodeType() == Node.ELEMENT_NODE)
-					{
+					if (node.getNodeType() == Node.ELEMENT_NODE) {
 						Element element = (Element) node;
 
-						IPAddressN = element.getElementsByTagName("IPAddress").item(0).getTextContent();
-						hostNameN = element.getElementsByTagName("hostname").item(0).getTextContent();
-						dnsIPN = element.getElementsByTagName("dnsIP").item(0).getTextContent();
-						MulticastPortN = Integer.parseInt(element.getElementsByTagName("MulticastPort").item(0).getTextContent());
-						tcpFileTranferPortN = Integer.parseInt(element.getElementsByTagName("tcpFileTranferPort").item(0).getTextContent());
-						tcpDNSRetransmissionPortN = Integer.parseInt(element.getElementsByTagName("tcpDNSRetransmissionPort").item(0)
-								.getTextContent());
+						hostNameN = element.getElementsByTagName("Hostname").item(0).getTextContent();
+						dnsIpN = element.getElementsByTagName("DnsIp").item(0).getTextContent();
+						dnsPortN = Integer.parseInt(element.getElementsByTagName("DnsPort").item(0).getTextContent());
+						multicastPortN = Integer
+								.parseInt(element.getElementsByTagName("MulticastPort").item(0).getTextContent());
+						tcpFileTranferPortN = Integer
+								.parseInt(element.getElementsByTagName("TcpFileTranferPort").item(0).getTextContent());
+						tcpDnsRetransmissionPortN = Integer.parseInt(
+								element.getElementsByTagName("TcpDnsRetransmissionPort").item(0).getTextContent());
+						neighborPortN = Integer
+								.parseInt(element.getElementsByTagName("NeighborPort").item(0).getTextContent());
+						remoteNsNameN = element.getElementsByTagName("RemoteNsName").item(0).getTextContent();
 
 					}
 				}
 			}
 
-		} catch (Exception e)
-		{
+		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
