@@ -7,7 +7,7 @@ import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.logging.Level;
 
-import be.uantwerpen.group1.systemy.logging.SystemyLogger;
+import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 
 /**
  * Class to get 

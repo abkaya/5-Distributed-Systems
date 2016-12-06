@@ -2,9 +2,8 @@ package be.uantwerpen.group1.systemy.node;
 
 import java.util.logging.Level;
 
-import be.uantwerpen.group1.systemy.logging.SystemyLogger;
+import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.networking.Hashing;
-import be.uantwerpen.group1.systemy.xml.ParserXML;
 
 /**
  * abstract data type for storing node info

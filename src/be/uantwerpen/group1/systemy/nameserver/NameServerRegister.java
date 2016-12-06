@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.TreeMap;
 
-import be.uantwerpen.group1.systemy.logging.SystemyLogger;
+import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.networking.Hashing;
 
 public class NameServerRegister implements Serializable {
