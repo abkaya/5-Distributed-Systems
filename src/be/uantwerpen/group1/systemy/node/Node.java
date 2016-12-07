@@ -3,6 +3,8 @@ package be.uantwerpen.group1.systemy.node;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
@@ -39,7 +41,28 @@ public class Node {
 	 */
 	public static void main(String args[]) throws RemoteException, UnknownHostException, SocketException {
 
-		me = new NodeInfo(HOSTNAME, Interface.getIP());
+		String IP = null;
+		ArrayList<String> IPs = Interface.getIP();
+		if (IPs.size() == 1) {
+			IP = IPs.get(0);
+		} else if (IPs.size() > 1) {
+			System.out.println("Choose one of the following IP addresses:");
+			for (int i = 0; i < IPs.size(); i++) {
+				System.out.println("  (" + i + ") " + IPs.get(i));
+			}
+			int n = -1;
+			Scanner reader = new Scanner(System.in);
+			while ( n < 0 || n > IPs.size()-1 ) {
+				System.out.print("Enter prefered number: ");
+				n = reader.nextInt();
+			}
+			reader.close();
+			IP = IPs.get(n);
+		} else {
+			SystemyLogger.log(Level.SEVERE, logName + "No usable IP address detected");
+			System.exit(-1);
+		}
+		me = new NodeInfo(HOSTNAME, IP);
 
 		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
 
@@ -195,5 +218,6 @@ public class Node {
 			}
 		}).start();
 	}
+	
 
 }
