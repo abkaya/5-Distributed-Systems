@@ -8,7 +8,6 @@ import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
-import be.uantwerpen.group1.systemy.node.NodeInfo;
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ public class NameServer implements NameServerInterface {
 			int n = -1;
 			Scanner reader = new Scanner(System.in);
 			while ( n < 0 || n > IPs.size()-1 ) {
-				System.out.print("Enter prefered number: ");
+				System.out.print("Enter preferred number: ");
 				n = reader.nextInt();
 			}
 			reader.close();
@@ -101,6 +100,11 @@ public class NameServer implements NameServerInterface {
 	@Override
 	public int getPreviousNode(int hash) {
 		return Integer.parseInt(nsr.getPreviousNode(Integer.toString(hash)));
+	}
+	
+	@Override
+	public String getNodeIP(int hash) {
+		return nsr.getNodeIPFromHash(hash);
 	}
 
 }

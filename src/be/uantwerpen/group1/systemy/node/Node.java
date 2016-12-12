@@ -53,7 +53,7 @@ public class Node {
 			int n = -1;
 			Scanner reader = new Scanner(System.in);
 			while ( n < 0 || n > IPs.size()-1 ) {
-				System.out.print("Enter prefered number: ");
+				System.out.print("Enter preferred number: ");
 				n = reader.nextInt();
 			}
 			reader.close();
@@ -79,17 +79,17 @@ public class Node {
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
 		SystemyLogger.log(Level.INFO, logName + "DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n " + "DNS Server RMI tree map return : "
 				+ nsi.getIPAddress(requestedFile));
-		
+
 		//Temporarily using the same node as if it were some other node hosting files
-		
+
 		TCP fileServer = new TCP(me.getIP(), tcpFileTranferPort);
 		new Thread(() ->
 		{
-		
+
 			fileServer.listenToSendFile();
 		}).start();
-		
-		
+
+
 		//request the file from the server hosting it, according to the dns server
 		TCP fileClient = new TCP(tcpFileTranferPort, nsi.getIPAddress(requestedFile));
 		fileClient.receiveFile(requestedFile);
@@ -218,6 +218,45 @@ public class Node {
 			}
 		}).start();
 	}
-	
+
+	/**
+	 * If previous node is failed, replace it in myself by the previous of the failed node and remove the failed node from register
+	 */
+	public static void previousFailed() {
+		try {
+			// get new previous node from nameserver
+			NodeInfo failedNode = previousNode;
+			int newPreviousHash = nsi.getPreviousNode(failedNode.getHash());
+			String newPreviousIP = nsi.getNodeIP(newPreviousHash);
+			previousNode = new NodeInfo(newPreviousHash, newPreviousIP);
+			// send my data to new previous node
+			TCP neighborSender = new TCP(NEIGHBORPORT, previousNode.getIP());
+			neighborSender.sendText("next," + me.toData());
+			// remove failed node from register on nameserver
+			nsi.removeNode(failedNode.getHash());
+		} catch (RemoteException e) {
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+		}
+	}
+
+	/**
+	 * If next node is failed, replace it in myself by the next of the failed node and remove the failed node from register
+	 */
+	public static void nextFailed() {
+		try {
+			// get new next node from nameserver
+			NodeInfo failedNode = nextNode;
+			int newNextHash = nsi.getNextNode(failedNode.getHash());
+			String newNextIP = nsi.getNodeIP(newNextHash);
+			nextNode = new NodeInfo(newNextHash, newNextIP);
+			// send my data to new next node
+			TCP neighborSender = new TCP(NEIGHBORPORT, nextNode.getIP());
+			neighborSender.sendText("previous," + me.toData());
+			// remove failed node from register on nameserver
+			nsi.removeNode(failedNode.getHash());
+		} catch (RemoteException e) {
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+		}
+	}
 
 }
