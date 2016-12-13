@@ -8,6 +8,7 @@ import java.util.List;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
+import java.nio.file.*;
 
 public class Replicator implements ReplicatorInterface, Runnable
 {
@@ -145,7 +146,9 @@ public class Replicator implements ReplicatorInterface, Runnable
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
 
 		/*
-		 * Get the file location for all current files
+		 * Get the file location for all current files. 
+		 * Any further operation within this for loop block is for testing purposes only
+		 * and must/will be adjusted to its proper functionality asap.
 		 */
 		for (String localFile : localFiles)
 		{
@@ -166,9 +169,10 @@ public class Replicator implements ReplicatorInterface, Runnable
 		// This line is where startup ends! From here on out, everything update related is handled.
 
 		/*
-		 * Update will check for events in the directory containing the local files. Rather than polling, we will use event based checks.
+		 * Update will check for events in the directory containing the local files. Rather than polling, we will use event 
+		 * based checks called "file change notifications", Watch Service API in the java.nio.file package. 
 		 * https://docs.oracle.com/javase/tutorial/essential/io/notification.html
 		 */
-
+		
 	}
 }
