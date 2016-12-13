@@ -15,7 +15,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 
 	private static String logName = NodeInfo.class.getName() + " >> ";
 
-	private String name = null;
+	private String name;
 	private int hash;
 	private String ip;
 
@@ -65,6 +65,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 		this.hash = Hashing.hash(nodeName);
 	}
 	public void setHash(int hash) {
+		this.name = null;
 		this.hash = hash;
 	}
 	public void setIP(String nodeIP) {
