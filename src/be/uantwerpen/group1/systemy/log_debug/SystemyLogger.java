@@ -4,7 +4,7 @@
  * Documentation is added later
  *
  */
-package be.uantwerpen.group1.systemy.logging;
+package be.uantwerpen.group1.systemy.log_debug;
 
 import java.io.IOException;
 import java.util.logging.FileHandler;
@@ -19,7 +19,7 @@ public class SystemyLogger {
 
 	private SystemyLogger() throws IOException {
 
-		SystemyLogger = Logger.getLogger(SystemyLogger.class.getName());
+		SystemyLogger = Logger.getLogger("SystemyLogger");
 		SystemyLogger.setLevel(Level.ALL);
 		SystemyLogger.setUseParentHandlers(false);
 		fileHandler = new FileHandler("SystemyLogger.log");
@@ -51,6 +51,7 @@ public class SystemyLogger {
 	 */
 	public static void log(Level level, String msg) {
 		getLogger().log(level, msg);
+		System.out.println(level + " > " + msg);
 	}
 
 }

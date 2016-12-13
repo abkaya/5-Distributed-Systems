@@ -6,27 +6,29 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.logging.Level;
 
-import be.uantwerpen.group1.systemy.logging.SystemyLogger;
+import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 
 /**
  * MulticastSender class
  * Class for sending multicast messages
+ *
+ * @author Robin Janssens
  */
 public class MulticastSender {
-	
+
 	private static String logName = MulticastSender.class.getName() + " >> ";
-	
+
 	/**
 	 * send a multicast message
-	 * 
-	 * @param IP: needs to be a multicast adress e.g. 234.0.113.0
-	 * @param port 
+	 *
+	 * @param IP: needs to be a multicast address e.g. 234.0.113.0
+	 * @param port
 	 * @param message
 	 */
 	public static void send(String IP, int port, String message){
 		MulticastSocket s = null;
 		try {
-			InetAddress group = InetAddress.getByName(IP);	
+			InetAddress group = InetAddress.getByName(IP);
 			s = new MulticastSocket(port);
 			byte [] m = message.getBytes();
 			DatagramPacket messageOut = new DatagramPacket(m, m.length, group, port);
@@ -36,8 +38,8 @@ public class MulticastSender {
 			//System.out.println("IO: " + e.getMessage());
 		} finally {
 			if(s != null)
-				s.close(); 
+				s.close();
 		}
 	}
-	
+
 }

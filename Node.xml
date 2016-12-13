@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><SystemY><Node><Hostname>Node1</Hostname><DnsIp>null</DnsIp><DnsPort>1099</DnsPort><MulticastPort>2000</MulticastPort><TcpFileTranferPort>2001</TcpFileTranferPort><TcpDnsRetransmissionPort>2002</TcpDnsRetransmissionPort><NeighborPort>2003</NeighborPort><RemoteNsName>NameServerInterface</RemoteNsName></Node></SystemY>

@@ -13,13 +13,13 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.logging.Level;
 
-import be.uantwerpen.group1.systemy.logging.SystemyLogger;
+import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 
 /**
  * RMI class which can be used bind objects from different types in the
  * registry, using Generics, or simply request registries on remote or local
  * machines. usage: RMI<Type> rmi = new RMI<Type>(...);
- * 
+ *
  * @author Abdil Kaya
  *
  */
@@ -31,7 +31,7 @@ public class RMI<T>
 	/** Remote method invocation registry */
 	private Registry registry = null;
 
-	/** 
+	/**
 	 * Constructor w/o parameters typically used by nodes which don't need to start
 	 * an rmi registry or bind objects to it
 	 */
@@ -42,7 +42,7 @@ public class RMI<T>
 
 	/**
 	 * Constructor for RMI servers Starts the rmi registry on this machine on a given port.
-	 * 
+	 *
 	 * @param hostName : The IP address of the name server
 	 * @param name : name to bind the remote reference to in the registry
 	 * @param obj : Object of which to create a stub
@@ -58,7 +58,7 @@ public class RMI<T>
 
 	/**
 	 * Constructor for RMI servers Starts the rmi registry on this machine on port 1099.
-	 * 
+	 *
 	 * @param hostName : The IP address of the name server
 	 * @param name : name to bind the remote reference to in the registry
 	 * @param obj : Object of which to create a stub
@@ -87,7 +87,7 @@ public class RMI<T>
 	/**
 	 * Returns the rmi registry on host with `hostName`, or null if the registry
 	 * doesn't exist This method will typically be used by the client nodes.
-	 * 
+	 *
 	 * @param hostName : name of the server on which the registry is running
 	 * @return registry
 	 */
@@ -107,8 +107,8 @@ public class RMI<T>
 
 	/**
 	 * Method to bind a remote object in the rmi registry of the local server
-	 * (may or may not be the local port). 
-	 * 
+	 * (may or may not be the local port).
+	 *
 	 * @param name : name to bind the remote object to in the registry
 	 * @param obj  : skeleton of the remote object to bind in the registry
 	 * @return boolean result to check whether or not calling this method failed
@@ -133,7 +133,7 @@ public class RMI<T>
 	/**
 	 * Returns the stub of the remote object requested. Requires the name it was bound to in the registry.
 	 * This method is to be used by nodes utilising
-	 *  
+	 *
 	 * @param obj : an object of the interface to which the stub will be returned
 	 * @param name : name of the remote object as it was bound in the registry
 	 * @param hostName : hostName running  the rmi registry
@@ -159,7 +159,7 @@ public class RMI<T>
 	 * Sets required user java policies in their home folder. By default, the
 	 * security manager searches for java.policy in a user's home directory We
 	 * will set the required policy and create the security manager afterwards.
-	 * 
+	 *
 	 */
 	private void setPermissions()
 	{
