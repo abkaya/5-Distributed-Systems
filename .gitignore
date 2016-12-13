@@ -1,11 +1,13 @@
 ## Compiled code ##
 /bin/
 /jar/
+/deployment/
 
 ## Content ##
 HQImage.jpg
 
 ## Log files ##
 *.log
-*.log.[123456789]
 *.log.lck
+*.log.[123456789]
+*.log.[123456789].lck

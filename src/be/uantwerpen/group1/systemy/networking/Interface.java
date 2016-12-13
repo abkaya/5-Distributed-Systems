@@ -4,6 +4,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.logging.Level;
 
@@ -25,7 +26,7 @@ public class Interface {
 	 * @return String: IP address
 	 * @throws SocketException
 	 */
-	public static String getIP() throws SocketException {
+	public static ArrayList<String> getIP() throws SocketException {
 		
 		/*
 		 * Old ways:
@@ -33,7 +34,8 @@ public class Interface {
 		 * String myIP = "192.168.1.103";								// Manual
 		 */
 		
-		String IP = null;
+		ArrayList<String> IPs = new ArrayList<String>();
+		//String IP = null;
 		Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
 		while(en.hasMoreElements()){
 			NetworkInterface ni =(NetworkInterface) en.nextElement();
@@ -42,12 +44,12 @@ public class Interface {
 				InetAddress ia = (InetAddress) ee.nextElement();
 				if( !ia.isLoopbackAddress() && !ia.isLinkLocalAddress() && ia instanceof Inet4Address ) {
 					// prevent loopback, link-local and IPv6
-					IP = ia.getHostAddress();
+					IPs.add( ia.getHostAddress() );
 					SystemyLogger.log(Level.INFO, logName + "Detected address: " + ia.getHostAddress());
 				}
 			}
 		}
-		return IP;
+		return IPs;
 		
 	}
 		
