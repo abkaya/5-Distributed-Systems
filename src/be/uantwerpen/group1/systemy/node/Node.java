@@ -1,68 +1,223 @@
 package be.uantwerpen.group1.systemy.node;
 
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.rmi.RemoteException;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.logging.Level;
-import be.uantwerpen.group1.systemy.logging.SystemyLogger;
+
+import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
+import be.uantwerpen.group1.systemy.networking.Interface;
+import be.uantwerpen.group1.systemy.networking.MulticastListener;
 import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
+import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
-public class Node implements NodeInterface
-{	
+public class Node {
 	private static String logName = Node.class.getName() + " >> ";
 
-	public static void main(String args[]) throws RemoteException
-	{
-		
-		/*
-		 * Concerning the Files this node owns and the replication of these files: How to keep a list of files. Keep two lists? Files owned
-		 * and filesHeld. Remove files?
-		 */
-		
-		NameServerInterface nsi = null;
-		String remoteNSName = "NameServerInterface";
-		/*
-		 * this is our IP, we now assume not to have the DNS IP, which we'll receive after retransmission by the DNS server over a TCP
-		 * socket.
-		 */
-		String nodeIP = "192.168.56.1";
-		String dnsIP = null;
-		String hostnameIP = "Node1,192.168.56.1";
+	static NodeInfo me = null;
+	static NodeInfo nextNode = null;
+	static NodeInfo previousNode = null;
+	static NameServerInterface nsi = null;
+	static ParserXML parserXML = new ParserXML(logName);
+	static String dnsIP = parserXML.getDnsIPN();
 
-		/* Don't mind the awful port names. It's just to get everyone acquainted with them */
-		int dnsPort = 1099;
-		int multicastPort = 2000;
-		int tcpFileTranferPort = 2001;
-		int tcpDNSRetransmissionPort = 2002;
+	static final String HOSTNAME = parserXML.getHostNameN();
+	static final int NEIGHBORPORT = parserXML.getNeighborPortN();
+	static final int MULTICASTPORT = parserXML.getMulticastPortN();
+	static final String REMOTENSNAME = parserXML.getRemoteNsNameN();
+	static final int DNSPORT = parserXML.getDnsPortN();
+	static final int TCPDNSRETRANSMISSIONPORT = parserXML.getTcpDnsRetransmissionPortN();
 
-		/*
-		 * Assessing one's IP address can become tricky when multiple network interfaces are involved. For instance, I'm getting the APIPA
-		 * address 169.254.202.83, which is undesirable. We could work this out in the future, but let's use the manually determined IP
-		 * address for now
-		 * String myIP = InetAddress.getLocalHost().getHostAddress();
-		 */
-		MulticastSender.send("234.0.113.0", multicastPort, hostnameIP);
+	/**
+	 * @param args: first argument is the nodeName (optional)
+	 * @throws RemoteException
+	 * @throws UnknownHostException
+	 * @throws SocketException
+	 */
+	public static void main(String args[]) throws RemoteException, UnknownHostException, SocketException {
 
-		/*
-		 * Now we imagine we don't have a clue what the DNS IP is, and hope for TCP retransmission to get ahold of the DNS server's IP.
-		 * We'll await for the DNS server to get back at us and continue with RMI once we get it.
-		 */
-		TCP dnsIPReceiver = new TCP(nodeIP, tcpDNSRetransmissionPort);
-		dnsIP = dnsIPReceiver.receiveText();
+		String IP = null;
+		ArrayList<String> IPs = Interface.getIP();
+		if (IPs.size() == 1) {
+			IP = IPs.get(0);
+		} else if (IPs.size() > 1) {
+			System.out.println("Choose one of the following IP addresses:");
+			for (int i = 0; i < IPs.size(); i++) {
+				System.out.println("  (" + i + ") " + IPs.get(i));
+			}
+			int n = -1;
+			Scanner reader = new Scanner(System.in);
+			while ( n < 0 || n > IPs.size()-1 ) {
+				System.out.print("Enter prefered number: ");
+				n = reader.nextInt();
+			}
+			reader.close();
+			IP = IPs.get(n);
+		} else {
+			SystemyLogger.log(Level.SEVERE, logName + "No usable IP address detected");
+			System.exit(-1);
+		}
+		me = new NodeInfo(HOSTNAME, IP);
 
-		/*
-		 * Once the DNS IP address is known, RMI on the nameserver can commence
-		 */
+		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
+
+		initShutdownHook();
+		listenToNewNodes();
+		listenToNeighborRequests();
+		discover();
+
+		// init RMI
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
+		nsi = rmi.getStub(nsi, REMOTENSNAME, dnsIP, DNSPORT);
+
+		/*
+		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
+		SystemyLogger.log(Level.INFO, logName + "DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n " + "DNS Server RMI tree map return : "
+				+ nsi.getIPAddress(requestedFile));
 		
+		//Temporarily using the same node as if it were some other node hosting files
+		
+		TCP fileServer = new TCP(me.getIP(), tcpFileTranferPort);
+		new Thread(() ->
+		{
+		
+			fileServer.listenToSendFile();
+		}).start();
+		
+		
+		//request the file from the server hosting it, according to the dns server
+		TCP fileClient = new TCP(tcpFileTranferPort, nsi.getIPAddress(requestedFile));
+		fileClient.receiveFile(requestedFile);
+		//As simple as that!
+		*/
+
 		/*
 		 * once the DNS IP address is known, the replicator can start and run autonomously.
 		 */
-		Replicator rep = new Replicator(nodeIP, tcpFileTranferPort, dnsIP, dnsPort);
-		rep.run();
+		//Replicator rep = new Replicator(me.getIP(), tcpFileTranferPort, dnsIP, dnsPort);
+		//rep.run();
 	}
+
+	/**
+	 * Method creates and starts the shutdown hook to notify neighbors and the nameserver
+	 */
+	private static void initShutdownHook() {
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			SystemyLogger.log(Level.INFO, logName + "shutdown procedure started");
+			TCP neighborSender = new TCP(NEIGHBORPORT, previousNode.getIP());
+			neighborSender.sendText("next," + nextNode.toData());
+			neighborSender = new TCP(NEIGHBORPORT, nextNode.getIP());
+			neighborSender.sendText("previous," + previousNode.toData());
+			try {
+				nsi.removeNode(me.getHash());
+			} catch (Exception e) {
+				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			}
+			SystemyLogger.log(Level.INFO, logName + "shutdown procedure ended");
+		}));
+	}
+
+	/**
+	 * Send discover request with node data to nameserver
+	 */
+	private static void discover() {
+		// Request
+		String Message = me.toData();
+		MulticastSender.send("234.0.113.0", MULTICASTPORT, Message);
+		SystemyLogger.log(Level.INFO, logName + "Send multicast message: " + Message);
+		// Response
+		TCP dnsIPReceiver = new TCP(me.getIP(), TCPDNSRETRANSMISSIONPORT);
+		dnsIP = dnsIPReceiver.receiveText();
+		SystemyLogger.log(Level.INFO, logName + "NameServer is on IP: " + dnsIP);
+	}
+
+	/**
+	 * Listen to multicast responses on discover requests
+	 * This method creates and starts a thread
+	 */
+	private static void listenToNewNodes() {
+		/*
+		 * Listen for new nodes
+		 */
+		MulticastListener multicastListener = new MulticastListener("234.0.113.0", MULTICASTPORT);
+		new Thread(() -> {
+			while (true) {
+				String receivedMulticastMessage = multicastListener.receive().trim();
+				SystemyLogger.log(Level.INFO, logName + "Received multicast message: " + receivedMulticastMessage);
+				String messageComponents[] = receivedMulticastMessage.split(",");
+				NodeInfo newNode = new NodeInfo(messageComponents[0], messageComponents[2]);
+				//int nodeCount = Integer.parseInt(messageComponents[3]);
+				SystemyLogger.log(Level.INFO, logName + "New node! " + newNode.toString() + " at " + newNode.getIP());
+				if (nextNode == null || previousNode == null) {
+					// no nodes -> point to self
+					nextNode = newNode;
+					previousNode = newNode;
+					SystemyLogger.log(Level.INFO,
+							logName + "setting new node (probably myself) as next and previous node");
+				} else if (newNode.getHash() == me.getHash()) {
+					SystemyLogger.log(Level.INFO, logName + "New node is myself while already having neigbors");
+				} else if (nextNode.getHash() == me.getHash()) {
+					// pointing to myself -> point in both ways to 2de known node
+					nextNode = newNode;
+					previousNode = newNode;
+					SystemyLogger.log(Level.INFO, logName + "setting 2de as next and previous node");
+					TCP neighborSender = new TCP(NEIGHBORPORT, nextNode.getIP());
+					neighborSender.sendText("previous," + me.toData());
+					neighborSender = new TCP(NEIGHBORPORT, previousNode.getIP());
+					neighborSender.sendText("next," + me.toData());
+				} else if (newNode.isNewNext(me, nextNode)) {
+					// New next node
+					nextNode = newNode;
+					SystemyLogger.log(Level.INFO, logName + "New next node! " + nextNode.toString());
+					TCP neighborSender = new TCP(NEIGHBORPORT, nextNode.getIP());
+					neighborSender.sendText("previous," + me.toData());
+				} else if (newNode.isNewPrevious(me, previousNode)) {
+					// New previous node
+					previousNode = newNode;
+					SystemyLogger.log(Level.INFO, logName + "New previous node! " + previousNode.toString());
+					TCP neighborSender = new TCP(NEIGHBORPORT, previousNode.getIP());
+					neighborSender.sendText("next," + me.toData());
+				} else {
+					SystemyLogger.log(Level.INFO, logName + "Node is not a (new) neighbor");
+				}
+				SystemyLogger.log(Level.INFO, logName + "Current situation: " + previousNode.toString() + " | "
+						+ me.toString() + " | " + nextNode.toString());
+			}
+		}).start();
+	}
+
+	/**
+	 * Listen to incoming TCP requests from neighbor
+	 */
+	private static void listenToNeighborRequests() {
+		new Thread(() -> {
+			TCP neighborReceiver = new TCP(me.getIP(), NEIGHBORPORT);
+			SystemyLogger.log(Level.INFO, logName + "Listening for neighbors on port " + NEIGHBORPORT);
+			while (true) {
+				// packet layout "next,name,hash,ip"
+				String neighborMessage = neighborReceiver.receiveText();
+				SystemyLogger.log(Level.INFO, logName + "Received neighbor packet: " + neighborMessage);
+				String[] neighborMessageComponents = neighborMessage.split(",");
+				if (neighborMessageComponents[0].equals("next")) {
+					nextNode = new NodeInfo(neighborMessageComponents[1], neighborMessageComponents[3]);
+					SystemyLogger.log(Level.INFO, logName + "New next node! " + nextNode.toString());
+				} else if (neighborMessageComponents[0].equals("previous")) {
+					previousNode = new NodeInfo(neighborMessageComponents[1], neighborMessageComponents[3]);
+					SystemyLogger.log(Level.INFO, logName + "New previous node! " + previousNode.toString());
+				} else {
+					SystemyLogger.log(Level.SEVERE,
+							logName + "Neighbour package identifier not recognized! " + neighborMessageComponents[0]);
+				}
+				SystemyLogger.log(Level.INFO, logName + "Current situation: " + previousNode.toString() + " | "
+						+ me.toString() + " | " + nextNode.toString());
+			}
+		}).start();
+	}
+	
 
 }
