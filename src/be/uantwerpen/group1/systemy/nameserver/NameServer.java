@@ -8,8 +8,11 @@ import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
+import be.uantwerpen.group1.systemy.node.NodeInfo;
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 
+import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.logging.Level;
 
 public class NameServer implements NameServerInterface {
@@ -26,7 +29,28 @@ public class NameServer implements NameServerInterface {
 
 	public static void main(String args[]) throws UnknownHostException, SocketException {
 
-		String nameServerIp = Interface.getIP();
+		String IP = null;
+		ArrayList<String> IPs = Interface.getIP();
+		if (IPs.size() == 1) {
+			IP = IPs.get(0);
+		} else if (IPs.size() > 1) {
+			System.out.println("Choose one of the following IP addresses:");
+			for (int i = 0; i < IPs.size(); i++) {
+				System.out.println("  (" + i + ") " + IPs.get(i));
+			}
+			int n = -1;
+			Scanner reader = new Scanner(System.in);
+			while ( n < 0 || n > IPs.size()-1 ) {
+				System.out.print("Enter prefered number: ");
+				n = reader.nextInt();
+			}
+			reader.close();
+			IP = IPs.get(n);
+		} else {
+			SystemyLogger.log(Level.SEVERE, logName + "No usable IP address detected");
+			System.exit(-1);
+		}
+		String nameServerIp = IP;
 
 		SystemyLogger.log(Level.INFO, logName + "NameServer started on " + nameServerIp);
 
