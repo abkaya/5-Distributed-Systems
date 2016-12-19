@@ -5,9 +5,11 @@ import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
+import be.uantwerpen.group1.systemy.nameserver.NameServer;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
@@ -16,7 +18,7 @@ import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
-public class Node {
+public class Node implements NodeInterface {
 	private static String logName = Node.class.getName() + " >> ";
 
 	static NodeInfo me = null;
@@ -31,6 +33,7 @@ public class Node {
 	static final int MULTICASTPORT = parserXML.getMulticastPortN();
 	static final String REMOTENSNAME = parserXML.getRemoteNsNameN();
 	static final int DNSPORT = parserXML.getDnsPortN();
+	static final int RMIPORT = 1099;	// TODO: same as DNSPORT
 	static final int TCPDNSRETRANSMISSIONPORT = parserXML.getTcpDnsRetransmissionPortN();
 
 	/**
@@ -66,12 +69,17 @@ public class Node {
 
 		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
 
+		// init skeleton
+		NodeInterface ni = new Node();
+		RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), me.getName(), ni);
+		
 		initShutdownHook();
 		listenToNewNodes();
 		listenToNeighborRequests();
+		startHeartbeat();
 		discover();
-
-		// init RMI
+		
+		// init nameserver stub
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, REMOTENSNAME, dnsIP, DNSPORT);
 
@@ -218,6 +226,85 @@ public class Node {
 			}
 		}).start();
 	}
+	
+	/**
+	 * Thread that checks if neighbors are still alive
+	 */
+	private static void startHeartbeat() {
+		new Thread(() -> {
+			RMI<NodeInterface> rmiNode = new RMI<NodeInterface>();
+			if (nextNode != null) {
+				// init next node stub
+				NodeInterface nextNodeInterface = null;
+				nextNodeInterface = rmiNode.getStub(nextNodeInterface, nextNode.getName(), nextNode.getIP(), RMIPORT);
+				// ping next node
+				try {
+					if ( nextNodeInterface.ping() ) {
+						// everything ok
+					}
+				} catch (Exception e) {
+					// node not reachable
+					int trys = 5;
+					boolean response = false;
+					while(response == false && trys > 0) {
+						try {
+							TimeUnit.SECONDS.sleep(1);
+						} catch (Exception e2) {
+							SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
+						}
+						try {
+							response = nextNodeInterface.ping();
+						} catch (Exception e1) {
+							trys--;
+						}
+					}
+					if (response == false) {
+						SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
+						nextFailed();
+					}
+				}
+			}
+			if (previousNode != null) {
+				// init previous node stub
+				NodeInterface previousNodeInterface = null;
+				rmiNode.getStub(previousNodeInterface, previousNode.getName(), previousNode.getIP(), RMIPORT);
+				// ping previous node 
+				try {
+					if ( previousNodeInterface.ping() ) {
+						// everything ok
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					// node not reachable
+					int trys = 5;
+					boolean response = false;
+					while(response == false && trys > 0) {
+						try {
+							TimeUnit.SECONDS.sleep(1);
+						} catch (Exception e2) {
+							SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
+						}
+						try {
+							response = previousNodeInterface.ping();
+						} catch (Exception e1) {
+							trys--;
+						}
+					}
+					if (response == false) {
+						SystemyLogger.log(Level.SEVERE, logName + "Previous node lost. Starting recovery.");
+						previousFailed();
+					}
+				}
+			}
+			// wait for 3 seconds
+			try {
+				TimeUnit.SECONDS.sleep(3);
+			} catch (Exception e) {
+				SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
+			}
+		}).start();
+	}
+	
 
 	/**
 	 * If previous node is failed, replace it in myself by the previous of the failed node and remove the failed node from register
@@ -257,6 +344,16 @@ public class Node {
 		} catch (RemoteException e) {
 			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 		}
+	}
+	
+	/**
+	 * method that returns true over RMI to check if node is still online
+	 * @return boolean: true
+	 */
+	@Override
+	public boolean ping() {
+		System.out.println("ping!");
+		return true;
 	}
 
 }
