@@ -232,75 +232,77 @@ public class Node implements NodeInterface {
 	 */
 	private static void startHeartbeat() {
 		new Thread(() -> {
-			RMI<NodeInterface> rmiNode = new RMI<NodeInterface>();
-			if (nextNode != null) {
-				// init next node stub
-				NodeInterface nextNodeInterface = null;
-				nextNodeInterface = rmiNode.getStub(nextNodeInterface, nextNode.getName(), nextNode.getIP(), RMIPORT);
-				// ping next node
-				try {
-					if ( nextNodeInterface.ping() ) {
-						// everything ok
-					}
-				} catch (Exception e) {
-					// node not reachable
-					int trys = 5;
-					boolean response = false;
-					while(response == false && trys > 0) {
-						try {
-							TimeUnit.SECONDS.sleep(1);
-						} catch (Exception e2) {
-							SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
+			while(true) {
+				RMI<NodeInterface> rmiNode = new RMI<NodeInterface>();
+				if (nextNode != null) {
+					// init next node stub
+					NodeInterface nextNodeInterface = null;
+					nextNodeInterface = rmiNode.getStub(nextNodeInterface, nextNode.getName(), nextNode.getIP(), RMIPORT);
+					// ping next node
+					try {
+						if ( nextNodeInterface.ping() ) {
+							// everything ok
 						}
-						try {
-							response = nextNodeInterface.ping();
-						} catch (Exception e1) {
-							trys--;
+					} catch (Exception e) {
+						// node not reachable
+						int trys = 5;
+						boolean response = false;
+						while(response == false && trys > 0) {
+							try {
+								TimeUnit.SECONDS.sleep(1);
+							} catch (Exception e2) {
+								SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
+							}
+							try {
+								response = nextNodeInterface.ping();
+							} catch (Exception e1) {
+								trys--;
+							}
 						}
-					}
-					if (response == false) {
-						SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
-						nextFailed();
+						if (response == false) {
+							SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
+							nextFailed();
+						}
 					}
 				}
-			}
-			if (previousNode != null) {
-				// init previous node stub
-				NodeInterface previousNodeInterface = null;
-				rmiNode.getStub(previousNodeInterface, previousNode.getName(), previousNode.getIP(), RMIPORT);
-				// ping previous node 
-				try {
-					if ( previousNodeInterface.ping() ) {
-						// everything ok
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					// node not reachable
-					int trys = 5;
-					boolean response = false;
-					while(response == false && trys > 0) {
-						try {
-							TimeUnit.SECONDS.sleep(1);
-						} catch (Exception e2) {
-							SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
+				if (previousNode != null) {
+					// init previous node stub
+					NodeInterface previousNodeInterface = null;
+					previousNodeInterface = rmiNode.getStub(previousNodeInterface, previousNode.getName(), previousNode.getIP(), RMIPORT);
+					// ping previous node 
+					try {
+						if ( previousNodeInterface.ping() ) {
+							// everything ok
 						}
-						try {
-							response = previousNodeInterface.ping();
-						} catch (Exception e1) {
-							trys--;
+					} catch (Exception e) {
+						e.printStackTrace();
+						// node not reachable
+						int trys = 5;
+						boolean response = false;
+						while(response == false && trys > 0) {
+							try {
+								TimeUnit.SECONDS.sleep(1);
+							} catch (Exception e2) {
+								SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
+							}
+							try {
+								response = previousNodeInterface.ping();
+							} catch (Exception e1) {
+								trys--;
+							}
 						}
-					}
-					if (response == false) {
-						SystemyLogger.log(Level.SEVERE, logName + "Previous node lost. Starting recovery.");
-						previousFailed();
+						if (response == false) {
+							SystemyLogger.log(Level.SEVERE, logName + "Previous node lost. Starting recovery.");
+							previousFailed();
+						}
 					}
 				}
-			}
-			// wait for 3 seconds
-			try {
-				TimeUnit.SECONDS.sleep(3);
-			} catch (Exception e) {
-				SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
+				// wait for 3 seconds
+				try {
+					TimeUnit.SECONDS.sleep(3);
+				} catch (Exception e) {
+					SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
+				}
 			}
 		}).start();
 	}
@@ -352,7 +354,6 @@ public class Node implements NodeInterface {
 	 */
 	@Override
 	public boolean ping() {
-		System.out.println("ping!");
 		return true;
 	}
 
