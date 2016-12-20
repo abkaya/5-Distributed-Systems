@@ -49,39 +49,32 @@ public class NameServerRegister implements Serializable {
 	 * fileName: the name of the file for saving on the hard drive
 	 */
 
-	private static TreeMap<String, String> register;
+	private static TreeMap<Integer, String> register;
 	private String fileName = "NSRegister.ser";
 
 	/**
 	 * Auto generated constructor
 	 * @param clear: if clear = 'true' clear previous register, if clear = 'false' continue with previous register
 	 */
-	public NameServerRegister(boolean clear) {
+	public NameServerRegister() {
 		// TODO Auto-generated 	constructor stub
 
 		// The integer value is the hash calculated and the String is the IPAddres of the host/node
-		register = new TreeMap<String, String>();
-
-		//if (clear) {
-		//loadRegister();
-		//register.clear();
-		//saveRegister();
-		//System.out.println("Registered cleared and loaded");
-		//} else {
+		register = new TreeMap<Integer, String>();
 		SystemyLogger.log(Level.INFO, logName + "Register loaded");
 		//System.out.println("NameServerRegister >> Register loaded");
-		//}
 	}
 
 	/**
 	 * This method loads the register from the hard drive
+	 * Extra
 	 */
 	@SuppressWarnings("unchecked")
 	public void loadRegister() {
 		try {
 			ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(fileName));
 			//cast to Treemap<String, String>)
-			register = (TreeMap<String, String>) objectInputStream.readObject();
+			register = (TreeMap<Integer, String>) objectInputStream.readObject();
 			objectInputStream.close();
 
 		} catch (Exception e) {
@@ -92,6 +85,7 @@ public class NameServerRegister implements Serializable {
 
 	/**
 	 * This method saves the register to the hard drive
+	 * Extra
 	 */
 	public void saveRegister() {
 		try {
@@ -127,8 +121,7 @@ public class NameServerRegister implements Serializable {
 	 * @param hostIP: IPAddress of the new node
 	 */
 	public void addNode(String hostName, String hostIP) {
-		//loadRegister();
-		String nodeHash = String.valueOf(hashing(hostName));
+		int nodeHash = hashing(hostName);
 		if (register.containsKey(nodeHash)) {
 			SystemyLogger.log(Level.WARNING, logName + "This node already exist");
 		} else {
@@ -136,15 +129,13 @@ public class NameServerRegister implements Serializable {
 			SystemyLogger.log(Level.INFO,
 					logName + hostName + " (hashcode: " + nodeHash + ")" + hostIP + " is added to the register");
 		}
-		//saveRegister();
 	}
 
 	/**
 	 * This method removes a node from the register based on his hash code
 	 * @param nodeName: this is the name of the node that's need to be removed
 	 */
-	public void removeNodeFromRegister(String nodeHash) {
-		//loadRegister();
+	public void removeNodeFromRegister(Integer nodeHash) {
 		if (register.containsKey(nodeHash)) {
 			register.remove(nodeHash);
 			SystemyLogger.log(Level.INFO, logName + nodeHash + " is removed from the register");
@@ -158,20 +149,18 @@ public class NameServerRegister implements Serializable {
 	 * @param fileName: the name of the file we want the IPAddress from where it is stored
 	 * @return nodeIP: this is string that will contains the IPAddress of the node containing the file
 	 */
-	public String getFileLocation(String fileHash) {
-
-		//loadRegister();
+	public String getFileLocation(int fileHash) {
 
 		System.out.println(fileHash);
-		TreeMap<String, String> temp = new TreeMap<>();
+		TreeMap<Integer, String> temp = new TreeMap<>();
 		//if register is empty
 		if (register.size() == 0) {
 			SystemyLogger.log(Level.WARNING, logName + "There are no nodes in the network");
 			return null;
 		} else {
 			// if register is not empty iterate over the register and search for hashvalues smaller than the filehash
-			for (Entry<String, String> entry : register.entrySet()) {
-				if (Integer.parseInt(entry.getKey()) < Integer.parseInt(fileHash)) {
+			for (Entry<Integer, String> entry : register.entrySet()) {
+				if (entry.getKey() < fileHash) {
 					temp.put(entry.getKey(), entry.getValue());
 				}
 			}
@@ -190,16 +179,16 @@ public class NameServerRegister implements Serializable {
 	}
 
 	/**
+	 * * This method is extra for now, maybe it comes in handy later
+	 * -------------------------------------------------------------
 	 * This method will calculate the hash value of the next node based on his own
 	 * hash value
 	 * @param nodeHash: this is the hashvalue of the current node in the form of a string 
 	 * @return This returns the next node IPAddress in the form of a string
 	 */
-	public String getNextNode(String nodeHash) {
+	public String getNextNode(int nodeHash) {
 
 		String tempKey = null;
-
-		//loadRegister();
 
 		//if there are no nodes in the network return null
 		if (register.size() == 0) {
@@ -216,9 +205,9 @@ public class NameServerRegister implements Serializable {
 			return register.get(register.firstKey());
 			//if this is all not the case then find the nextnode in the network
 		} else {
-			loop: for (Entry<String, String> entry : register.entrySet()) {
-				if (Integer.parseInt(entry.getKey()) > Integer.parseInt(nodeHash)) {
-					tempKey = entry.getKey();
+			loop: for (Entry<Integer, String> entry : register.entrySet()) {
+				if (entry.getKey() > nodeHash) {
+					tempKey = String.valueOf(entry.getKey());
 					break loop;
 				}
 			}
@@ -231,12 +220,14 @@ public class NameServerRegister implements Serializable {
 	}
 
 	/**
+	 * * This method is extra for now, maybe it comes in handy later
+	 * -------------------------------------------------------------
 	 * This method will calculate the hash value of the previous node based on his own
 	 * hash value
 	 * @param nodeName: this is the name of the current node
 	 * @return: this is the hash value of the previous node (calculated with the parameter nodeHash)
 	 */
-	public String getPreviousNode(String nodeHash) {
+	public String getPreviousNode(int nodeHash) {
 
 		int tempKey = 0;
 
@@ -253,9 +244,9 @@ public class NameServerRegister implements Serializable {
 					+ register.get(register.firstKey()) + ")");
 			return String.valueOf(register.firstKey());
 		} else {
-			loop: for (Entry<String, String> entry : register.entrySet()) {
-				if (Integer.parseInt(entry.getKey()) < Integer.parseInt(nodeHash)) {
-					tempKey = Integer.parseInt(entry.getKey());
+			loop: for (Entry<Integer, String> entry : register.entrySet()) {
+				if (entry.getKey() < nodeHash) {
+					tempKey = entry.getKey();
 					break loop;
 				}
 			}
@@ -294,9 +285,9 @@ public class NameServerRegister implements Serializable {
 	public int getHashFromNodeIP(String nodeIP) {
 		//loadRegister();
 		int nodeHash = -1;
-		for (Entry<String, String> entry : register.entrySet()) {
+		for (Entry<Integer, String> entry : register.entrySet()) {
 			if (entry.getValue().equals(nodeIP)) {
-				nodeHash = Integer.parseInt(entry.getKey());
+				nodeHash = entry.getKey();
 			}
 		}
 		if (nodeHash == -1) {

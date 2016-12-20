@@ -21,20 +21,29 @@ import be.uantwerpen.group1.systemy.networking.MulticastSender;
 public class Node implements NodeInterface {
 	private static String logName = Node.class.getName() + " >> ";
 
-	static NodeInfo me = null;
-	static NodeInfo nextNode = null;
-	static NodeInfo previousNode = null;
-	static NameServerInterface nsi = null;
-	static ParserXML parserXML = new ParserXML(logName);
-	static String dnsIP = parserXML.getDnsIPN();
+	private static NodeInfo me = null;
+	private static NodeInfo nextNode = null;
+	private static NodeInfo previousNode = null;
+	private static NameServerInterface nsi = null;
+	private static ParserXML parserXML = new ParserXML(logName);
+	private static String dnsIP = parserXML.getDnsIPN();
+	private static String HOSTNAME = parserXML.getHostNameN();
 
-	static final String HOSTNAME = parserXML.getHostNameN();
+	private static String nodeIp;
+	private static boolean debugMode = false;
+
 	static final int NEIGHBORPORT = parserXML.getNeighborPortN();
 	static final int MULTICASTPORT = parserXML.getMulticastPortN();
 	static final String REMOTENSNAME = parserXML.getRemoteNsNameN();
 	static final int DNSPORT = parserXML.getDnsPortN();
 	static final int RMIPORT = 1099;	// TODO: same as DNSPORT
 	static final int TCPDNSRETRANSMISSIONPORT = parserXML.getTcpDnsRetransmissionPortN();
+
+	public Node(String nodeIP, boolean debugMode) {
+		// TODO Auto-generated constructor stub
+		Node.nodeIp = nodeIP;
+		Node.debugMode = debugMode;
+	}
 
 	/**
 	 * @param args: first argument is the nodeName (optional)
@@ -44,41 +53,24 @@ public class Node implements NodeInterface {
 	 */
 	public static void main(String args[]) throws RemoteException, UnknownHostException, SocketException {
 
-		String IP = null;
-		ArrayList<String> IPs = Interface.getIP();
-		if (IPs.size() == 1) {
-			IP = IPs.get(0);
-		} else if (IPs.size() > 1) {
-			System.out.println("Choose one of the following IP addresses:");
-			for (int i = 0; i < IPs.size(); i++) {
-				System.out.println("  (" + i + ") " + IPs.get(i));
-			}
-			int n = -1;
-			Scanner reader = new Scanner(System.in);
-			while ( n < 0 || n > IPs.size()-1 ) {
-				System.out.print("Enter preferred number: ");
-				n = reader.nextInt();
-			}
-			reader.close();
-			IP = IPs.get(n);
-		} else {
-			SystemyLogger.log(Level.SEVERE, logName + "No usable IP address detected");
-			System.exit(-1);
+		if (!debugMode) {
+			nodeIp = Interface.getIP();
 		}
-		me = new NodeInfo(HOSTNAME, IP);
+
+		me = new NodeInfo(HOSTNAME, nodeIp);
 
 		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
 
 		// init skeleton
 		NodeInterface ni = new Node();
 		RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), me.getName(), ni);
-		
+
 		initShutdownHook();
 		listenToNewNodes();
 		listenToNeighborRequests();
 		startHeartbeat();
 		discover();
-		
+
 		// init nameserver stub
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, REMOTENSNAME, dnsIP, DNSPORT);
@@ -222,7 +214,7 @@ public class Node implements NodeInterface {
 			}
 		}).start();
 	}
-	
+
 	/**
 	 * Thread that checks if neighbors are still alive
 	 */
@@ -265,7 +257,7 @@ public class Node implements NodeInterface {
 					// init previous node stub
 					NodeInterface previousNodeInterface = null;
 					previousNodeInterface = rmiNode.getStub(previousNodeInterface, previousNode.getName(), previousNode.getIP(), RMIPORT);
-					// ping previous node 
+					// ping previous node
 					try {
 						if ( previousNodeInterface.ping() ) {
 							// everything ok
@@ -302,7 +294,7 @@ public class Node implements NodeInterface {
 			}
 		}).start();
 	}
-	
+
 
 	/**
 	 * If previous node is failed, replace it in myself by the previous of the failed node and remove the failed node from register
@@ -343,7 +335,7 @@ public class Node implements NodeInterface {
 			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * Method to set the DNS IP after sending a discovery multicast
 	 */
@@ -352,7 +344,7 @@ public class Node implements NodeInterface {
 		dnsIP = IP;
 		SystemyLogger.log(Level.INFO, logName + "NameServer is on IP: " + dnsIP);
 	}
-	
+
 	/**
 	 * method that returns true over RMI to check if node is still online
 	 * @return boolean: true

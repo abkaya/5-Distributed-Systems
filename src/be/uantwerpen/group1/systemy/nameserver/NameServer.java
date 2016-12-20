@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
+import be.uantwerpen.group1.systemy.node.NodeInfo;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
 import be.uantwerpen.group1.systemy.node.NodeInterface;
@@ -24,33 +25,30 @@ public class NameServer implements NameServerInterface {
 	private static final int RMIPORT = parserXML.getTcpDNSRetransmissionPortNS();
 	private static final String MULTICASTIP = parserXML.getMulticastIpNS();
 	private static final String REMOTENSNAME = parserXML.getRemoteNsNameNS();
+	private static String nameServerIp;
+	private static boolean debugMode = false;
 
-	private static final NameServerRegister nsr = new NameServerRegister(false);
+	private static final NameServerRegister nsr = new NameServerRegister();
+
+	/**
+	 * Constructor only for debug purposes
+	 * @param ipAddress_debug: if where in debug mode, the ipaddress is the ipaddress for the nameserver, otherwise it's zero
+	 */
+	public NameServer(String nameServerIP, boolean debugMode) {
+		// TODO Auto-generated constructor stub
+		NameServer.nameServerIp = nameServerIP;
+		NameServer.debugMode = debugMode;
+	}
+
+	public NameServer() {
+		// TODO Auto-generated constructor stub
+	}
 
 	public static void main(String args[]) throws UnknownHostException, SocketException {
 
-		String IP = null;
-		ArrayList<String> IPs = Interface.getIP();
-		if (IPs.size() == 1) {
-			IP = IPs.get(0);
-		} else if (IPs.size() > 1) {
-			System.out.println("Choose one of the following IP addresses:");
-			for (int i = 0; i < IPs.size(); i++) {
-				System.out.println("  (" + i + ") " + IPs.get(i));
-			}
-			int n = -1;
-			Scanner reader = new Scanner(System.in);
-			while ( n < 0 || n > IPs.size()-1 ) {
-				System.out.print("Enter preferred number: ");
-				n = reader.nextInt();
-			}
-			reader.close();
-			IP = IPs.get(n);
-		} else {
-			SystemyLogger.log(Level.SEVERE, logName + "No usable IP address detected");
-			System.exit(-1);
+		if (!debugMode) {
+			nameServerIp = Interface.getIP();
 		}
-		String nameServerIp = IP;
 
 		SystemyLogger.log(Level.INFO, logName + "NameServer started on " + nameServerIp);
 
@@ -90,25 +88,25 @@ public class NameServer implements NameServerInterface {
 	}
 
 	@Override
-	public String getIPAddress(String fileName) {
-		return nsr.getFileLocation(fileName);
+	public String getIPAddress(int filehash) {
+		return nsr.getFileLocation(filehash);
 	}
 
 	@Override
 	public void removeNode(int hash) {
-		nsr.removeNodeFromRegister(Integer.toString(hash));
+		nsr.removeNodeFromRegister(hash);
 	}
 
 	@Override
 	public int getNextNode(int hash) {
-		return Integer.parseInt(nsr.getNextNode(Integer.toString(hash)));
+		return Integer.parseInt(nsr.getNextNode(hash));
 	}
 
 	@Override
 	public int getPreviousNode(int hash) {
-		return Integer.parseInt(nsr.getPreviousNode(Integer.toString(hash)));
+		return Integer.parseInt(nsr.getPreviousNode(hash));
 	}
-	
+
 	@Override
 	public String getNodeIP(int hash) {
 		return nsr.getNodeIPFromHash(hash);
