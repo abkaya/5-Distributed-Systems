@@ -3,13 +3,10 @@ package be.uantwerpen.group1.systemy.node;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
-import be.uantwerpen.group1.systemy.nameserver.NameServer;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
@@ -35,9 +32,7 @@ public class Node implements NodeInterface {
 	static final int NEIGHBORPORT = parserXML.getNeighborPortN();
 	static final int MULTICASTPORT = parserXML.getMulticastPortN();
 	static final String REMOTENSNAME = parserXML.getRemoteNsNameN();
-	static final int DNSPORT = parserXML.getDnsPortN();
-	static final int RMIPORT = 1099;	// TODO: same as DNSPORT
-	static final int TCPDNSRETRANSMISSIONPORT = parserXML.getTcpDnsRetransmissionPortN();
+	static final int RMIPORT = parserXML.getDnsPortN();
 
 	public Node(String nodeIP, boolean debugMode) {
 		// TODO Auto-generated constructor stub
@@ -77,7 +72,7 @@ public class Node implements NodeInterface {
 
 		// init nameserver stub
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		nsi = rmi.getStub(nsi, REMOTENSNAME, dnsIP, DNSPORT);
+		nsi = rmi.getStub(nsi, REMOTENSNAME, dnsIP, RMIPORT);
 
 		/*
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
