@@ -52,15 +52,20 @@ public class NameServer implements NameServerInterface {
 
 		SystemyLogger.log(Level.INFO, logName + "NameServer started on " + nameServerIp);
 
+		// create RMI skeleton
 		NameServerInterface nsi = new NameServer();
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>(nameServerIp, REMOTENSNAME, nsi);
-
+		
+		
 		/*
 		 * New nodes will apply to join the multicast group, be added to the DNS registry,
 		 * and will receive the DNS IP through TCP retransmission
 		 */
-		MulticastListener multicastListener = new MulticastListener(MULTICASTIP, MULTICASTPORT);
 		new Thread(() -> {
+			MulticastListener multicastListener = new MulticastListener(MULTICASTIP, MULTICASTPORT);
+			// create nodeInterface stub
+			RMI<NodeInterface> rmiNode = new RMI<NodeInterface>();
+			NodeInterface nodeInterface = null;
 			while (true) {
 				String[] hostnameIP;
 				String multicastMessage = multicastListener.receive().trim();
@@ -74,9 +79,7 @@ public class NameServer implements NameServerInterface {
 				 * letting it know what our DNS server IP is. He got to us, but it doesn't know
 				 * our IP yet. That what this retransmission is about.
 				 */
-				RMI<NodeInterface> rmiNode = new RMI<NodeInterface>();
-				NodeInterface nodeInterface = null;
-				nodeInterface = rmiNode.getStub(nodeInterface, hostName, hostIP, RMIPORT);
+				nodeInterface = rmiNode.getStub(nodeInterface, "node", hostIP, RMIPORT);
 				try {
 					nodeInterface.setDNSIP(nameServerIp);
 				} catch (Exception e) {

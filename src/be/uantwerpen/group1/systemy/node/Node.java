@@ -69,10 +69,7 @@ public class Node implements NodeInterface {
 		listenToNeighborRequests();
 		startHeartbeat();
 		discover();
-
-		// init nameserver stub
-		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		nsi = rmi.getStub(nsi, REMOTENSNAME, dnsIP, RMIPORT);
+		
 
 		/*
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
@@ -337,11 +334,17 @@ public class Node implements NodeInterface {
 
 	/**
 	 * Method to set the DNS IP after sending a discovery multicast
+	 * 
+	 * @param IP: new NS IP 
 	 */
 	@Override
 	public void setDNSIP(String IP) {
 		dnsIP = IP;
 		SystemyLogger.log(Level.INFO, logName + "NameServer is on IP: " + dnsIP);
+		// init nameserver stub
+		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
+		nsi = rmi.getStub(nsi, REMOTENSNAME, dnsIP, RMIPORT);
+		SystemyLogger.log(Level.INFO, logName + "Created nameserver stub");
 	}
 
 	/**
