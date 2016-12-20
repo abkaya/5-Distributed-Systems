@@ -20,16 +20,14 @@ public class ParserXML {
 	// Declarations of the variables for the node
 	private static String hostNameN;
 	private static String dnsIpN;
-	private static int dnsPortN;
+	private static int rmiPortN;
 	private static int multicastPortN;
 	private static int tcpFileTranferPortN;
-	private static int tcpDnsRetransmissionPortN;
 	private static int neighborPortN;
 	private static String remoteNsNameN;
 
 	// Declarations of the variables for the NameServer
 	private static int multicastPortNS;
-	private static int tcpDnsRetransmissionPortNS;
 	private static String multicastIpNS;
 	private static String remoteNsNameNS;
 
@@ -57,8 +55,8 @@ public class ParserXML {
 		return dnsIpN;
 	}
 
-	public int getDnsPortN() {
-		return dnsPortN;
+	public int getRMIPortN() {
+		return rmiPortN;
 	}
 
 	public int getMulticastPortN() {
@@ -69,9 +67,6 @@ public class ParserXML {
 		return tcpFileTranferPortN;
 	}
 
-	public int getTcpDnsRetransmissionPortN() {
-		return tcpDnsRetransmissionPortN;
-	}
 
 	public int getNeighborPortN() {
 		return neighborPortN;
@@ -87,10 +82,6 @@ public class ParserXML {
 
 	public int getMulticastPortNS() {
 		return multicastPortNS;
-	}
-
-	public int getTcpDNSRetransmissionPortNS() {
-		return tcpDnsRetransmissionPortNS;
 	}
 
 	public String getMulticastIpNS() {
@@ -122,7 +113,7 @@ public class ParserXML {
 
 						multicastPortNS = Integer
 								.parseInt(element.getElementsByTagName("MulticastPort").item(0).getTextContent());
-						tcpDnsRetransmissionPortNS = Integer.parseInt(
+						Integer.parseInt(
 								element.getElementsByTagName("TcpDnsRetransmissionPort").item(0).getTextContent());
 						multicastIpNS = element.getElementsByTagName("MulticastIp").item(0).getTextContent();
 						remoteNsNameNS = element.getElementsByTagName("RemoteNsName").item(0).getTextContent();
@@ -142,13 +133,11 @@ public class ParserXML {
 
 						hostNameN = element.getElementsByTagName("Hostname").item(0).getTextContent();
 						dnsIpN = element.getElementsByTagName("DnsIp").item(0).getTextContent();
-						dnsPortN = Integer.parseInt(element.getElementsByTagName("DnsPort").item(0).getTextContent());
+						rmiPortN = Integer.parseInt(element.getElementsByTagName("DnsPort").item(0).getTextContent());
 						multicastPortN = Integer
 								.parseInt(element.getElementsByTagName("MulticastPort").item(0).getTextContent());
 						tcpFileTranferPortN = Integer
 								.parseInt(element.getElementsByTagName("TcpFileTranferPort").item(0).getTextContent());
-						tcpDnsRetransmissionPortN = Integer.parseInt(
-								element.getElementsByTagName("TcpDnsRetransmissionPort").item(0).getTextContent());
 						neighborPortN = Integer
 								.parseInt(element.getElementsByTagName("NeighborPort").item(0).getTextContent());
 						remoteNsNameN = element.getElementsByTagName("RemoteNsName").item(0).getTextContent();

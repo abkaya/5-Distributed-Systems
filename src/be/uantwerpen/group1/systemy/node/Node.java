@@ -32,7 +32,7 @@ public class Node implements NodeInterface {
 	static final int NEIGHBORPORT = parserXML.getNeighborPortN();
 	static final int MULTICASTPORT = parserXML.getMulticastPortN();
 	static final String REMOTENSNAME = parserXML.getRemoteNsNameN();
-	static final int RMIPORT = parserXML.getRMIPort();
+	static final int RMIPORT = parserXML.getRMIPortN();
 
 	/**
 	 * Constructor only for debug purposes
@@ -42,7 +42,7 @@ public class Node implements NodeInterface {
 		Node.nodeIp = nodeIP;
 		Node.debugMode = debugMode;
 	}
-	
+
 	/**
 	 * Constructor for RMI
 	 */
@@ -75,7 +75,7 @@ public class Node implements NodeInterface {
 		listenToNeighborRequests();
 		startHeartbeat();
 		discover();
-		
+
 
 		/*
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
@@ -340,8 +340,8 @@ public class Node implements NodeInterface {
 
 	/**
 	 * Method to set the DNS IP after sending a discovery multicast
-	 * 
-	 * @param IP: new NS IP 
+	 *
+	 * @param IP: new NS IP
 	 */
 	@Override
 	public void setDNSIP(String IP) {
