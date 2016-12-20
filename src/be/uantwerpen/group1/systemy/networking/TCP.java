@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.*;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
@@ -81,21 +82,27 @@ public class TCP
 	 */
 	public TCP(int port, String host)
 	{
-		while (this.clientSocket == null) {
+		int trys = 3;
+		while (this.clientSocket == null && trys > 0) {
 			try
 			{
 				this.clientSocket = new Socket(host, port);
-				SystemyLogger.log(Level.INFO, logName + "- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :"
-						+ clientSocket.getLocalPort());
-				SystemyLogger.log(Level.INFO, logName + "- Socket connection established with server : " + host + ", port : " + port);
-				// System.out.println("- Opened client socket on IP : " + clientSocket.getInetAddress() + ", port :"
-				// + clientSocket.getLocalPort());
-				// System.out.println("- Socket connection established with server : " + host + ", port : " + port);
+				SystemyLogger.log(Level.INFO, logName + "- Opened client socket on IP : " + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getLocalPort());
+				SystemyLogger.log(Level.INFO, logName + "- Socket connection established with server : " + host + ":" + port);
 			} catch (IOException e)
 			{
-				SystemyLogger.log(Level.SEVERE, logName + "clientsocket exception : could not connect to " + host + ":" + port);
-				// System.err.println("clientsocket exception : could not connect to " + host + ":" + port);
+				SystemyLogger.log(Level.INFO, logName + "clientsocket exception : could not connect to " + host + ":" + port);
+				try {
+					TimeUnit.SECONDS.sleep(2);
+				} catch (InterruptedException e1) {
+					SystemyLogger.log(Level.SEVERE, logName + e1.getMessage());
+				}
+				trys--;
+				SystemyLogger.log(Level.INFO, logName + trys + " trys left");
 			}
+		}
+		if (this.clientSocket == null) {
+			SystemyLogger.log(Level.SEVERE, logName + "unable to connect to " + host + ":" + port);
 		}
 	}
 

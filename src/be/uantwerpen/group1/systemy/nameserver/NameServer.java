@@ -9,6 +9,7 @@ import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.node.NodeInfo;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
+import be.uantwerpen.group1.systemy.node.NodeInterface;
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class NameServer implements NameServerInterface {
 	private static ParserXML parserXML = new ParserXML(logName);
 
 	private static final int MULTICASTPORT = parserXML.getMulticastPortNS();
-	private static final int TCPDNSRETRANSMISSIONPORT = parserXML.getTcpDNSRetransmissionPortNS();
+	private static final int RMIPORT = parserXML.getTcpDNSRetransmissionPortNS();
 	private static final String MULTICASTIP = parserXML.getMulticastIpNS();
 	private static final String REMOTENSNAME = parserXML.getRemoteNsNameNS();
 	private static String nameServerIp;
@@ -73,8 +74,14 @@ public class NameServer implements NameServerInterface {
 				 * letting it know what our DNS server IP is. He got to us, but it doesn't know
 				 * our IP yet. That what this retransmission is about.
 				 */
-				TCP dnsIPRetransmission = new TCP(TCPDNSRETRANSMISSIONPORT, hostIP);
-				dnsIPRetransmission.sendText(nameServerIp);
+				RMI<NodeInterface> rmiNode = new RMI<NodeInterface>();
+				NodeInterface nodeInterface = null;
+				nodeInterface = rmiNode.getStub(nodeInterface, hostName, hostIP, RMIPORT);
+				try {
+					nodeInterface.setDNSIP(nameServerIp);
+				} catch (Exception e) {
+					SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+				}
 			}
 		}).start();
 
@@ -98,6 +105,11 @@ public class NameServer implements NameServerInterface {
 	@Override
 	public int getPreviousNode(int hash) {
 		return Integer.parseInt(nsr.getPreviousNode(hash));
+	}
+
+	@Override
+	public String getNodeIP(int hash) {
+		return nsr.getNodeIPFromHash(hash);
 	}
 
 }

@@ -20,27 +20,27 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	private String ip;
 
 	/**
-	 * constructor
+	 * constructor using node name
 	 * 
 	 * @param nodeName
-	 * @param nodeHash
 	 * @param nodeIP
 	 */
 	public NodeInfo(String nodeName, String nodeIP) {
 		this.setName(nodeName);
 		this.setIP(nodeIP);
 	}
-
+	
 	/**
-	 * empty object Constructor
+	 * constructor using hash
+	 * if you know the node name it is recommended to use 'new NodeInfo(String nodeName, String nodeIP)'
+	 * 
+	 * @param nodeHash
+	 * @param nodeIP
 	 */
-	/*
-	public NodeInfo() {
-		this.setName(null);
-		this.setIP(null);
-		parserXML.parse();
+	public NodeInfo(int nodeHash, String nodeIP) {
+		this.setHash(nodeHash);
+		this.setIP(nodeIP);
 	}
-	*/
 
 	// -----
 	// GET
@@ -64,7 +64,10 @@ public class NodeInfo implements Comparable<NodeInfo> {
 		this.name = nodeName;
 		this.hash = Hashing.hash(nodeName);
 	}
-
+	public void setHash(int hash) {
+		this.name = null;
+		this.hash = hash;
+	}
 	public void setIP(String nodeIP) {
 		this.ip = nodeIP;
 	}
