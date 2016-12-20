@@ -349,6 +349,14 @@ public class Node implements NodeInterface {
 	}
 	
 	/**
+	 * Method to set the DNS IP after sending a discovery multicast
+	 */
+	@Override
+	public void setDNSIP(String IP) {
+		dnsIP = IP;
+	}
+	
+	/**
 	 * method that returns true over RMI to check if node is still online
 	 * @return boolean: true
 	 */
