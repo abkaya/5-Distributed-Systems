@@ -15,12 +15,11 @@ import java.util.logging.Level;
 public class NameServer implements NameServerInterface {
 
 	private static String logName = NameServer.class.getName() + " >> ";
-	private static ParserXML parserXML = new ParserXML(logName);
-
-	private static final int MULTICASTPORT = parserXML.getMulticastPortNS();
-	private static final int RMIPORT = parserXML.getRMIPortN();
-	private static final String MULTICASTIP = parserXML.getMulticastIpNS();
-	private static final String REMOTENSNAME = parserXML.getRemoteNsNameNS();
+	
+	private static final int MULTICASTPORT = Integer.parseInt(ParserXML.parseXML("MulticastPort"));
+	private static final int RMIPORT = Integer.parseInt(ParserXML.parseXML("RMIPort"));
+	private static final String MULTICASTIP = ParserXML.parseXML("MulticastIp");
+	private static final String REMOTENSNAME = ParserXML.parseXML("RemoteNsName");
 	private static String nameServerIp;
 	private static boolean debugMode = false;
 
