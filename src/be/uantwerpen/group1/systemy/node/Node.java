@@ -19,19 +19,28 @@ import be.uantwerpen.group1.systemy.networking.MulticastSender;
 public class Node {
 	private static String logName = Node.class.getName() + " >> ";
 
-	static NodeInfo me = null;
-	static NodeInfo nextNode = null;
-	static NodeInfo previousNode = null;
-	static NameServerInterface nsi = null;
-	static ParserXML parserXML = new ParserXML(logName);
-	static String dnsIP = parserXML.getDnsIPN();
+	private static NodeInfo me = null;
+	private static NodeInfo nextNode = null;
+	private static NodeInfo previousNode = null;
+	private static NameServerInterface nsi = null;
+	private static ParserXML parserXML = new ParserXML(logName);
+	private static String dnsIP = parserXML.getDnsIPN();
+	private static String HOSTNAME = parserXML.getHostNameN();
 
-	static final String HOSTNAME = parserXML.getHostNameN();
+	private static String nodeIp;
+	private static boolean debugMode = false;
+
 	static final int NEIGHBORPORT = parserXML.getNeighborPortN();
 	static final int MULTICASTPORT = parserXML.getMulticastPortN();
 	static final String REMOTENSNAME = parserXML.getRemoteNsNameN();
 	static final int DNSPORT = parserXML.getDnsPortN();
 	static final int TCPDNSRETRANSMISSIONPORT = parserXML.getTcpDnsRetransmissionPortN();
+
+	public Node(String nodeIP, boolean debugMode) {
+		// TODO Auto-generated constructor stub
+		Node.nodeIp = nodeIP;
+		Node.debugMode = debugMode;
+	}
 
 	/**
 	 * @param args: first argument is the nodeName (optional)
@@ -41,28 +50,8 @@ public class Node {
 	 */
 	public static void main(String args[]) throws RemoteException, UnknownHostException, SocketException {
 
-		String IP = null;
-		ArrayList<String> IPs = Interface.getIP();
-		if (IPs.size() == 1) {
-			IP = IPs.get(0);
-		} else if (IPs.size() > 1) {
-			System.out.println("Choose one of the following IP addresses:");
-			for (int i = 0; i < IPs.size(); i++) {
-				System.out.println("  (" + i + ") " + IPs.get(i));
-			}
-			int n = -1;
-			Scanner reader = new Scanner(System.in);
-			while ( n < 0 || n > IPs.size()-1 ) {
-				System.out.print("Enter prefered number: ");
-				n = reader.nextInt();
-			}
-			reader.close();
-			IP = IPs.get(n);
-		} else {
-			SystemyLogger.log(Level.SEVERE, logName + "No usable IP address detected");
-			System.exit(-1);
-		}
-		me = new NodeInfo(HOSTNAME, IP);
+		createIP(debugMode);
+		me = new NodeInfo(HOSTNAME, nodeIp);
 
 		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
 
@@ -71,7 +60,7 @@ public class Node {
 		listenToNeighborRequests();
 		discover();
 
-		// init RMI
+		// initialize RMI
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, REMOTENSNAME, dnsIP, DNSPORT);
 
@@ -101,6 +90,39 @@ public class Node {
 		 */
 		//Replicator rep = new Replicator(me.getIP(), tcpFileTranferPort, dnsIP, dnsPort);
 		//rep.run();
+	}
+
+	/**
+	 * This method will give us an ip address for the node
+	 * @param debugger: check wether we are in debug mode or not
+	 */
+	private static void createIP(boolean debugger) throws SocketException {
+
+		if (debugMode == false) {
+			String IP = null;
+			ArrayList<String> IPs = Interface.getIP();
+			if (IPs.size() == 1) {
+				IP = IPs.get(0);
+			} else if (IPs.size() > 1) {
+				System.out.println("Choose one of the following IP addresses:");
+				for (int i = 0; i < IPs.size(); i++) {
+					System.out.println("  (" + i + ") " + IPs.get(i));
+				}
+				int n = -1;
+				Scanner reader = new Scanner(System.in);
+				while (n < 0 || n > IPs.size() - 1) {
+					System.out.print("Enter prefered number: ");
+					n = reader.nextInt();
+				}
+				reader.close();
+				IP = IPs.get(n);
+			} else {
+				SystemyLogger.log(Level.SEVERE, logName + "No usable IP address detected");
+				System.exit(-1);
+			}
+			nodeIp = IP;
+			SystemyLogger.log(Level.INFO, logName + "NameServer started on " + nodeIp);
+		}
 	}
 
 	/**
@@ -218,6 +240,5 @@ public class Node {
 			}
 		}).start();
 	}
-	
 
 }
