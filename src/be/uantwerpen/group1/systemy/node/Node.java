@@ -138,10 +138,6 @@ public class Node implements NodeInterface {
 		String Message = me.toData();
 		MulticastSender.send("234.0.113.0", MULTICASTPORT, Message);
 		SystemyLogger.log(Level.INFO, logName + "Send multicast message: " + Message);
-		// Response
-		TCP dnsIPReceiver = new TCP(me.getIP(), TCPDNSRETRANSMISSIONPORT);
-		dnsIP = dnsIPReceiver.receiveText();
-		SystemyLogger.log(Level.INFO, logName + "NameServer is on IP: " + dnsIP);
 	}
 
 	/**
@@ -354,6 +350,7 @@ public class Node implements NodeInterface {
 	@Override
 	public void setDNSIP(String IP) {
 		dnsIP = IP;
+		SystemyLogger.log(Level.INFO, logName + "NameServer is on IP: " + dnsIP);
 	}
 	
 	/**
