@@ -50,7 +50,10 @@ public class Node {
 	 */
 	public static void main(String args[]) throws RemoteException, UnknownHostException, SocketException {
 
-		createIP(debugMode);
+		if (!debugMode) {
+			nodeIp = Interface.getIP();
+		}
+		
 		me = new NodeInfo(HOSTNAME, nodeIp);
 
 		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
@@ -90,39 +93,6 @@ public class Node {
 		 */
 		//Replicator rep = new Replicator(me.getIP(), tcpFileTranferPort, dnsIP, dnsPort);
 		//rep.run();
-	}
-
-	/**
-	 * This method will give us an ip address for the node
-	 * @param debugger: check wether we are in debug mode or not
-	 */
-	private static void createIP(boolean debugger) throws SocketException {
-
-		if (debugMode == false) {
-			String IP = null;
-			ArrayList<String> IPs = Interface.getIP();
-			if (IPs.size() == 1) {
-				IP = IPs.get(0);
-			} else if (IPs.size() > 1) {
-				System.out.println("Choose one of the following IP addresses:");
-				for (int i = 0; i < IPs.size(); i++) {
-					System.out.println("  (" + i + ") " + IPs.get(i));
-				}
-				int n = -1;
-				Scanner reader = new Scanner(System.in);
-				while (n < 0 || n > IPs.size() - 1) {
-					System.out.print("Enter prefered number: ");
-					n = reader.nextInt();
-				}
-				reader.close();
-				IP = IPs.get(n);
-			} else {
-				SystemyLogger.log(Level.SEVERE, logName + "No usable IP address detected");
-				System.exit(-1);
-			}
-			nodeIp = IP;
-			SystemyLogger.log(Level.INFO, logName + "NameServer started on " + nodeIp);
-		}
 	}
 
 	/**
