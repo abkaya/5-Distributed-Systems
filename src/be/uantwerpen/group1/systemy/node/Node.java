@@ -44,6 +44,10 @@ public class Node implements NodeInterface {
 		Node.nodeIp = nodeIP;
 		Node.debugMode = debugMode;
 	}
+	
+	public Node() {
+		// TODO Auto-generated constructor stub
+	}
 
 	/**
 	 * @param args: first argument is the nodeName (optional)

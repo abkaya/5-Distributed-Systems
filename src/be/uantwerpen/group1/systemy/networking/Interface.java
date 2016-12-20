@@ -54,6 +54,12 @@ public class Interface {
 
 	}
 
+	/**
+	 * Method to select an IP from list
+	 * 
+	 * @param IPs: list of IPs
+	 * @return String: selected IP
+	 */
 	public static String chooseIP(ArrayList<String> IPs) {
 		String IP = null;
 		if (IPs.size() == 1) {
@@ -78,6 +84,12 @@ public class Interface {
 		return IP;
 	}
 	
+	/**
+	 * Select IP from possible interfaces
+	 * 
+	 * @return String: Selected IP
+	 * @throws SocketException
+	 */
 	public static String getIP() throws SocketException {
 		ArrayList<String> IPs = getIPList();
 		return chooseIP(IPs);
