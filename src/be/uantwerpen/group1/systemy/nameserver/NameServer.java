@@ -5,15 +5,11 @@ import java.net.UnknownHostException;
 
 import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.RMI;
-import be.uantwerpen.group1.systemy.networking.TCP;
-import be.uantwerpen.group1.systemy.node.NodeInfo;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
 import be.uantwerpen.group1.systemy.node.NodeInterface;
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 
-import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.logging.Level;
 
 public class NameServer implements NameServerInterface {
@@ -22,7 +18,7 @@ public class NameServer implements NameServerInterface {
 	private static ParserXML parserXML = new ParserXML(logName);
 
 	private static final int MULTICASTPORT = parserXML.getMulticastPortNS();
-	private static final int RMIPORT = parserXML.getTcpDNSRetransmissionPortNS();
+	private static final int RMIPORT = parserXML.getRMIPort();
 	private static final String MULTICASTIP = parserXML.getMulticastIpNS();
 	private static final String REMOTENSNAME = parserXML.getRemoteNsNameNS();
 	private static String nameServerIp;
@@ -35,13 +31,15 @@ public class NameServer implements NameServerInterface {
 	 * @param ipAddress_debug: if where in debug mode, the ipaddress is the ipaddress for the nameserver, otherwise it's zero
 	 */
 	public NameServer(String nameServerIP, boolean debugMode) {
-		// TODO Auto-generated constructor stub
 		NameServer.nameServerIp = nameServerIP;
 		NameServer.debugMode = debugMode;
 	}
 
+	/**
+	 * Constructor for RMI
+	 */
 	public NameServer() {
-		// TODO Auto-generated constructor stub
+		// empty
 	}
 
 	public static void main(String args[]) throws UnknownHostException, SocketException {
@@ -63,7 +61,6 @@ public class NameServer implements NameServerInterface {
 		 */
 		new Thread(() -> {
 			MulticastListener multicastListener = new MulticastListener(MULTICASTIP, MULTICASTPORT);
-			// create nodeInterface stub
 			RMI<NodeInterface> rmiNode = new RMI<NodeInterface>();
 			NodeInterface nodeInterface = null;
 			while (true) {

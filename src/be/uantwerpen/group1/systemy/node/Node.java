@@ -32,16 +32,22 @@ public class Node implements NodeInterface {
 	static final int NEIGHBORPORT = parserXML.getNeighborPortN();
 	static final int MULTICASTPORT = parserXML.getMulticastPortN();
 	static final String REMOTENSNAME = parserXML.getRemoteNsNameN();
-	static final int RMIPORT = parserXML.getDnsPortN();
+	static final int RMIPORT = parserXML.getRMIPort();
 
+	/**
+	 * Constructor only for debug purposes
+	 * @param ipAddress_debug: if where in debug mode, the ipaddress is the ipaddress for the nameserver, otherwise it's zero
+	 */
 	public Node(String nodeIP, boolean debugMode) {
-		// TODO Auto-generated constructor stub
 		Node.nodeIp = nodeIP;
 		Node.debugMode = debugMode;
 	}
 	
+	/**
+	 * Constructor for RMI
+	 */
 	public Node() {
-		// TODO Auto-generated constructor stub
+		// empty
 	}
 
 	/**
@@ -353,6 +359,7 @@ public class Node implements NodeInterface {
 	 */
 	@Override
 	public boolean ping() {
+		System.out.println("Ping!");
 		return true;
 	}
 
