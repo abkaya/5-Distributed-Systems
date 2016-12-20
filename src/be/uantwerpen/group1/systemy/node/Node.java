@@ -67,7 +67,7 @@ public class Node implements NodeInterface {
 
 		// init skeleton
 		NodeInterface ni = new Node();
-		RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), me.getName(), ni);
+		RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), "node", ni);
 
 		initShutdownHook();
 		listenToNewNodes();
@@ -229,7 +229,7 @@ public class Node implements NodeInterface {
 				if (nextNode != null) {
 					// init next node stub
 					NodeInterface nextNodeInterface = null;
-					nextNodeInterface = rmiNode.getStub(nextNodeInterface, nextNode.getName(), nextNode.getIP(), RMIPORT);
+					nextNodeInterface = rmiNode.getStub(nextNodeInterface, "node", nextNode.getIP(), RMIPORT);
 					// ping next node
 					try {
 						if ( nextNodeInterface.ping() ) {
@@ -260,7 +260,7 @@ public class Node implements NodeInterface {
 				if (previousNode != null) {
 					// init previous node stub
 					NodeInterface previousNodeInterface = null;
-					previousNodeInterface = rmiNode.getStub(previousNodeInterface, previousNode.getName(), previousNode.getIP(), RMIPORT);
+					previousNodeInterface = rmiNode.getStub(previousNodeInterface, "node", previousNode.getIP(), RMIPORT);
 					// ping previous node
 					try {
 						if ( previousNodeInterface.ping() ) {
