@@ -4,6 +4,7 @@ import java.io.File;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
 
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Hashing;
@@ -11,7 +12,7 @@ import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
 import java.nio.file.*;
 
-public class Replicator implements ReplicatorInterface, Runnable
+public class Replicator implements ReplicatorInterface, Runnable, java.util.Observer
 {
 	List<String> ownedFiles;
 	List<String> localFiles;
@@ -22,6 +23,25 @@ public class Replicator implements ReplicatorInterface, Runnable
 	int tcpFileTranferPort = 0;
 	String remoteNSName = "NameServerInterface";
 	NameServerInterface nsi = null;
+	
+	/**
+	 * Replicator observes the files in the localFiles folder. Delete or create actions are performed 
+	 * on these files. Hence the filename and action variable below.
+	 */
+	private String observedFile;
+    private int observedAction;
+   
+
+    @Override
+    public void update(Observable o, Object args) {
+        if(o instanceof ObservableWatchService)
+        {
+            ObservableWatchService watchService = (ObservableWatchService)o;
+            this.observedAction = watchService.getAction();
+            this.observedFile = watchService.getFileName();
+            System.out.println("ConcreteObserver >>  action : "+observedAction+" , fileName : "+observedFile);
+        }
+    }
 
 	@Override
 	public String getOwnerLocation(String fileName) throws RemoteException
@@ -117,12 +137,13 @@ public class Replicator implements ReplicatorInterface, Runnable
 	 * @param dnsIP
 	 * @param dnsPort
 	 */
-	public Replicator(String nodeIP, int tcpFileTranferPort, String dnsIP, int dnsPort)
+	public Replicator(String nodeIP, int tcpFileTranferPort, String dnsIP, int dnsPort, Observable observable)
 	{
 		this.tcpFileTranferPort = tcpFileTranferPort;
 		this.nodeIP = nodeIP;
 		this.dnsIP = dnsIP;
 		this.dnsPort = dnsPort;
+		observable.addObserver(this);
 	}
 
 	@Override
