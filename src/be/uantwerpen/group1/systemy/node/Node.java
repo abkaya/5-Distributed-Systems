@@ -32,7 +32,7 @@ public class Node implements NodeInterface {
 	static final int NEIGHBORPORT = parserXML.getNeighborPortN();
 	static final int MULTICASTPORT = parserXML.getMulticastPortN();
 	static final String REMOTENSNAME = parserXML.getRemoteNsNameN();
-	static final int RMIPORT = parserXML.getDnsPortN();
+	static final int RMIPORT = parserXML.getRMIPortN();
 
 	public Node(String nodeIP, boolean debugMode) {
 		// TODO Auto-generated constructor stub

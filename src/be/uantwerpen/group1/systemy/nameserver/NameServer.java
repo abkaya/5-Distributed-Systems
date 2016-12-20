@@ -22,7 +22,7 @@ public class NameServer implements NameServerInterface {
 	private static ParserXML parserXML = new ParserXML(logName);
 
 	private static final int MULTICASTPORT = parserXML.getMulticastPortNS();
-	private static final int RMIPORT = parserXML.getTcpDNSRetransmissionPortNS();
+	private static final int RMIPORT = parserXML.getRMIPortN();
 	private static final String MULTICASTIP = parserXML.getMulticastIpNS();
 	private static final String REMOTENSNAME = parserXML.getRemoteNsNameNS();
 	private static String nameServerIp;
