@@ -221,15 +221,15 @@ public class Node implements NodeInterface {
 	 */
 	private static void startHeartbeat() {
 		new Thread(() -> {
+			RMI<NodeInterface> rmiNode = new RMI<NodeInterface>();
+			NodeInterface nodeInterface = null;
 			while(true) {
-				RMI<NodeInterface> rmiNode = new RMI<NodeInterface>();
 				if (nextNode != null) {
 					// init next node stub
-					NodeInterface nextNodeInterface = null;
-					nextNodeInterface = rmiNode.getStub(nextNodeInterface, "node", nextNode.getIP(), RMIPORT);
+					nodeInterface = rmiNode.getStub(nodeInterface, "node", nextNode.getIP(), RMIPORT);
 					// ping next node
 					try {
-						if ( nextNodeInterface.ping() ) {
+						if ( nodeInterface.ping() ) {
 							// everything ok
 						}
 					} catch (Exception e) {
@@ -243,7 +243,7 @@ public class Node implements NodeInterface {
 								SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
 							}
 							try {
-								response = nextNodeInterface.ping();
+								response = nodeInterface.ping();
 							} catch (Exception e1) {
 								trys--;
 							}
@@ -256,11 +256,10 @@ public class Node implements NodeInterface {
 				}
 				if (previousNode != null) {
 					// init previous node stub
-					NodeInterface previousNodeInterface = null;
-					previousNodeInterface = rmiNode.getStub(previousNodeInterface, "node", previousNode.getIP(), RMIPORT);
+					nodeInterface = rmiNode.getStub(nodeInterface, "node", previousNode.getIP(), RMIPORT);
 					// ping previous node
 					try {
-						if ( previousNodeInterface.ping() ) {
+						if ( nodeInterface.ping() ) {
 							// everything ok
 						}
 					} catch (Exception e) {
@@ -275,7 +274,7 @@ public class Node implements NodeInterface {
 								SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
 							}
 							try {
-								response = previousNodeInterface.ping();
+								response = nodeInterface.ping();
 							} catch (Exception e1) {
 								trys--;
 							}
