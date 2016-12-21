@@ -357,7 +357,7 @@ public class Node implements NodeInterface {
 	 */
 	@Override
 	public boolean ping() {
-		System.out.println("Ping!");
+//		SystemyLogger.log(Level.INFO, logName + "Ping received");
 		return true;
 	}
 
