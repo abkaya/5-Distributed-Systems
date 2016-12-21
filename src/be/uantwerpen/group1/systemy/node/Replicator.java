@@ -1,11 +1,14 @@
 package be.uantwerpen.group1.systemy.node;
 
 import java.io.File;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
+import java.util.logging.Level;
 
+import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Hashing;
 import be.uantwerpen.group1.systemy.networking.RMI;
@@ -14,6 +17,8 @@ import java.nio.file.*;
 
 public class Replicator implements ReplicatorInterface, Runnable, java.util.Observer
 {
+	private static String logName = Node.class.getName() + " >> ";
+	
 	List<String> ownedFiles;
 	List<String> localFiles;
 	List<String> downloadedFiles;
@@ -32,6 +37,10 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
     private int observedAction;
    
 
+    /**
+     * This is the observer update function, called whenever the watchservice(observable) is on its turn triggered by a file change
+     * event in the folder it observes
+     */
     @Override
     public void update(Observable o, Object args) {
         if(o instanceof ObservableWatchService)
@@ -39,7 +48,13 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
             ObservableWatchService watchService = (ObservableWatchService)o;
             this.observedAction = watchService.getAction();
             this.observedFile = watchService.getFileName();
-            System.out.println("ConcreteObserver >>  action : "+observedAction+" , fileName : "+observedFile);
+            SystemyLogger.log(Level.INFO, logName + "ConcreteObserver >>  action : "+observedAction+" , fileName : "+observedFile);
+            
+            /*
+             * - handle the delete operation by removing the file from the local lists
+             * - handle the create operation by getting the owner, using RMI and if the owner is this nodeIP itself, then replicate the file
+             * to the previous node. One thing to be able to do is getting the previous owner.
+             */
         }
     }
 
@@ -60,6 +75,8 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 
 	/**
 	 * RMI method used by other nodes to check whether or not this node has a file available locally
+	 * @param String: fileName
+	 * @return boolean : whether or not the file is available on this machine locally
 	 */
 	@Override
 	public boolean hasLocalFile(String fileName) throws RemoteException
@@ -137,13 +154,13 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	 * @param dnsIP
 	 * @param dnsPort
 	 */
-	public Replicator(String nodeIP, int tcpFileTranferPort, String dnsIP, int dnsPort, Observable observable)
+	public Replicator(String nodeIP, int tcpFileTranferPort, String dnsIP, int dnsPort) throws IOException
 	{
 		this.tcpFileTranferPort = tcpFileTranferPort;
 		this.nodeIP = nodeIP;
 		this.dnsIP = dnsIP;
 		this.dnsPort = dnsPort;
-		observable.addObserver(this);
+		
 	}
 
 	@Override
@@ -151,9 +168,9 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	{
 		localFiles = getLocalFiles();
 		TCP fileClient = null;
-
+		
 		/*
-		 * This block listens for incoming requests by other nodes who wish to receive files
+		 * This block listens in another thread for incoming requests by other nodes who wish to receive files
 		 */
 		TCP fileServer = new TCP(nodeIP, tcpFileTranferPort);
 		new Thread(() ->
@@ -174,13 +191,14 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		 */
 		for (String localFile : localFiles)
 		{
-			System.out.println("---Replication Thread----");
+			SystemyLogger.log(Level.INFO, logName + "---Replication Thread----");
+			SystemyLogger.log(Level.INFO, logName + localFile );
 			System.out.println(localFile);
 			try
 			{
 				fileClient = new TCP(tcpFileTranferPort, nsi.getFileLocation(hash(localFile)));
 				fileClient.receiveFile(localFile);
-				System.out.println(localFile + " owner request from name server returns: " + nsi.getFileLocation(hash(localFile)));
+				SystemyLogger.log(Level.INFO, logName + localFile + " owner request from name server returns: " + nsi.getFileLocation(hash(localFile)));
 			} catch (RemoteException e)
 			{
 				// TODO Auto-generated catch block
@@ -195,6 +213,23 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		 * based checks called "file change notifications", Watch Service API in the java.nio.file package. 
 		 * https://docs.oracle.com/javase/tutorial/essential/io/notification.html
 		 */
+		
+		// register directory and process its events
+        Path dir = Paths.get("localFiles");
+        //pass the relative directory and whether or not to watch recursively. We don't
+        //check for files entered recursively.
+        ObservableWatchService observable = null;
+		try
+		{
+			observable = new ObservableWatchService(dir, false);
+		} catch (IOException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		observable.addObserver(this);
+        observable.processEvents();
 		
 	}
 }
