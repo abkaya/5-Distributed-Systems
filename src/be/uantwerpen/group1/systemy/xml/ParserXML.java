@@ -25,6 +25,7 @@ public class ParserXML {
 	
 	/**
 	 * Method to retrieve field from config.xml
+	 * If not found: exit application
 	 * 
 	 * @param key: xml tag of requested field
 	 * @return String: value if found (in case of not found 'null')
@@ -46,9 +47,11 @@ public class ParserXML {
 			}
 		} catch (Exception e) {
 			SystemyLogger.log(Level.SEVERE, logName + "Can't parse configuration from config.xml");
+			System.exit(-1);
 		}
 		// default answer if nothing
 		SystemyLogger.log(Level.SEVERE, logName + "config attribute [" + key + "] not found in config.xml");
+		System.exit(-1);
 		return null;
 	}
 	
