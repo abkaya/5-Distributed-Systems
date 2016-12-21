@@ -22,17 +22,16 @@ public class Node implements NodeInterface {
 	private static NodeInfo nextNode = null;
 	private static NodeInfo previousNode = null;
 	private static NameServerInterface nsi = null;
-	private static ParserXML parserXML = new ParserXML(logName);
-	private static String dnsIP = parserXML.getDnsIPN();
-	private static String HOSTNAME = parserXML.getHostNameN();
+	private static String dnsIP = ParserXML.parseXML("DnsIp");
+	private static String HOSTNAME = ParserXML.parseXML("Hostname");
 
 	private static String nodeIp;
 	private static boolean debugMode = false;
 
-	static final int NEIGHBORPORT = parserXML.getNeighborPortN();
-	static final int MULTICASTPORT = parserXML.getMulticastPortN();
-	static final String REMOTENSNAME = parserXML.getRemoteNsNameN();
-	static final int RMIPORT = parserXML.getRMIPortN();
+	static final int NEIGHBORPORT = Integer.parseInt(ParserXML.parseXML("NeighborPort"));
+	static final int MULTICASTPORT = Integer.parseInt(ParserXML.parseXML("MulticastPort"));
+	static final String REMOTENSNAME = ParserXML.parseXML("RemoteNsName");
+	static final int RMIPORT = Integer.parseInt(ParserXML.parseXML("RMIPort"));
 
 	/**
 	 * Constructor only for debug purposes
