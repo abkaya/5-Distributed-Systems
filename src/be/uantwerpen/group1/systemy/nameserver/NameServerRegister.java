@@ -34,14 +34,9 @@ import java.util.TreeMap;
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.networking.Hashing;
 
-public class NameServerRegister implements Serializable {
+public class NameServerRegister  {
 
 	private static String logName = NameServerRegister.class.getName() + " >> ";
-
-	/*
-	 * Default number
-	 */
-	private static final long serialVersionUID = 1L;
 
 	/* Parameter list
 	 * ---------------------
@@ -62,7 +57,6 @@ public class NameServerRegister implements Serializable {
 		// The integer value is the hash calculated and the String is the IPAddres of the host/node
 		register = new TreeMap<Integer, String>();
 		SystemyLogger.log(Level.INFO, logName + "Register loaded");
-		//System.out.println("NameServerRegister >> Register loaded");
 	}
 
 	/**
@@ -146,7 +140,7 @@ public class NameServerRegister implements Serializable {
 
 	/**
 	 * This method calculates the ownership of the files. 
-	 * @param fileName: the name of the file we want the IPAddress from where it is stored
+	 * @param fileHash: the hash of the file we want the IPAddress from where it is stored
 	 * @return nodeIP: this is string that will contains the IPAddress of the node containing the file
 	 */
 	public String getFileLocation(int fileHash) {

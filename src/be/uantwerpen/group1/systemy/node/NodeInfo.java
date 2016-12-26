@@ -1,5 +1,7 @@
 package be.uantwerpen.group1.systemy.node;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
@@ -11,13 +13,20 @@ import be.uantwerpen.group1.systemy.networking.Hashing;
  * @author Robin Janssens
  */
 
-public class NodeInfo implements Comparable<NodeInfo> {
+public class NodeInfo implements Comparable<NodeInfo>
+{
 
 	private static String logName = NodeInfo.class.getName() + " >> ";
 
 	private String name;
 	private int hash;
 	private String ip;
+	
+	//The file list of the node
+	private ArrayList<String> fileList;
+	//The name of the file the node wishes to lock
+	private String lockedFile;
+	
 
 	/**
 	 * constructor using node name
@@ -25,11 +34,12 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	 * @param nodeName
 	 * @param nodeIP
 	 */
-	public NodeInfo(String nodeName, String nodeIP) {
+	public NodeInfo(String nodeName, String nodeIP)
+	{
 		this.setName(nodeName);
 		this.setIP(nodeIP);
 	}
-	
+
 	/**
 	 * constructor using hash
 	 * if you know the node name it is recommended to use 'new NodeInfo(String nodeName, String nodeIP)'
@@ -37,7 +47,8 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	 * @param nodeHash
 	 * @param nodeIP
 	 */
-	public NodeInfo(int nodeHash, String nodeIP) {
+	public NodeInfo(int nodeHash, String nodeIP)
+	{
 		this.setHash(nodeHash);
 		this.setIP(nodeIP);
 	}
@@ -45,30 +56,38 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	// -----
 	// GET
 	// -----
-	public String getName() {
+	public String getName()
+	{
 		return name;
 	}
 
-	public int getHash() {
+	public int getHash()
+	{
 		return hash;
 	}
 
-	public String getIP() {
+	public String getIP()
+	{
 		return ip;
 	}
 
 	// -----
 	// SET
 	// -----
-	public void setName(String nodeName) {
+	public void setName(String nodeName)
+	{
 		this.name = nodeName;
 		this.hash = Hashing.hash(nodeName);
 	}
-	public void setHash(int hash) {
+
+	public void setHash(int hash)
+	{
 		this.name = null;
 		this.hash = hash;
 	}
-	public void setIP(String nodeIP) {
+
+	public void setIP(String nodeIP)
+	{
 		this.ip = nodeIP;
 	}
 
@@ -79,35 +98,46 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	 * @param next: next node NodeInfo
 	 * @return boolean: true if this is a new next node
 	 */
-	public boolean isNewNext(NodeInfo me, NodeInfo next) {
-		if (me == null) {
+	public boolean isNewNext(NodeInfo me, NodeInfo next)
+	{
+		if (me == null)
+		{
 			// own hash not known
 			SystemyLogger.log(Level.SEVERE, logName + "NodeInfo >> own hash not known");
 			return false;
-		} else if (next == null) {
+		} else if (next == null)
+		{
 			// no next node known yet -> make this one next
 			return true;
-		} else {
+		} else
+		{
 			// we need to look in to this
-			if (next.getHash() > me.getHash()) {
+			if (next.getHash() > me.getHash())
+			{
 				// next is bigger than me
-				if (me.getHash() < this.getHash() && this.getHash() < next.getHash()) {
+				if (me.getHash() < this.getHash() && this.getHash() < next.getHash())
+				{
 					// if between
 					return true;
-				} else {
+				} else
+				{
 					// not relevant
 					return false;
 				}
-			} else if (next.getHash() < me.getHash()) {
+			} else if (next.getHash() < me.getHash())
+			{
 				// next is smaller than me
-				if (me.getHash() < this.getHash() || this.getHash() < next.getHash()) {
+				if (me.getHash() < this.getHash() || this.getHash() < next.getHash())
+				{
 					// only one bigger then me OR smaller than next
 					return true;
-				} else {
+				} else
+				{
 					// not relevant
 					return false;
 				}
-			} else {
+			} else
+			{
 				// next == me
 				return true;
 			}
@@ -121,35 +151,46 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	 * @param previous: previous node NodeInfo
 	 * @return boolean: true if this is a new previous node
 	 */
-	public boolean isNewPrevious(NodeInfo me, NodeInfo previous) {
-		if (me == null) {
+	public boolean isNewPrevious(NodeInfo me, NodeInfo previous)
+	{
+		if (me == null)
+		{
 			// own hash not known
 			SystemyLogger.log(Level.SEVERE, logName + "NodeInfo >> own hash not known");
 			return false;
-		} else if (previous == null) {
+		} else if (previous == null)
+		{
 			// no previous node known yet -> make this one previous
 			return true;
-		} else {
+		} else
+		{
 			// we need to look in to this
-			if (previous.getHash() < me.getHash()) {
+			if (previous.getHash() < me.getHash())
+			{
 				// previous is smaller than me
-				if (previous.getHash() < this.getHash() && this.getHash() < me.getHash()) {
+				if (previous.getHash() < this.getHash() && this.getHash() < me.getHash())
+				{
 					// if between
 					return true;
-				} else {
+				} else
+				{
 					// not relevant
 					return false;
 				}
-			} else if (me.getHash() < previous.getHash()) {
+			} else if (me.getHash() < previous.getHash())
+			{
 				// previous is bigger than me
-				if (this.getHash() < me.getHash() || previous.getHash() < this.getHash()) {
+				if (this.getHash() < me.getHash() || previous.getHash() < this.getHash())
+				{
 					// only one smaller then me OR bigger than previous
 					return true;
-				} else {
+				} else
+				{
 					// not relevant
 					return false;
 				}
-			} else {
+			} else
+			{
 				// next == me
 				return true;
 			}
@@ -161,7 +202,8 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	 * 
 	 * @return String: formatted output
 	 */
-	public String toString() {
+	public String toString()
+	{
 		return name + " (" + hash + ")";
 	}
 
@@ -171,7 +213,8 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	 * 
 	 * @return String: formatted output
 	 */
-	public String toData() {
+	public String toData()
+	{
 		return name + "," + hash + "," + ip;
 	}
 
@@ -182,7 +225,8 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	 * @return int: outcome of comparison
 	 */
 	@Override
-	public int compareTo(NodeInfo other) {
+	public int compareTo(NodeInfo other)
+	{
 		if (this.getHash() > other.getHash())
 			return 1;
 		else if (this.getHash() < other.getHash())
