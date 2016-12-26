@@ -15,10 +15,6 @@ import org.w3c.dom.Element;
 public class NodeXML {
 
 	public void create() {
-		
-		String fileName = "node.xml";
-		String workingDir = System.getProperty("user.dir");
-		
 
 		try {
 
