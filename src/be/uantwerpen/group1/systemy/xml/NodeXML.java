@@ -15,6 +15,10 @@ import org.w3c.dom.Element;
 public class NodeXML {
 
 	public void create() {
+		
+		String fileName = "node.xml";
+		String workingDir = System.getProperty("user.dir");
+		
 
 		try {
 
@@ -42,7 +46,7 @@ public class NodeXML {
 			Node.appendChild(DnsIp);
 
 			//Define the NodeDnsPort for the node
-			Element DnsPort = docNode.createElement("DnsPort");
+			Element DnsPort = docNode.createElement("RMIPort");
 			DnsPort.appendChild(docNode.createTextNode("1099"));
 			Node.appendChild(DnsPort);
 
@@ -55,11 +59,6 @@ public class NodeXML {
 			Element TcpFileTranferPort = docNode.createElement("TcpFileTranferPort");
 			TcpFileTranferPort.appendChild(docNode.createTextNode("2001"));
 			Node.appendChild(TcpFileTranferPort);
-
-			//Define the tcpDNSRetransmissionPort for the node
-			Element TcpDnsRetransmissionPort = docNode.createElement("TcpDnsRetransmissionPort");
-			TcpDnsRetransmissionPort.appendChild(docNode.createTextNode("2002"));
-			Node.appendChild(TcpDnsRetransmissionPort);
 
 			//Define the neighborport for the Node
 			Element NeighborPort = docNode.createElement("NeighborPort");

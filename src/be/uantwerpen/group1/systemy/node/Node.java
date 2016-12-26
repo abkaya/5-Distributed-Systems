@@ -3,8 +3,7 @@ package be.uantwerpen.group1.systemy.node;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
@@ -16,22 +15,39 @@ import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
-public class Node {
+public class Node implements NodeInterface {
 	private static String logName = Node.class.getName() + " >> ";
 
-	static NodeInfo me = null;
-	static NodeInfo nextNode = null;
-	static NodeInfo previousNode = null;
-	static NameServerInterface nsi = null;
-	static ParserXML parserXML = new ParserXML(logName);
-	static String dnsIP = parserXML.getDnsIPN();
+	private static NodeInfo me = null;
+	private static NodeInfo nextNode = null;
+	private static NodeInfo previousNode = null;
+	private static NameServerInterface nsi = null;
+	private static String dnsIP = ParserXML.parseXML("DnsIp");
+	private static String HOSTNAME = ParserXML.parseXML("Hostname");
 
-	static final String HOSTNAME = parserXML.getHostNameN();
-	static final int NEIGHBORPORT = parserXML.getNeighborPortN();
-	static final int MULTICASTPORT = parserXML.getMulticastPortN();
-	static final String REMOTENSNAME = parserXML.getRemoteNsNameN();
-	static final int DNSPORT = parserXML.getDnsPortN();
-	static final int TCPDNSRETRANSMISSIONPORT = parserXML.getTcpDnsRetransmissionPortN();
+	private static String nodeIp;
+	private static boolean debugMode = false;
+
+	static final int NEIGHBORPORT = Integer.parseInt(ParserXML.parseXML("NeighborPort"));
+	static final int MULTICASTPORT = Integer.parseInt(ParserXML.parseXML("MulticastPort"));
+	static final String REMOTENSNAME = ParserXML.parseXML("RemoteNsName");
+	static final int RMIPORT = Integer.parseInt(ParserXML.parseXML("RMIPort"));
+
+	/**
+	 * Constructor only for debug purposes
+	 * @param ipAddress_debug: if where in debug mode, the ipaddress is the ipaddress for the nameserver, otherwise it's zero
+	 */
+	public Node(String nodeIP, boolean debugMode) {
+		Node.nodeIp = nodeIP;
+		Node.debugMode = debugMode;
+	}
+
+	/**
+	 * Constructor for RMI
+	 */
+	public Node() {
+		// empty
+	}
 
 	/**
 	 * @param args: first argument is the nodeName (optional)
@@ -41,55 +57,40 @@ public class Node {
 	 */
 	public static void main(String args[]) throws RemoteException, UnknownHostException, SocketException {
 
-		String IP = null;
-		ArrayList<String> IPs = Interface.getIP();
-		if (IPs.size() == 1) {
-			IP = IPs.get(0);
-		} else if (IPs.size() > 1) {
-			System.out.println("Choose one of the following IP addresses:");
-			for (int i = 0; i < IPs.size(); i++) {
-				System.out.println("  (" + i + ") " + IPs.get(i));
-			}
-			int n = -1;
-			Scanner reader = new Scanner(System.in);
-			while ( n < 0 || n > IPs.size()-1 ) {
-				System.out.print("Enter prefered number: ");
-				n = reader.nextInt();
-			}
-			reader.close();
-			IP = IPs.get(n);
-		} else {
-			SystemyLogger.log(Level.SEVERE, logName + "No usable IP address detected");
-			System.exit(-1);
+		if (!debugMode) {
+			nodeIp = Interface.getIP();
 		}
-		me = new NodeInfo(HOSTNAME, IP);
+
+		me = new NodeInfo(HOSTNAME, nodeIp);
 
 		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
+
+		// init skeleton
+		NodeInterface ni = new Node();
+		RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), "node", ni);
 
 		initShutdownHook();
 		listenToNewNodes();
 		listenToNeighborRequests();
+		startHeartbeat();
 		discover();
 
-		// init RMI
-		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		nsi = rmi.getStub(nsi, REMOTENSNAME, dnsIP, DNSPORT);
 
 		/*
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
 		SystemyLogger.log(Level.INFO, logName + "DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n " + "DNS Server RMI tree map return : "
 				+ nsi.getIPAddress(requestedFile));
-		
+
 		//Temporarily using the same node as if it were some other node hosting files
-		
+
 		TCP fileServer = new TCP(me.getIP(), tcpFileTranferPort);
 		new Thread(() ->
 		{
-		
+
 			fileServer.listenToSendFile();
 		}).start();
-		
-		
+
+
 		//request the file from the server hosting it, according to the dns server
 		TCP fileClient = new TCP(tcpFileTranferPort, nsi.getIPAddress(requestedFile));
 		fileClient.receiveFile(requestedFile);
@@ -130,10 +131,6 @@ public class Node {
 		String Message = me.toData();
 		MulticastSender.send("234.0.113.0", MULTICASTPORT, Message);
 		SystemyLogger.log(Level.INFO, logName + "Send multicast message: " + Message);
-		// Response
-		TCP dnsIPReceiver = new TCP(me.getIP(), TCPDNSRETRANSMISSIONPORT);
-		dnsIP = dnsIPReceiver.receiveText();
-		SystemyLogger.log(Level.INFO, logName + "NameServer is on IP: " + dnsIP);
 	}
 
 	/**
@@ -218,6 +215,150 @@ public class Node {
 			}
 		}).start();
 	}
-	
+
+	/**
+	 * Thread that checks if neighbors are still alive
+	 */
+	private static void startHeartbeat() {
+		new Thread(() -> {
+			RMI<NodeInterface> rmiNode = new RMI<NodeInterface>();
+			NodeInterface nodeInterface = null;
+			while(true) {
+				if (nextNode != null) {
+					// init next node stub
+					nodeInterface = rmiNode.getStub(nodeInterface, "node", nextNode.getIP(), RMIPORT);
+					// ping next node
+					try {
+						if ( nodeInterface.ping() ) {
+							// everything ok
+						}
+					} catch (Exception e) {
+						// node not reachable
+						int trys = 5;
+						boolean response = false;
+						while(response == false && trys > 0) {
+							try {
+								TimeUnit.SECONDS.sleep(1);
+							} catch (Exception e2) {
+								SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
+							}
+							try {
+								response = nodeInterface.ping();
+							} catch (Exception e1) {
+								trys--;
+							}
+						}
+						if (response == false) {
+							SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
+							nextFailed();
+						}
+					}
+				}
+				if (previousNode != null) {
+					// init previous node stub
+					nodeInterface = rmiNode.getStub(nodeInterface, "node", previousNode.getIP(), RMIPORT);
+					// ping previous node
+					try {
+						if ( nodeInterface.ping() ) {
+							// everything ok
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						// node not reachable
+						int trys = 5;
+						boolean response = false;
+						while(response == false && trys > 0) {
+							try {
+								TimeUnit.SECONDS.sleep(1);
+							} catch (Exception e2) {
+								SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
+							}
+							try {
+								response = nodeInterface.ping();
+							} catch (Exception e1) {
+								trys--;
+							}
+						}
+						if (response == false) {
+							SystemyLogger.log(Level.SEVERE, logName + "Previous node lost. Starting recovery.");
+							previousFailed();
+						}
+					}
+				}
+				// wait for 3 seconds
+				try {
+					TimeUnit.SECONDS.sleep(3);
+				} catch (Exception e) {
+					SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
+				}
+			}
+		}).start();
+	}
+
+
+	/**
+	 * If previous node is failed, replace it in myself by the previous of the failed node and remove the failed node from register
+	 */
+	public static void previousFailed() {
+		try {
+			// get new previous node from nameserver
+			NodeInfo failedNode = previousNode;
+			int newPreviousHash = nsi.getPreviousNode(failedNode.getHash());
+			String newPreviousIP = nsi.getNodeIP(newPreviousHash);
+			previousNode = new NodeInfo(newPreviousHash, newPreviousIP);
+			// send my data to new previous node
+			TCP neighborSender = new TCP(NEIGHBORPORT, previousNode.getIP());
+			neighborSender.sendText("next," + me.toData());
+			// remove failed node from register on nameserver
+			nsi.removeNode(failedNode.getHash());
+		} catch (RemoteException e) {
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+		}
+	}
+
+	/**
+	 * If next node is failed, replace it in myself by the next of the failed node and remove the failed node from register
+	 */
+	public static void nextFailed() {
+		try {
+			// get new next node from nameserver
+			NodeInfo failedNode = nextNode;
+			int newNextHash = nsi.getNextNode(failedNode.getHash());
+			String newNextIP = nsi.getNodeIP(newNextHash);
+			nextNode = new NodeInfo(newNextHash, newNextIP);
+			// send my data to new next node
+			TCP neighborSender = new TCP(NEIGHBORPORT, nextNode.getIP());
+			neighborSender.sendText("previous," + me.toData());
+			// remove failed node from register on nameserver
+			nsi.removeNode(failedNode.getHash());
+		} catch (RemoteException e) {
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+		}
+	}
+
+	/**
+	 * Method to set the DNS IP after sending a discovery multicast
+	 *
+	 * @param IP: new NS IP
+	 */
+	@Override
+	public void setDNSIP(String IP) {
+		dnsIP = IP;
+		SystemyLogger.log(Level.INFO, logName + "NameServer is on IP: " + dnsIP);
+		// init nameserver stub
+		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
+		nsi = rmi.getStub(nsi, REMOTENSNAME, dnsIP, RMIPORT);
+		SystemyLogger.log(Level.INFO, logName + "Created nameserver stub");
+	}
+
+	/**
+	 * method that returns true over RMI to check if node is still online
+	 * @return boolean: true
+	 */
+	@Override
+	public boolean ping() {
+//		SystemyLogger.log(Level.INFO, logName + "Ping received");
+		return true;
+	}
 
 }

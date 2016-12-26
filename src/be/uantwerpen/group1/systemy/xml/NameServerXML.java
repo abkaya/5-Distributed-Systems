@@ -35,11 +35,6 @@ public class NameServerXML {
 			MulticastPort.appendChild(docNameServer.createTextNode("2000"));
 			NameServer.appendChild(MulticastPort);
 
-			//Define the TcpDnsRetransmissionPort of the NameServer
-			Element tcpDnsRetransmissionPort = docNameServer.createElement("TcpDnsRetransmissionPort");
-			tcpDnsRetransmissionPort.appendChild(docNameServer.createTextNode("2002"));
-			NameServer.appendChild(tcpDnsRetransmissionPort);
-
 			//Define the MulticastIp of the NameServer
 			Element MulticastIp = docNameServer.createElement("MulticastIp");
 			MulticastIp.appendChild(docNameServer.createTextNode("234.0.113.0"));

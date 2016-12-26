@@ -86,9 +86,9 @@ public class Replicator implements ReplicatorInterface, Runnable
 	 * @param nameToConvert : the string of which a hash will be returned
 	 * @return the hash of nameToConvert
 	 */
-	public String hash(String nameToConvert)
+	public int hash(String nameToConvert)
 	{
-		return Integer.toString(Hashing.hash(nameToConvert));
+		return Hashing.hash(nameToConvert);
 	}
 
 	/**
