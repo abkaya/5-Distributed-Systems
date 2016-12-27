@@ -73,11 +73,11 @@ public class Node implements NodeInterface {
 		NodeInterface ni = new Node();
 		RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), "node", ni);
 
+		listenToNewNodes();
 		discover();
 		initShutdownHook();
-		listenToNewNodes();
 		startHeartbeat();
-		
+
 
 
 		/*
