@@ -295,6 +295,7 @@ public class Node implements NodeInterface {
 		nextNode = newNode;
 		nextNodeInterface = rmiNodeClient.getStub(nextNodeInterface, "node", nextNode.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "New next node " + nextNode.toString());
+		SystemyLogger.log(Level.INFO, logName + "Current situation: " + previousNode.toString() + " | " + me.toString() + " | " + nextNode.toString());
 	}
 
 	/**
@@ -307,5 +308,6 @@ public class Node implements NodeInterface {
 		previousNode = newNode;
 		previousNodeInterface = rmiNodeClient.getStub(previousNodeInterface, "node", previousNode.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "New previous node " + previousNode.toString());
+		SystemyLogger.log(Level.INFO, logName + "Current situation: " + previousNode.toString() + " | " + me.toString() + " | " + nextNode.toString());
 	}
 }
