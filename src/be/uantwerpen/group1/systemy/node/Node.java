@@ -78,7 +78,7 @@ public class Node implements NodeInterface {
 		// init loopback interface
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
-		
+
 		listenToNewNodes();
 		discover();
 		initShutdownHook();
@@ -182,7 +182,7 @@ public class Node implements NodeInterface {
 					} else {
 						SystemyLogger.log(Level.INFO, logName + "Node is not a (new) neighbor");
 					}
-					SystemyLogger.log(Level.INFO, logName + "Current situation: " + previousNode.toString() + " | " + me.toString() + " | " + nextNode.toString());
+					SystemyLogger.log(Level.INFO, logName + networkStatus());
 				} catch(RemoteException e) {
 					SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 				}
@@ -294,7 +294,7 @@ public class Node implements NodeInterface {
 		nextNode = newNode;
 		nextNodeInterface = rmiNodeClient.getStub(nextNodeInterface, "node", nextNode.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "New next node " + nextNode.toString());
-		SystemyLogger.log(Level.INFO, logName + "Current situation: " + previousNode.toString() + " | " + me.toString() + " | " + nextNode.toString());
+		SystemyLogger.log(Level.INFO, logName + networkStatus());
 	}
 
 	/**
@@ -307,6 +307,30 @@ public class Node implements NodeInterface {
 		previousNode = newNode;
 		previousNodeInterface = rmiNodeClient.getStub(previousNodeInterface, "node", previousNode.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "New previous node " + previousNode.toString());
-		SystemyLogger.log(Level.INFO, logName + "Current situation: " + previousNode.toString() + " | " + me.toString() + " | " + nextNode.toString());
+		SystemyLogger.log(Level.INFO, logName + networkStatus());
+	}
+
+	/**
+	 * Method that returns status message of local network topology
+	 * 
+	 * @return String: status message
+	 */
+	private static String networkStatus() {
+		String status =  "Current situation: ";
+		if (previousNode != null)
+			status += previousNode.toString();
+		else
+			status += "null";
+		status += " | ";
+		if (me != null)
+			status += me.toString();
+		else
+			status += "null";
+		status += " | ";
+		if (nextNode != null)
+			status += nextNode.toString();
+		else
+			status += "null";
+		return status;
 	}
 }
