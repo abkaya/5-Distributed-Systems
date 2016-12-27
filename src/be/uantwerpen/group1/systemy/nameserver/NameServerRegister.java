@@ -253,7 +253,7 @@ public class NameServerRegister implements Serializable {
 	 * @return nodeIP: this will return a string which is the IPAddress of the node if the entry is found else it will return null
 	 */
 	public String getNodeIPFromHash(int nodeHash) {
-		if (register.containsKey(String.valueOf(nodeHash))) {
+		if (register.containsKey(nodeHash)) {
 			String nodeIP = register.get(nodeHash);
 			SystemyLogger.log(Level.INFO, logName + "The hash: " + nodeHash + " correspond with ip address: " + nodeIP);
 			return nodeIP;
