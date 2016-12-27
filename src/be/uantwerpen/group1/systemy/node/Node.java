@@ -234,16 +234,16 @@ public class Node implements NodeInterface {
 	public static void previousFailed() {
 		try {
 			NodeInfo failedNode = previousNode;
-			NodeInterface failedNodeInterface = null;
-			failedNodeInterface = rmiNodeClient.getStub(failedNodeInterface, "node", failedNode.getIP(), RMIPORT);
 			// get new previous node from nameserver
 			int newPreviousHash = nameServerInterface.getPreviousNode(failedNode.getHash());
 			String newPreviousIP = nameServerInterface.getNodeIP(newPreviousHash);
 			previousNode = new NodeInfo(newPreviousHash, newPreviousIP);
+			previousNodeInterface = rmiNodeClient.getStub(previousNodeInterface, "node", previousNode.getIP(), RMIPORT);
 			// send my data to new previous node
-			failedNodeInterface.updateNextNode(me);
+			previousNodeInterface.updateNextNode(me);
 			// remove failed node from register on nameserver
 			nameServerInterface.removeNode(failedNode.getHash());
+			SystemyLogger.log(Level.INFO, logName + "Current situation: " + previousNode.toString() + " | " + me.toString() + " | " + nextNode.toString());
 		} catch (RemoteException e) {
 			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 		}
@@ -255,16 +255,16 @@ public class Node implements NodeInterface {
 	public static void nextFailed() {
 		try {
 			NodeInfo failedNode = nextNode;
-			NodeInterface failedNodeInterface = null;
-			failedNodeInterface = rmiNodeClient.getStub(failedNodeInterface, "node", failedNode.getIP(), RMIPORT);
 			// get new next node from nameserver
 			int newNextHash = nameServerInterface.getNextNode(failedNode.getHash());
 			String newNextIP = nameServerInterface.getNodeIP(newNextHash);
 			nextNode = new NodeInfo(newNextHash, newNextIP);
+			nextNodeInterface = rmiNodeClient.getStub(nextNodeInterface, "node", nextNode.getIP(), RMIPORT);
 			// send my data to new next node
-			failedNodeInterface.updatePreviousNode(me);
+			nextNodeInterface.updatePreviousNode(me);
 			// remove failed node from register on nameserver
 			nameServerInterface.removeNode(failedNode.getHash());
+			SystemyLogger.log(Level.INFO, logName + "Current situation: " + previousNode.toString() + " | " + me.toString() + " | " + nextNode.toString());
 		} catch (RemoteException e) {
 			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 		}
