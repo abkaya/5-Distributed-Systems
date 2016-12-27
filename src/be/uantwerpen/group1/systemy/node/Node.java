@@ -159,10 +159,9 @@ public class Node implements NodeInterface {
 					SystemyLogger.log(Level.INFO, logName + "New node! " + newNode.toString() + " at " + newNode.getIP());
 					if (nextNode == null || previousNode == null) {
 						// no nodes -> point to self
-						nextNode = newNode;
-						previousNode = newNode;
-						SystemyLogger.log(Level.INFO,
-								logName + "setting new node (probably myself) as next and previous node");
+						myNodeInterface.updateNextNode(newNode);
+						myNodeInterface.updatePreviousNode(newNode);
+						SystemyLogger.log(Level.INFO, logName + "setting new node (probably myself) as next and previous node");
 					} else if (newNode.getHash() == me.getHash()) {
 						SystemyLogger.log(Level.INFO, logName + "New node is myself while already having neigbors");
 					} else if (nextNode.getHash() == me.getHash() && previousNode.getHash() == me.getHash()) {
