@@ -320,17 +320,17 @@ public class Node implements NodeInterface {
 		if (previousNode != null)
 			status += previousNode.toString();
 		else
-			status += "null";
+			status += "none";
 		status += " | ";
 		if (me != null)
 			status += me.toString();
 		else
-			status += "null";
+			status += "none";
 		status += " | ";
 		if (nextNode != null)
 			status += nextNode.toString();
 		else
-			status += "null";
+			status += "none";
 		return status;
 	}
 }
