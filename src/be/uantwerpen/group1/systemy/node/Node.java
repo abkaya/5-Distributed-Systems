@@ -73,7 +73,7 @@ public class Node implements NodeInterface {
 
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
-		
+
 		// init skeleton
 		NodeInterface ni = new Node();
 		RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), "node", ni);
@@ -238,13 +238,12 @@ public class Node implements NodeInterface {
 			// get new previous node from nameserver
 			int newPreviousHash = nameServerInterface.getPreviousNode(failedNode.getHash());
 			String newPreviousIP = nameServerInterface.getNodeIP(newPreviousHash);
-			previousNode = new NodeInfo(newPreviousHash, newPreviousIP);
-			previousNodeInterface = rmiNodeClient.getStub(previousNodeInterface, "node", previousNode.getIP(), RMIPORT);
+			NodeInfo newPreviousNode = new NodeInfo(newPreviousHash, newPreviousIP);
+			myNodeInterface.updatePreviousNode(newPreviousNode);
 			// send my data to new previous node
 			previousNodeInterface.updateNextNode(me);
 			// remove failed node from register on nameserver
 			nameServerInterface.removeNode(failedNode.getHash());
-			SystemyLogger.log(Level.INFO, logName + "Current situation: " + previousNode.toString() + " | " + me.toString() + " | " + nextNode.toString());
 		} catch (RemoteException e) {
 			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 		}
@@ -259,13 +258,12 @@ public class Node implements NodeInterface {
 			// get new next node from nameserver
 			int newNextHash = nameServerInterface.getNextNode(failedNode.getHash());
 			String newNextIP = nameServerInterface.getNodeIP(newNextHash);
-			nextNode = new NodeInfo(newNextHash, newNextIP);
-			nextNodeInterface = rmiNodeClient.getStub(nextNodeInterface, "node", nextNode.getIP(), RMIPORT);
+			NodeInfo newNextNode = new NodeInfo(newNextHash, newNextIP);
+			myNodeInterface.updateNextNode(newNextNode);
 			// send my data to new next node
 			nextNodeInterface.updatePreviousNode(me);
 			// remove failed node from register on nameserver
 			nameServerInterface.removeNode(failedNode.getHash());
-			SystemyLogger.log(Level.INFO, logName + "Current situation: " + previousNode.toString() + " | " + me.toString() + " | " + nextNode.toString());
 		} catch (RemoteException e) {
 			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 		}
