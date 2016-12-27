@@ -71,13 +71,14 @@ public class Node implements NodeInterface {
 
 		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
 
-		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
-		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
-
 		// init skeleton
 		NodeInterface ni = new Node();
 		RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), "node", ni);
 
+		// init loopback interface
+		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
+		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
+		
 		listenToNewNodes();
 		discover();
 		initShutdownHook();
