@@ -35,6 +35,7 @@ public class Node implements NodeInterface {
 
 	// node RMI interfaces
 	private static RMI<NodeInterface> rmiNodeClient = new RMI<NodeInterface>();
+	private static NodeInterface myNodeInterface = null;
 	private static NodeInterface nextNodeInterface = null;
 	private static NodeInterface previousNodeInterface = null;
 
@@ -70,6 +71,9 @@ public class Node implements NodeInterface {
 
 		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
 
+		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
+		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
+		
 		// init skeleton
 		NodeInterface ni = new Node();
 		RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), "node", ni);
@@ -153,9 +157,6 @@ public class Node implements NodeInterface {
 					String messageComponents[] = receivedMulticastMessage.split(",");
 					NodeInfo newNode = new NodeInfo(messageComponents[0], messageComponents[2]);
 					SystemyLogger.log(Level.INFO, logName + "New node! " + newNode.toString() + " at " + newNode.getIP());
-					NodeInterface myNodeInterface = null;
-					myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
-					SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 					if (nextNode == null || previousNode == null) {
 						// no nodes -> point to self
 						nextNode = newNode;
