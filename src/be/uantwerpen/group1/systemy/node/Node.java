@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.net.InetAddress;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
@@ -197,57 +198,23 @@ public class Node implements NodeInterface {
 				if (nextNode != null) {
 					// ping next node
 					try {
-						if ( nextNodeInterface.ping() ) {
-							// everything ok
-						}
-					} catch (Exception e) {
-						// node not reachable
-						int trys = 5;
-						boolean response = false;
-						while(response == false && trys > 0) {
-							try {
-								TimeUnit.SECONDS.sleep(1);
-							} catch (Exception e2) {
-								SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
-							}
-							try {
-								response = nextNodeInterface.ping();
-							} catch (Exception e1) {
-								trys--;
-							}
-						}
-						if (response == false) {
+						if( !InetAddress.getByName(nextNode.getIP()).isReachable(5) ) {
 							SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
 							nextFailed();
 						}
+					} catch (Exception e) {
+						SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 					}
 				}
 				if (previousNode != null) {
-					// ping previous dnode
+					// ping previous node
 					try {
-						if ( previousNodeInterface.ping() ) {
-							// everything ok
+						if( !InetAddress.getByName(nextNode.getIP()).isReachable(5) ) {
+							SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
+							nextFailed();
 						}
 					} catch (Exception e) {
-						// node not reachable
-						int trys = 5;
-						boolean response = false;
-						while(response == false && trys > 0) {
-							try {
-								TimeUnit.SECONDS.sleep(1);
-							} catch (Exception e2) {
-								SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
-							}
-							try {
-								response = previousNodeInterface.ping();
-							} catch (Exception e1) {
-								trys--;
-							}
-						}
-						if (response == false) {
-							SystemyLogger.log(Level.SEVERE, logName + "Previous node lost. Starting recovery.");
-							previousFailed();
-						}
+						SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 					}
 				}
 				// wait for 3 seconds
@@ -316,16 +283,6 @@ public class Node implements NodeInterface {
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nameServerInterface = rmi.getStub(nameServerInterface, REMOTENSNAME, dnsIP, RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created nameserver stub");
-	}
-
-	/**
-	 * method that returns true over RMI to check if node is still online
-	 * @return boolean: true
-	 */
-	@Override
-	public boolean ping() {
-//		SystemyLogger.log(Level.INFO, logName + "Ping received");
-		return true;
 	}
 
 	/**

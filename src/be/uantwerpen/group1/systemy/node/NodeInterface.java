@@ -10,7 +10,6 @@ import java.rmi.RemoteException;
  */
 public interface NodeInterface extends Remote {
 	void setDNSIP(String IP) throws RemoteException;
-	boolean ping() throws RemoteException;
 	void updateNextNode(NodeInfo newNode) throws RemoteException;
 	void updatePreviousNode(NodeInfo newNode) throws RemoteException;
 }
