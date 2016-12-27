@@ -164,7 +164,7 @@ public class Node implements NodeInterface {
 								logName + "setting new node (probably myself) as next and previous node");
 					} else if (newNode.getHash() == me.getHash()) {
 						SystemyLogger.log(Level.INFO, logName + "New node is myself while already having neigbors");
-					} else if (nextNode.getHash() == me.getHash()) {
+					} else if (nextNode.getHash() == me.getHash() || previousNode.getHash() == me.getHash()) {
 						// pointing to myself -> point in both ways to 2de known node
 						myNodeInterface.updateNextNode(newNode);
 						myNodeInterface.updatePreviousNode(newNode);
