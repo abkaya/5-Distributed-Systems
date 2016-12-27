@@ -1,5 +1,6 @@
 package be.uantwerpen.group1.systemy.node;
 
+import java.io.Serializable;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
@@ -11,7 +12,9 @@ import be.uantwerpen.group1.systemy.networking.Hashing;
  * @author Robin Janssens
  */
 
-public class NodeInfo implements Comparable<NodeInfo> {
+public class NodeInfo implements Comparable<NodeInfo>, Serializable {
+
+	private static final long serialVersionUID = 1337;
 
 	private static String logName = NodeInfo.class.getName() + " >> ";
 
