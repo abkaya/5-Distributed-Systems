@@ -246,10 +246,8 @@ public class NameServerRegister implements Serializable {
 	}
 
 	/**
-	 * This method is extra for now, maybe it comes in handy later
-	 * -------------------------------------------------------------
 	 * This method looks up the hostIP in the register based on the hash
-	 * @param hash: this is the hash (of the hostname) where we will calculate the IPAddress of.
+	 * @param hash: this is the hash (of the hostname) of who we want to lookup the IPAddress from.
 	 * @return nodeIP: this will return a string which is the IPAddress of the node if the entry is found else it will return null
 	 */
 	public String getNodeIPFromHash(int nodeHash) {
@@ -270,7 +268,10 @@ public class NameServerRegister implements Serializable {
 	 * @param nodeIP: this is the ip address of the node
 	 * @return hashNode: this is the hashvalue based on the IPAddres, if the value = -1 there is no corresponding entry
 	 */
-	public int getHashFromNodeIP(String nodeIP) {
+	/*
+	 *	Doesn't make sense because an IP address is not always unique 
+	 */
+	/*public int getHashFromNodeIP(String nodeIP) {
 		//loadRegister();
 		int nodeHash = -1;
 		for (Entry<Integer, String> entry : register.entrySet()) {
@@ -286,5 +287,5 @@ public class NameServerRegister implements Serializable {
 					logName + "The ip address: " + nodeIP + " corresponds with hash: " + nodeHash);
 			return nodeHash;
 		}
-	}
+	}*/
 }
