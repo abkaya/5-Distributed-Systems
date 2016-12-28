@@ -13,17 +13,20 @@ public class FileAgent implements Runnable
 	private static String fileToLock;
 	private static String currentNodeIp;
 	private static NameServerInterface nameServerInterface;
+	private static NodeInfo nodeInfoCurrentNode;
 
 	// This is the file list of the agent with all the files in the distributed filesystem
 	private static ArrayList<String> fileListAgent;
 
-	public FileAgent(ArrayList<String> fileListNode, String fileToLock, String nodeIp, NameServerInterface nameServerInterface)
+	public FileAgent(ArrayList<String> fileListNode, String fileToLock, String nodeIp, NameServerInterface nameServerInterface,
+			NodeInfo nodeInfoCurrentNode)
 	{
 		// TODO Auto-generated constructor stub
 		FileAgent.fileListNode = fileListNode;
 		FileAgent.fileToLock = fileToLock;
 		FileAgent.currentNodeIp = nodeIp;
 		FileAgent.nameServerInterface = nameServerInterface;
+		FileAgent.nodeInfoCurrentNode = nodeInfoCurrentNode;
 	}
 
 	@Override
@@ -32,7 +35,6 @@ public class FileAgent implements Runnable
 		// TODO Auto-generated method stub
 		calculateOwnershipAndUpdateFileAgentList();
 		updateFileListOnNode();
-		
 
 	}
 
@@ -62,11 +64,14 @@ public class FileAgent implements Runnable
 			}
 		}
 	}
-	
+
 	public static void updateFileListOnNode()
 	{
-		
-		
+		for (int i = 0; i < fileListAgent.size(); i++)
+		{
+
+		}
+
 	}
 
 	/**
