@@ -14,6 +14,7 @@ public class FileAgent implements Runnable
 	private static String currentNodeIp;
 	private static NameServerInterface nameServerInterface;
 
+	// This is the file list of the agent with all the files in the distributed filesystem
 	private static ArrayList<String> fileListAgent;
 
 	public FileAgent(ArrayList<String> fileListNode, String fileToLock, String nodeIp, NameServerInterface nameServerInterface)
@@ -29,31 +30,18 @@ public class FileAgent implements Runnable
 	public void run()
 	{
 		// TODO Auto-generated method stub
-
-	}
-
-	/**
-	 * This method will update the list of files from the agent based on the ownership
-	 * from the file of the current node (point 2.b.ii)
-	 */
-	private void updateListAgent()
-	{
-		for (int i = 0; i < currentNodeOwner.size(); i++)
-		{
-			if (!fileListAgent.contains(currentNodeOwner.get(i)))
-			{
-				fileListAgent.add(currentNodeOwner.get(i));
-			}
-
-		}
+		calculateOwnershipAndUpdateFileAgentList();
+		updateFileListOnNode();
+		
 
 	}
 
 	/**
 	 * This method will look at the files of the current node and calculate if the
-	 * current node is the owner of certain files (point 2.b.i)
+	 * current node is the owner of certain files (point 2.b.i and 2.b.ii). When this is true
+	 * the file will be added to the filelist of the agent.
 	 */
-	public static void calculateOwnership()
+	public static void calculateOwnershipAndUpdateFileAgentList()
 	{
 		String tempIP = null;
 		ArrayList<String> filesCurrentNode = getLocalFiles();
@@ -70,9 +58,15 @@ public class FileAgent implements Runnable
 			}
 			if (tempIP == currentNodeIp)
 			{
-				currentNodeOwner.add(filesCurrentNode.get(i));
+				fileListAgent.add(filesCurrentNode.get(i));
 			}
 		}
+	}
+	
+	public static void updateFileListOnNode()
+	{
+		
+		
 	}
 
 	/**
