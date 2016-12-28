@@ -98,12 +98,12 @@ public class NameServer implements NameServerInterface {
 
 	@Override
 	public int getNextNode(int hash) {
-		return Integer.parseInt(nsr.getNextNode(hash));
+		return nsr.getNextNode(hash);
 	}
 
 	@Override
 	public int getPreviousNode(int hash) {
-		return Integer.parseInt(nsr.getPreviousNode(hash));
+		return nsr.getPreviousNode(hash);
 	}
 
 	@Override
