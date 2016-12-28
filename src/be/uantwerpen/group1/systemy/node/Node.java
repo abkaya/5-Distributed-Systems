@@ -388,4 +388,11 @@ public class Node implements NodeInterface
 		}
 
 	}
+
+	@Override
+	public void passFileAgent(FileAgent fileAgent) throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		
+	}
 }

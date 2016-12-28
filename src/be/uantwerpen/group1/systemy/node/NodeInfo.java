@@ -28,6 +28,7 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 	private ArrayList<String> fileList;
 	// location of the files
 	private String locationFiles = "localfiles/";
+	private String fileToLock = null;
 
 	/**
 	 * constructor using node name
@@ -81,6 +82,11 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 	{
 		return fileList;
 	}
+	
+	public String getFileToLock()
+	{
+		return fileToLock;
+	}
 
 	// -----
 	// SET
@@ -118,6 +124,11 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 			return false;
 		}
 
+	}
+	
+	public void setFileToLock(String fileToLock)
+	{
+		this.fileToLock = fileToLock;
 	}
 
 	/**
