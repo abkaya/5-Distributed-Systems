@@ -132,7 +132,7 @@ public class RMI<T>
 
 	/**
 	 * Returns the stub of the remote object requested. Requires the name it was bound to in the registry.
-	 * This method is to be used by nodes utilising
+	 * This method is to be used by nodes utilizing
 	 *
 	 * @param obj : an object of the interface to which the stub will be returned
 	 * @param name : name of the remote object as it was bound in the registry
