@@ -1,52 +1,76 @@
 package be.uantwerpen.group1.systemy.node;
 
-import java.io.File;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Hashing;
 
 public class FileAgent implements Runnable
 {
-	private static ArrayList<String> fileListNode;
-	private static String fileToLock;
-	private static String currentNodeIp;
 	private static NameServerInterface nameServerInterface;
 	private static NodeInfo nodeInfoCurrentNode;
 
-	// This is the file list of the agent with all the files in the distributed filesystem
 	private static ArrayList<String> fileListAgent;
+	private static HashMap<String, Boolean> fileLockMap;
+	private boolean fileAgentInNetwork;
+	private boolean agentFinished;
 
-	public FileAgent(ArrayList<String> fileListNode, String fileToLock, String nodeIp, NameServerInterface nameServerInterface,
-			NodeInfo nodeInfoCurrentNode)
+	public FileAgent(NameServerInterface nameServerInterface, NodeInfo nodeInfoCurrentNode)
 	{
 		// TODO Auto-generated constructor stub
-		FileAgent.fileListNode = fileListNode;
-		FileAgent.fileToLock = fileToLock;
-		FileAgent.currentNodeIp = nodeIp;
-		FileAgent.nameServerInterface = nameServerInterface;
-		FileAgent.nodeInfoCurrentNode = nodeInfoCurrentNode;
+		this.nameServerInterface = nameServerInterface;
+		this.nodeInfoCurrentNode = nodeInfoCurrentNode;
+
+	}
+
+	public boolean isFileAgentInNetwork()
+	{
+		return fileAgentInNetwork;
+	}
+
+	public void setFileAgentInNetwork(boolean fileAgentInNetwork)
+	{
+		this.fileAgentInNetwork = fileAgentInNetwork;
+	}
+
+	public boolean isAgentFinished()
+	{
+		return agentFinished;
+	}
+
+	public void setAgentFinished(boolean agentFinished)
+	{
+		this.agentFinished = agentFinished;
 	}
 
 	@Override
 	public void run()
 	{
 		// TODO Auto-generated method stub
-		calculateOwnershipAndUpdateFileAgentList();
-		updateFileListOnNode();
+		ArrayList<String> fileListNode = nodeInfoCurrentNode.getFileList();
+		String fileToLock = nodeInfoCurrentNode.getFileToLock();
+		String fileToDelete = nodeInfoCurrentNode.getFileToDelete();
+		String currentNodeIp = nodeInfoCurrentNode.getIP();
+
+		updateListAgent(calculateOwnership(currentNodeIp), fileToDelete);
+		updateFileListOnNode(fileListNode, fileToDelete);
+
+		agentFinished = true;
 
 	}
 
 	/**
 	 * This method will look at the files of the current node and calculate if the
-	 * current node is the owner of certain files (point 2.b.i and 2.b.ii). When this is true
-	 * the file will be added to the filelist of the agent.
+	 * current node is the owner of certain files (point 2.b.i). Those files will be added
+	 * to an arrayList
 	 */
-	public static void calculateOwnershipAndUpdateFileAgentList()
+	public static ArrayList<String> calculateOwnership(String currentNodeIp)
 	{
 		String tempIP = null;
-		ArrayList<String> filesCurrentNode = getLocalFiles();
+		ArrayList<String> filesCurrentNode = NodeInfo.getLocalFiles();
+		ArrayList<String> currentNodeOwner = new ArrayList<>();
 
 		for (int i = 0; i < filesCurrentNode.size(); i++)
 		{
@@ -60,36 +84,62 @@ public class FileAgent implements Runnable
 			}
 			if (tempIP == currentNodeIp)
 			{
-				fileListAgent.add(filesCurrentNode.get(i));
+				currentNodeOwner.add(filesCurrentNode.get(i));
 			}
 		}
-	}
 
-	public static void updateFileListOnNode()
-	{
-		for (int i = 0; i < fileListAgent.size(); i++)
-		{
-
-		}
-
+		return currentNodeOwner;
 	}
 
 	/**
-	 * Returns a list of the local files within the relative directory localFiles/
-	 * @return List<String> localFiles
+	 * This method will update the list from the fileAgent. Files where the current node
+	 * is owner off will be added to the list and also if a node deleted a certain file
+	 * this wil also be deleted from the list of the fileAgent
 	 */
-	public static ArrayList<String> getLocalFiles()
+	public static void updateListAgent(ArrayList<String> currentNodeOwner, String fileToDelete)
 	{
-		ArrayList<String> localFiles = new ArrayList<String>();
-		File[] files = new File("localFiles/").listFiles();
-		for (File file : files)
+		for (int i = 0; i < currentNodeOwner.size(); i++)
 		{
-			if (file.isFile())
+			if (fileListAgent.contains(currentNodeOwner.get(i)))
 			{
-				localFiles.add(file.getName());
+
+			} else
+			{
+				fileListAgent.add(currentNodeOwner.get(i));
+
 			}
+
 		}
-		return localFiles;
+
+		if (fileListAgent.contains(fileToDelete))
+		{
+			fileListAgent.remove(fileToDelete);
+		}
+	}
+
+	/**
+	 * This method will update the list on the node as mentioned above
+	 */
+	public static void updateFileListOnNode(ArrayList<String> fileListNode, String fileToDelete)
+	{
+		for (int i = 0; i < fileListAgent.size(); i++)
+		{
+			if (fileListNode.contains(fileListAgent.get(i)))
+			{
+
+			} else
+			{
+				nodeInfoCurrentNode.addFileToFileList(fileListAgent.get(i));
+
+			}
+
+		}
+
+		if (fileListNode.contains(fileToDelete))
+		{
+			nodeInfoCurrentNode.deleteFileFromFileList(fileToDelete);
+		}
+
 	}
 
 }

@@ -1,5 +1,6 @@
 package be.uantwerpen.group1.systemy.node;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -29,6 +30,8 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 	// location of the files
 	private String locationFiles = "localfiles/";
 	private String fileToLock = null;
+	private String fileToDelete = null;
+	private boolean downloadSuccessfull = false;
 
 	/**
 	 * constructor using node name
@@ -82,10 +85,15 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 	{
 		return fileList;
 	}
-	
+
 	public String getFileToLock()
 	{
 		return fileToLock;
+	}
+
+	public String getFileToDelete()
+	{
+		return fileToDelete;
 	}
 
 	// -----
@@ -125,7 +133,12 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 		}
 
 	}
-	
+
+	public void setFileToDelete(String fileToDelete)
+	{
+		this.fileToDelete = fileToDelete;
+	}
+
 	public void setFileToLock(String fileToLock)
 	{
 		this.fileToLock = fileToLock;
@@ -273,6 +286,24 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 			return -1;
 		else
 			return 0;
+	}
+	
+	/**
+	 * Returns a list of the local files within the relative directory localFiles/
+	 * @return List<String> localFiles
+	 */
+	public static ArrayList<String> getLocalFiles()
+	{
+		ArrayList<String> localFiles = new ArrayList<String>();
+		File[] files = new File("localFiles/").listFiles();
+		for (File file : files)
+		{
+			if (file.isFile())
+			{
+				localFiles.add(file.getName());
+			}
+		}
+		return localFiles;
 	}
 
 }
