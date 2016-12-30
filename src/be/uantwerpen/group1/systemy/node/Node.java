@@ -365,6 +365,7 @@ public class Node extends UserInterface implements NodeInterface {
      */
     public static void UIDelete(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Delete: " + fileName);
+    	UserInterface.remove(fileName);
     	// TODO
     }
     
@@ -374,6 +375,8 @@ public class Node extends UserInterface implements NodeInterface {
      */
     public static void UIDeleteLocal(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
+    	UserInterface.remove(fileName);
+    	UserInterface.add(fileName, false);
     	// TODO
     }
     

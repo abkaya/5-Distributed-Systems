@@ -108,5 +108,13 @@ public class Item {
 	    
 	    return hbox;
 	}
+
+	/**
+	 * Get method for fileName
+	 * @return String: fileName
+	 */
+	public String getFileName() {
+		return fileName;
+	}
 	
 }

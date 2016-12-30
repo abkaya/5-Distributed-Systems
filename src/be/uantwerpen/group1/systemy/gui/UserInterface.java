@@ -1,7 +1,10 @@
 package be.uantwerpen.group1.systemy.gui;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
 
+import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
+import be.uantwerpen.group1.systemy.node.Node;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -15,6 +18,8 @@ import javafx.stage.Stage;
  * @author Robin
  */
 public class UserInterface extends Application {
+	
+	private static String logName = Node.class.getName() + " >> ";
 	
     private static ArrayList<Item> files = new ArrayList<Item>();
     
@@ -46,6 +51,28 @@ public class UserInterface extends Application {
      */
     public static void add(String fileName, Boolean local) {
     	files.add(new Item(fileName, local));
+    	SystemyLogger.log(Level.INFO, logName + "Added " + fileName + " to GUI");
+    }
+    
+    /**
+     * Method to delete an item from the display list
+     * 
+     * @param fileName: String representation of file
+     */
+    public static void remove(String fileName) {
+    	System.out.println(files.size());
+    	Boolean found = false;
+    	for (int i=0; i<files.size(); i++) {
+    		if (files.get(i).getFileName() == fileName) {
+    			files.remove(i);
+    			i--;
+    			found = true;
+    		}
+    	}
+    	if (found)
+    		SystemyLogger.log(Level.INFO, logName + "Removed " + fileName + " from GUI");
+    	else
+    		SystemyLogger.log(Level.WARNING, logName + fileName + " not found in GUI file list");
     }
 
 }
