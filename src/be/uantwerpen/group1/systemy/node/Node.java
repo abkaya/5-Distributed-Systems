@@ -96,7 +96,7 @@ public class Node extends UserInterface implements NodeInterface {
     
         
         new Thread(() -> {
-        	UserInterface.launch(args);
+        	UserInterface.launch();
         }).start();
     	
         UserInterface.add("test file (4)", true);
