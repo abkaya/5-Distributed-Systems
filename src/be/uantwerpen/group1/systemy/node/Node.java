@@ -376,4 +376,12 @@ public class Node extends UserInterface implements NodeInterface {
     	SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
     	// TODO
     }
+    
+    /**
+     * GUI Callback function for button press "Shutdown"
+     */
+    public static void UIShutdown() {
+    	SystemyLogger.log(Level.INFO, logName + "Delete Local: ");
+    	System.exit(0);
+    }
 }

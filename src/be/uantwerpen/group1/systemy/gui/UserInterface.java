@@ -3,6 +3,7 @@ package be.uantwerpen.group1.systemy.gui;
 import java.util.ArrayList;
 
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -21,7 +22,10 @@ public class UserInterface extends Application {
     public void start(Stage primaryStage) {
         
         VBox vbox = new VBox();
-		for (Item file : files) {
+        HBox administrativeHBox = Administrative.getRow();
+        administrativeHBox.setAlignment(Pos.TOP_RIGHT);
+		vbox.getChildren().add(administrativeHBox);
+        for (Item file : files) {
 			HBox hbox = file.getRow();
 			vbox.getChildren().add(hbox);
 		}
