@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.net.InetAddress;
 
+import be.uantwerpen.group1.systemy.gui.UserInterface;
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Interface;
@@ -15,7 +16,8 @@ import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
-public class Node implements NodeInterface {
+public class Node extends UserInterface implements NodeInterface {
+
 	private static String logName = Node.class.getName() + " >> ";
 
 	private static NodeInfo me = null;
@@ -84,6 +86,20 @@ public class Node implements NodeInterface {
 		initShutdownHook();
 		startHeartbeat();
 
+		
+		/*
+		 * GUI
+		 */
+        UserInterface.add("test file", true);
+        UserInterface.add("test file (2)", false);
+        UserInterface.add("test file (3)", true);
+    
+        
+        new Thread(() -> {
+        	UserInterface.launch(args);
+        }).start();
+    	
+        UserInterface.add("test file (4)", true);
 
 
 		/*
@@ -333,4 +349,31 @@ public class Node implements NodeInterface {
 			status += "none";
 		return status;
 	}
+    
+    /**
+     * GUI Callback function for button press "Open"
+     * @param fileName: file name of file in question
+     */
+    public static void UIOPen(String fileName) {
+    	SystemyLogger.log(Level.INFO, logName + "Open: " + fileName);
+    	// TODO
+    }
+    
+    /**
+     * GUI Callback function for button press "Delete"
+     * @param fileName: file name of file in question
+     */
+    public static void UIDelete(String fileName) {
+    	SystemyLogger.log(Level.INFO, logName + "Delete: " + fileName);
+    	// TODO
+    }
+    
+    /**
+     * GUI Callback function for button press "Delete Local"
+     * @param fileName: file name of file in question
+     */
+    public static void UIDeleteLocal(String fileName) {
+    	SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
+    	// TODO
+    }
 }
