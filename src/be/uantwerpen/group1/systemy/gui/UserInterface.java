@@ -60,7 +60,6 @@ public class UserInterface extends Application {
      * @param fileName: String representation of file
      */
     public static void remove(String fileName) {
-    	System.out.println(files.size());
     	Boolean found = false;
     	for (int i=0; i<files.size(); i++) {
     		if (files.get(i).getFileName() == fileName) {
