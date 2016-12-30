@@ -381,7 +381,7 @@ public class Node extends UserInterface implements NodeInterface {
      * GUI Callback function for button press "Shutdown"
      */
     public static void UIShutdown() {
-    	SystemyLogger.log(Level.INFO, logName + "Delete Local: ");
+    	SystemyLogger.log(Level.INFO, logName + "Shuting down node after button press");
     	System.exit(0);
     }
 }
