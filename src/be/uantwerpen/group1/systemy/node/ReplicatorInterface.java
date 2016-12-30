@@ -5,7 +5,8 @@ import java.rmi.RemoteException;
 
 public interface ReplicatorInterface extends Remote
 {
-	String getOwnerLocation(String fileName) throws RemoteException;
+	String getOwnerLocation(String fileName);
+	String getPreviousNode(String nodeIP);
 	public boolean hasOwnedFile(String fileName) throws RemoteException;
 	public boolean hasLocalFile(String fileName) throws RemoteException;
 	public void addOwnedFile(String fileName) throws RemoteException;

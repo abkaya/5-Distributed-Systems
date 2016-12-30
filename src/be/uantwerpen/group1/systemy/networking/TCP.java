@@ -155,6 +155,8 @@ public class TCP
 			String fileName = br.readLine();
 			if (new File("localFiles/" + fileName).isFile())
 				fileToSend = new File("localFiles/" + fileName);
+			else if (new File("downloadedFiles/" + fileName).isFile())
+				fileToSend = new File("downloadedFiles/" + fileName);
 			else
 				return null;
 			SystemyLogger.log(Level.INFO, logName + "- Client requests file with name: " + fileName);
@@ -259,7 +261,7 @@ public class TCP
 			OutputStreamWriter osw = new OutputStreamWriter(os);
 			BufferedWriter bw = new BufferedWriter(osw);
 			bw.write(sizeToSend);
-			System.out.println("- The size of the requested file sent to client: " + Long.toString(fileToSend.length()));
+			SystemyLogger.log(Level.INFO, logName + "- The size of the requested file sent to client: " + Long.toString(fileToSend.length()));
 			bw.flush();
 			return true;
 		} catch (Exception e)
@@ -403,7 +405,7 @@ public class TCP
 					SystemyLogger.log(Level.SEVERE, logName + se.getMessage());
 					// se.printStackTrace();
 				}
-				FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+				FileOutputStream fileOutputStream = new FileOutputStream("downloadedFiles/"+fileName);
 				BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
 				// once EOF is reached, the read method will return -1, so we'll use
