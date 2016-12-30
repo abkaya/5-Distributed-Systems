@@ -6,12 +6,14 @@ import java.util.logging.Level;
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.node.Node;
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 /**
  * Class to represent the user interface
@@ -37,6 +39,12 @@ public class UserInterface extends Application {
 		
 		StackPane root = new StackPane();
         root.getChildren().add(vbox);
+        
+        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            public void handle(WindowEvent we) {
+                Node.UIShutdown();
+            }
+        });
         
         primaryStage.setTitle("SystemY");
         primaryStage.setScene(new Scene(root, 512, 600));
