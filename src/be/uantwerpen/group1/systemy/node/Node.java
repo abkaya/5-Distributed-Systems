@@ -30,10 +30,12 @@ public class Node extends UserInterface implements NodeInterface {
 	private static String nodeIp;
 	private static boolean debugMode = false;
 
-	static final int NEIGHBORPORT = Integer.parseInt(ParserXML.parseXML("NeighborPort"));
-	static final int MULTICASTPORT = Integer.parseInt(ParserXML.parseXML("MulticastPort"));
-	static final String REMOTENSNAME = ParserXML.parseXML("RemoteNsName");
-	static final int RMIPORT = Integer.parseInt(ParserXML.parseXML("RMIPort"));
+	private static final int MULTICASTPORT = Integer.parseInt(ParserXML.parseXML("MulticastPort"));
+	private static final String REMOTENSNAME = ParserXML.parseXML("RemoteNsName");
+	private static final int RMIPORT = Integer.parseInt(ParserXML.parseXML("RMIPort"));
+	private static final Boolean GUI = Boolean.parseBoolean(ParserXML.parseXML("GUI"));
+	private static final String LOCALFILESLOCATION = ParserXML.parseXML("localFilesLocation");
+	private static final String DOWNLOADEDFILESLOCATION = ParserXML.parseXML("downloadedFilesLocation");
 
 	// node RMI interfaces
 	private static RMI<NodeInterface> rmiNodeClient = new RMI<NodeInterface>();
