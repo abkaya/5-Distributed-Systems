@@ -5,7 +5,6 @@
     <RMIPort>1099</RMIPort>
     <MulticastPort>2000</MulticastPort>
     <TcpFileTranferPort>2001</TcpFileTranferPort>
-    <NeighborPort>2003</NeighborPort>
     <RemoteNsName>NameServerInterface</RemoteNsName>
     <GUI>true</GUI>
     <localFilesLocation>localFiles/</localFilesLocation>

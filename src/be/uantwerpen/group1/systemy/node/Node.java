@@ -28,7 +28,6 @@ public class Node implements NodeInterface {
 	private static String nodeIp;
 	private static boolean debugMode = false;
 
-	private static final int NEIGHBORPORT = Integer.parseInt(ParserXML.parseXML("NeighborPort"));
 	private static final int MULTICASTPORT = Integer.parseInt(ParserXML.parseXML("MulticastPort"));
 	private static final String REMOTENSNAME = ParserXML.parseXML("RemoteNsName");
 	private static final int RMIPORT = Integer.parseInt(ParserXML.parseXML("RMIPort"));
