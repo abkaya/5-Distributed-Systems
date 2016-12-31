@@ -3,10 +3,10 @@ package be.uantwerpen.group1.systemy.node;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-
-import javax.swing.tree.AbstractLayoutCache.NodeDimensions;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -27,8 +27,15 @@ public class Node implements NodeInterface
 	private static NodeInfo nextNode = null;
 	private static NodeInfo previousNode = null;
 	private static NameServerInterface nameServerInterface = null;
+	private static FileAgent fileAgent = null;
 	private static String dnsIP = ParserXML.parseXML("DnsIp");
 	private static String HOSTNAME = ParserXML.parseXML("Hostname");
+
+	private static ArrayList<String> fileList;
+	private final static String locationFiles = "localfiles/";
+	private static String fileToLock = null;
+	private static String fileToDelete = null;
+	private static boolean downloadSuccessfull = false;
 
 	private static String nodeIp;
 	private static boolean debugMode = false;
@@ -118,35 +125,21 @@ public class Node implements NodeInterface
 	}
 
 	/**
-	 * Method creates and starts the shutdown hook to notify neighbors and the nameserver
+	 * BEGIN STARTUP METHODS
 	 */
-	private static void initShutdownHook()
-	{
-		Runtime.getRuntime().addShutdownHook(new Thread(() ->
-		{
-			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure started");
-			try
-			{
-				nextNodeInterface.updatePreviousNode(nextNode);
-				previousNodeInterface.updateNextNode(previousNode);
-				nameServerInterface.removeNode(me.getHash());
-			} catch (Exception e)
-			{
-				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
-			}
-			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure ended");
-		}));
-	}
 
 	/**
-	 * Send discover request with node data to nameserver
+	 * At startup the Node is going to load his files in the fileList
 	 */
-	private static void discover()
+	private static void loadInitialFiles()
 	{
-		// Request
-		String Message = me.toData();
-		MulticastSender.send("234.0.113.0", MULTICASTPORT, Message);
-		SystemyLogger.log(Level.INFO, logName + "Send multicast message: " + Message);
+		File folder = new File(locationFiles);
+		File[] listOfFiles = folder.listFiles();
+		for (int i = 0; i < listOfFiles.length; i++)
+		{
+			fileList.add(listOfFiles[i].getName());
+		}
+
 	}
 
 	/**
@@ -210,6 +203,38 @@ public class Node implements NodeInterface
 	}
 
 	/**
+	 * Send discover request with node data to nameserver
+	 */
+	private static void discover()
+	{
+		// Request
+		String Message = me.toData();
+		MulticastSender.send("234.0.113.0", MULTICASTPORT, Message);
+		SystemyLogger.log(Level.INFO, logName + "Send multicast message: " + Message);
+	}
+
+	/**
+	 * Method creates and starts the shutdown hook to notify neighbors and the nameserver
+	 */
+	private static void initShutdownHook()
+	{
+		Runtime.getRuntime().addShutdownHook(new Thread(() ->
+		{
+			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure started");
+			try
+			{
+				nextNodeInterface.updatePreviousNode(nextNode);
+				previousNodeInterface.updateNextNode(previousNode);
+				nameServerInterface.removeNode(me.getHash());
+			} catch (Exception e)
+			{
+				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			}
+			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure ended");
+		}));
+	}
+
+	/**
 	 * Thread that checks if neighbors are still alive
 	 */
 	private static void startHeartbeat()
@@ -258,6 +283,27 @@ public class Node implements NodeInterface
 				}
 			}
 		}).start();
+	}
+
+	/**
+	 * END STARTUP METHODS
+	 */
+
+	/**
+	 * BEGIN GETTERS AND SETTERS FOR THE NODE
+	 */
+
+	public void addFileToFileList(String file)
+	{
+		fileList.add(file);
+	}
+
+	public void deleteFileFromFileList(String file)
+	{
+		if (fileList.contains(file))
+		{
+			fileList.remove(file);
+		}
 	}
 
 	/**
@@ -376,23 +422,18 @@ public class Node implements NodeInterface
 	}
 
 	/**
-	 * At startup the Node is going to load his files in the fileList
+	 * The method for passing the file agent in the network, when the agent is passed the fields of the node needs to be updated in the fileAgent
 	 */
-	private static void loadInitialFiles()
-	{
-		File folder = new File(me.getLocationFiles());
-		File[] listOfFiles = folder.listFiles();
-		for (int i = 0; i < listOfFiles.length; i++)
-		{
-			me.addFileToFileList(listOfFiles[i].getName());
-		}
-
-	}
-
 	@Override
 	public void passFileAgent(FileAgent fileAgent) throws RemoteException
 	{
 		// TODO Auto-generated method stub
+		fileAgent.setCurrentNodeIp(me.getIP());
+		fileAgent.setFileListNode(fileList);
+		fileAgent.setFileToDelete(fileToDelete);
+		fileAgent.setFileToLock(fileToLock);
+		fileAgent.setLocationFiles(locationFiles);
 		
+
 	}
 }

@@ -1,8 +1,6 @@
 package be.uantwerpen.group1.systemy.node;
 
-import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
@@ -24,14 +22,6 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 	private String name;
 	private int hash;
 	private String ip;
-
-	// file list of the node
-	private ArrayList<String> fileList;
-	// location of the files
-	private String locationFiles = "localfiles/";
-	private String fileToLock = null;
-	private String fileToDelete = null;
-	private boolean downloadSuccessfull = false;
 
 	/**
 	 * constructor using node name
@@ -76,26 +66,6 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 		return ip;
 	}
 
-	public String getLocationFiles()
-	{
-		return locationFiles;
-	}
-
-	public ArrayList<String> getFileList()
-	{
-		return fileList;
-	}
-
-	public String getFileToLock()
-	{
-		return fileToLock;
-	}
-
-	public String getFileToDelete()
-	{
-		return fileToDelete;
-	}
-
 	// -----
 	// SET
 	// -----
@@ -114,34 +84,6 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 	public void setIP(String nodeIP)
 	{
 		this.ip = nodeIP;
-	}
-
-	public void addFileToFileList(String file)
-	{
-		fileList.add(file);
-	}
-
-	public boolean deleteFileFromFileList(String file)
-	{
-		if (fileList.contains(file))
-		{
-			fileList.remove(file);
-			return true;
-		} else
-		{
-			return false;
-		}
-
-	}
-
-	public void setFileToDelete(String fileToDelete)
-	{
-		this.fileToDelete = fileToDelete;
-	}
-
-	public void setFileToLock(String fileToLock)
-	{
-		this.fileToLock = fileToLock;
 	}
 
 	/**
@@ -287,23 +229,4 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 		else
 			return 0;
 	}
-	
-	/**
-	 * Returns a list of the local files within the relative directory localFiles/
-	 * @return List<String> localFiles
-	 */
-	public static ArrayList<String> getLocalFiles()
-	{
-		ArrayList<String> localFiles = new ArrayList<String>();
-		File[] files = new File("localFiles/").listFiles();
-		for (File file : files)
-		{
-			if (file.isFile())
-			{
-				localFiles.add(file.getName());
-			}
-		}
-		return localFiles;
-	}
-
 }
