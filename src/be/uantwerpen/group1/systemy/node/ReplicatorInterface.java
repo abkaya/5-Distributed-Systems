@@ -3,6 +3,11 @@ package be.uantwerpen.group1.systemy.node;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+/**
+ * Interface for the replicator class
+ *
+ * @author Abdil Kaya
+ */
 public interface ReplicatorInterface extends Remote
 {
 	String getOwnerLocation(String fileName);

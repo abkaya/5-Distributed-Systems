@@ -7,10 +7,16 @@ import java.io.*;
 import java.util.*;
 
 /*
- * Documentation for a folder watch service
+ * Tutorial for a folder watch service
  * https://docs.oracle.com/javase/tutorial/essential/io/notification.html
  */
 
+/**
+ * WatchService for a local folder, combined with the observable pattern to ease the
+ * update process in replication.
+ *
+ * @author Abdil Kaya
+ */
 public class ObservableWatchService extends Observable {
 
     private final WatchService watcher;

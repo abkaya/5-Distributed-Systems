@@ -15,6 +15,12 @@ import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.networking.TCP;
 import java.nio.file.*;
 
+/**
+ * Replicator Class which handles replication upon the change of local files in the localFiles folder.
+ * The changes are detected using the observer pattern on a watchservice, which is event based.
+ * 
+ * @author Abdil Kaya
+ */
 public class Replicator implements ReplicatorInterface, Runnable, java.util.Observer
 {
 	private static String logName = Node.class.getName() + " >> ";
@@ -29,6 +35,78 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	static String remoteNSName = "NameServerInterface";
 	static NameServerInterface nsi = null;
 	List<FileRecord> fileRecords = null;
+
+	/**
+	 * Get ownedFiles
+	 * @return List<String> : ownedFiles 
+	 */
+	public List<String> getOwnedFiles()
+	{
+		return ownedFiles;
+	}
+
+	/**
+	 * Set ownedFiles
+	 * @param ownedFiles
+	 */
+	public void setOwnedFiles(List<String> ownedFiles)
+	{
+		this.ownedFiles = ownedFiles;
+	}
+
+	/**
+	 * Get localFiles
+	 * @return List<String> : localFiles
+	 */
+	public List<String> getLocalFiles()
+	{
+		return localFiles;
+	}
+
+	/**
+	 * Set localFiles
+	 * @param localFiles
+	 */
+	public void setLocalFiles(List<String> localFiles)
+	{
+		this.localFiles = localFiles;
+	}
+
+	/**
+	 * Get downloadedFiles
+	 * @return List<String> : downloadedFiles
+	 */
+	public List<String> getDownloadedFiles()
+	{
+		return downloadedFiles;
+	}
+
+	/**
+	 * Set downloadedFiles
+	 * @param downloadedFiles
+	 */
+	public void setDownloadedFiles(List<String> downloadedFiles)
+	{
+		this.downloadedFiles = downloadedFiles;
+	}
+
+	/**
+	 * Get fileRecords
+	 * @return List<FileRecord> : fileRecords
+	 */
+	public List<FileRecord> getFileRecords()
+	{
+		return fileRecords;
+	}
+
+	/**
+	 * Set fileRecords
+	 * @param fileRecords
+	 */
+	public void setFileRecords(List<FileRecord> fileRecords)
+	{
+		this.fileRecords = fileRecords;
+	}
 
 	/**
 	 * Replicator observes the files in the localFiles folder. Delete or create actions are performed 
@@ -65,14 +143,15 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			} else if (observedAction == 1)
 			{
 				String tempOwnerIP = getOwnerLocation(observedFile);
-				
+
 				/*
 				 * Once the owner is known, check whether or not it is the local node. 
 				 */
-				
-				//IF it is the local node : 
-				if(tempOwnerIP == nodeIP){
-					
+
+				// IF it is the local node :
+				if (tempOwnerIP == nodeIP)
+				{
+
 				}
 				/*
 				 * ELSE if the owner is not this node: 
@@ -83,13 +162,14 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 				 * 	- add fileName to the local localFiles list.
 				 * 	- add fileName to the remote/owner's localFiles list.
 				 */
-				else{
-				
+				else
+				{
+
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Replication process to go through when the new local file is owned by the local node:
 	  * - replicate file to previous node 
@@ -99,8 +179,14 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	  * - add fileName to the remote previous node's localFiles list. 
 	  * - add fileName to the local ownedFiles list.
 	 */
-	private void localOwnerReplicateProcess(){
-		
+	private void localOwnerReplicationProcess()
+	{
+
+	}
+
+	private void remoteOwnerReplicationProcess()
+	{
+
 	}
 
 	/**
@@ -118,7 +204,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Get the previous node of a given node, using the nameserver's remote method
 	 */
@@ -134,7 +220,6 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			return null;
 		}
 	}
-	
 
 	/**
 	 * Method dealing with the replication process, triggered once the observer pattern
@@ -182,7 +267,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	}
 
 	/**
-	 * The ownership of a file is set remotely by another node
+	 * Method to set the ownership of a file. This is done remotely by another node.
 	 */
 	@Override
 	public void addOwnedFile(String fileName) throws RemoteException
@@ -199,7 +284,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		localFiles.add(fileName);
 	}
 
-	/** b 
+	/** 
 	 * Hashes the passed string
 	 * The has is bound to range : 0 - 32768
 	 * @param nameToConvert : the string of which a hash will be returned
@@ -214,7 +299,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	 * Returns a list of the local files within the relative directory localFiles/
 	 * @return List<String> localFiles
 	 */
-	public static List<String> getLocalFiles()
+	public static List<String> findLocalFiles()
 	{
 		List<String> localFiles = new ArrayList<String>();
 		File[] files = new File("localFiles/").listFiles();
@@ -247,7 +332,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	@Override
 	public void run()
 	{
-		localFiles = getLocalFiles();
+		localFiles = findLocalFiles();
 		TCP fileClient = null;
 
 		/*
