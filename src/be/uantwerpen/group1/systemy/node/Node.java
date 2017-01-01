@@ -28,22 +28,24 @@ public class Node implements NodeInterface
 	private static NodeInfo previousNode = null;
 	private static NameServerInterface nameServerInterface = null;
 	private static FileAgent fileAgent = null;
-	private static String dnsIP = ParserXML.parseXML("DnsIp");
-	private static String HOSTNAME = ParserXML.parseXML("Hostname");
 
-	private static ArrayList<String> fileList;
-	private final static String locationFiles = "localfiles/";
+	// FileList that contains the files in the system and a boolean that's said if there locked
+	private static HashMap<String, String> fileList;
+	// private static ArrayList<String> fileList;
 	private static String fileToLock = null;
-	private static String fileToDelete = null;
-	private static boolean downloadSuccessfull = false;
 
-	private static String nodeIp;
+	// Check wetter we are in Debug mode or not
 	private static boolean debugMode = false;
 
+	//
+	private static String nodeIp;
+	private static String dnsIP = ParserXML.parseXML("DnsIp");
+	private static String HOSTNAME = ParserXML.parseXML("Hostname");
 	static final int NEIGHBORPORT = Integer.parseInt(ParserXML.parseXML("NeighborPort"));
 	static final int MULTICASTPORT = Integer.parseInt(ParserXML.parseXML("MulticastPort"));
 	static final String REMOTENSNAME = ParserXML.parseXML("RemoteNsName");
 	static final int RMIPORT = Integer.parseInt(ParserXML.parseXML("RMIPort"));
+	static final String locationFiles = "localfiles/";
 
 	// node RMI interfaces
 	private static RMI<NodeInterface> rmiNodeClient = new RMI<NodeInterface>();
@@ -95,7 +97,7 @@ public class Node implements NodeInterface
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
-		loadInitialFiles();
+		// loadInitialFiles();
 		listenToNewNodes();
 		discover();
 		initShutdownHook();
@@ -128,19 +130,19 @@ public class Node implements NodeInterface
 	 * BEGIN STARTUP METHODS
 	 */
 
-	/**
-	 * At startup the Node is going to load his files in the fileList
-	 */
-	private static void loadInitialFiles()
-	{
-		File folder = new File(locationFiles);
-		File[] listOfFiles = folder.listFiles();
-		for (int i = 0; i < listOfFiles.length; i++)
-		{
-			fileList.add(listOfFiles[i].getName());
-		}
-
-	}
+	// /**
+	// * At startup the Node is going to load his files in the fileList
+	// */
+	// private static void loadInitialFiles()
+	// {
+	// File folder = new File(locationFiles);
+	// File[] listOfFiles = folder.listFiles();
+	// for (int i = 0; i < listOfFiles.length; i++)
+	// {
+	// fileList.put(listOfFiles[i].getName(), "notLocked");
+	// }
+	//
+	// }
 
 	/**
 	 * Listen to multicast responses on discover requests
@@ -235,6 +237,41 @@ public class Node implements NodeInterface
 	}
 
 	/**
+	 * This method will start a thread for passing the fileAgent to the other nodes. 
+	 * When the fileAgent is finished with his job on the currentNode a boolean will be high and
+	 * fileList on the node can be updated and the 
+	 */
+	private static void passFileAgentInNetwork()
+	{
+		new Thread(() ->
+		{
+			while (true)
+			{
+				// if fileAgent is finished
+				if (fileAgent.isAgentFinished())
+				{
+					// update the filelist of the node when the fileAgent finished
+					fileList = fileAgent.getUpdatedFileListNode();
+
+					// pass the FileAgent to the nextNode
+					/**
+					 * ROBIN?
+					 */
+
+					// update the fileAgent with information from the next node
+					fileAgent.setAgentFinished(false);
+					fileAgent.setCurrentNodeIp(me.getIP());
+					fileAgent.setFileListNode(fileList);
+					fileAgent.setFileToLock(fileToLock);
+					fileAgent.setLocationFiles(locationFiles);
+				}
+
+			}
+
+		}).start();
+	}
+
+	/**
 	 * Thread that checks if neighbors are still alive
 	 */
 	private static void startHeartbeat()
@@ -288,23 +325,6 @@ public class Node implements NodeInterface
 	/**
 	 * END STARTUP METHODS
 	 */
-
-	/**
-	 * BEGIN GETTERS AND SETTERS FOR THE NODE
-	 */
-
-	public void addFileToFileList(String file)
-	{
-		fileList.add(file);
-	}
-
-	public void deleteFileFromFileList(String file)
-	{
-		if (fileList.contains(file))
-		{
-			fileList.remove(file);
-		}
-	}
 
 	/**
 	 * If previous node is failed, replace it in myself by the previous of the failed node and remove the failed node from register
@@ -421,19 +441,30 @@ public class Node implements NodeInterface
 		return status;
 	}
 
-	/**
-	 * The method for passing the file agent in the network, when the agent is passed the fields of the node needs to be updated in the fileAgent
-	 */
 	@Override
 	public void passFileAgent(FileAgent fileAgent) throws RemoteException
 	{
 		// TODO Auto-generated method stub
-		fileAgent.setCurrentNodeIp(me.getIP());
-		fileAgent.setFileListNode(fileList);
-		fileAgent.setFileToDelete(fileToDelete);
-		fileAgent.setFileToLock(fileToLock);
-		fileAgent.setLocationFiles(locationFiles);
-		
 
+	}
+
+	/**
+	 * Method for locking a specific file on a Node.
+	 * If the value of the hashmap is equal to notLocked -> file is free, lockToProcess -> lock request by Node and not processed by FileAgent,
+	 * locked -> processed by FileAgent and file is locked.
+	 * @param fileToLock: the name of the file to lock
+	 */
+	public void fileToLock(String fileToLock)
+	{
+
+		if (fileList.containsKey(fileToLock) && fileList.get(fileToLock).equals("notLocked"))
+		{
+			fileList.put(fileToLock, "lockToProcess");
+			SystemyLogger.log(Level.INFO, logName + "lock is ready for processing");
+		} else if (fileList.get(fileToLock).equals("lockToProcess") || fileList.get(fileToLock).equals("locked"))
+		{
+			SystemyLogger.log(Level.INFO, logName + "file already locked or there is a lock request by an other node");
+
+		}
 	}
 }
