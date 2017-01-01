@@ -1,5 +1,6 @@
 package be.uantwerpen.group1.systemy.node;
 
+import java.io.Serializable;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
@@ -7,11 +8,13 @@ import be.uantwerpen.group1.systemy.networking.Hashing;
 
 /**
  * abstract data type for storing node info
- * 
+ *
  * @author Robin Janssens
  */
 
-public class NodeInfo implements Comparable<NodeInfo> {
+public class NodeInfo implements Comparable<NodeInfo>, Serializable {
+
+	private static final long serialVersionUID = 1337;
 
 	private static String logName = NodeInfo.class.getName() + " >> ";
 
@@ -20,10 +23,9 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	private String ip;
 
 	/**
-	 * constructor
-	 * 
+	 * constructor using node name
+	 *
 	 * @param nodeName
-	 * @param nodeHash
 	 * @param nodeIP
 	 */
 	public NodeInfo(String nodeName, String nodeIP) {
@@ -32,15 +34,16 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	}
 
 	/**
-	 * empty object Constructor
+	 * constructor using hash
+	 * if you know the node name it is recommended to use 'new NodeInfo(String nodeName, String nodeIP)'
+	 *
+	 * @param nodeHash
+	 * @param nodeIP
 	 */
-	/*
-	public NodeInfo() {
-		this.setName(null);
-		this.setIP(null);
-		parserXML.parse();
+	public NodeInfo(int nodeHash, String nodeIP) {
+		this.setHash(nodeHash);
+		this.setIP(nodeIP);
 	}
-	*/
 
 	// -----
 	// GET
@@ -64,14 +67,17 @@ public class NodeInfo implements Comparable<NodeInfo> {
 		this.name = nodeName;
 		this.hash = Hashing.hash(nodeName);
 	}
-
+	public void setHash(int hash) {
+		this.name = null;
+		this.hash = hash;
+	}
 	public void setIP(String nodeIP) {
 		this.ip = nodeIP;
 	}
 
 	/**
 	 * function to check if this node is a new next node
-	 * 
+	 *
 	 * @param me: own NodeInfo
 	 * @param next: next node NodeInfo
 	 * @return boolean: true if this is a new next node
@@ -113,7 +119,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 
 	/**
 	 * function to check if this node is a new previous node
-	 * 
+	 *
 	 * @param me: own NodeInfo
 	 * @param previous: previous node NodeInfo
 	 * @return boolean: true if this is a new previous node
@@ -155,7 +161,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 
 	/**
 	 * pretty output
-	 * 
+	 *
 	 * @return String: formatted output
 	 */
 	public String toString() {
@@ -165,7 +171,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 	/**
 	 * output data as "<name>,<hash>,<ip>"
 	 * ideal for sending data as a package
-	 * 
+	 *
 	 * @return String: formatted output
 	 */
 	public String toData() {
@@ -174,7 +180,7 @@ public class NodeInfo implements Comparable<NodeInfo> {
 
 	/**
 	 * Comparable implementation
-	 * 
+	 *
 	 * @param other: NodeInfo to compare with
 	 * @return int: outcome of comparison
 	 */

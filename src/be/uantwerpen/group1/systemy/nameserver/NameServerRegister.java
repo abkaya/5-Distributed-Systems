@@ -1,23 +1,23 @@
 /**
  * This class is the register of the NameServer.
  * It will keep track of the nodes, performs the hashing function, calculate the ownership of a file, ...
- * 
+ *
  * Convention
  * -------------
  * If a host is not added to the network the terms hostName and hostIP are used
  * If a host is added to the network it becomes a node and the terms nodeName and nodeIP are used
- * 
+ *
  * Treemap
  * -------------
- * A treemap is chosen because it stores the values in order. This way the lookup for the file location, next node and previous node 
- * can be done fast and efficient. 
+ * A treemap is chosen because it stores the values in order. This way the lookup for the file location, next node and previous node
+ * can be done fast and efficient.
  * Key = hash
  * Value = ip address
- * 
+ *
  * @author	Mariën Levi
  * @version 1.0
  * @since 29/10/2016
- * 
+ *
  */
 
 package be.uantwerpen.group1.systemy.nameserver;
@@ -49,39 +49,32 @@ public class NameServerRegister implements Serializable {
 	 * fileName: the name of the file for saving on the hard drive
 	 */
 
-	private static TreeMap<String, String> register;
+	private static TreeMap<Integer, String> register;
 	private String fileName = "NSRegister.ser";
 
 	/**
 	 * Auto generated constructor
 	 * @param clear: if clear = 'true' clear previous register, if clear = 'false' continue with previous register
 	 */
-	public NameServerRegister(boolean clear) {
+	public NameServerRegister() {
 		// TODO Auto-generated 	constructor stub
 
 		// The integer value is the hash calculated and the String is the IPAddres of the host/node
-		register = new TreeMap<String, String>();
-
-		//if (clear) {
-		//loadRegister();
-		//register.clear();
-		//saveRegister();
-		//System.out.println("Registered cleared and loaded");
-		//} else {
+		register = new TreeMap<Integer, String>();
 		SystemyLogger.log(Level.INFO, logName + "Register loaded");
 		//System.out.println("NameServerRegister >> Register loaded");
-		//}
 	}
 
 	/**
 	 * This method loads the register from the hard drive
+	 * Extra
 	 */
 	@SuppressWarnings("unchecked")
 	public void loadRegister() {
 		try {
 			ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(fileName));
 			//cast to Treemap<String, String>)
-			register = (TreeMap<String, String>) objectInputStream.readObject();
+			register = (TreeMap<Integer, String>) objectInputStream.readObject();
 			objectInputStream.close();
 
 		} catch (Exception e) {
@@ -92,6 +85,7 @@ public class NameServerRegister implements Serializable {
 
 	/**
 	 * This method saves the register to the hard drive
+	 * Extra
 	 */
 	public void saveRegister() {
 		try {
@@ -127,8 +121,7 @@ public class NameServerRegister implements Serializable {
 	 * @param hostIP: IPAddress of the new node
 	 */
 	public void addNode(String hostName, String hostIP) {
-		//loadRegister();
-		String nodeHash = String.valueOf(hashing(hostName));
+		int nodeHash = hashing(hostName);
 		if (register.containsKey(nodeHash)) {
 			SystemyLogger.log(Level.WARNING, logName + "This node already exist");
 		} else {
@@ -136,15 +129,13 @@ public class NameServerRegister implements Serializable {
 			SystemyLogger.log(Level.INFO,
 					logName + hostName + " (hashcode: " + nodeHash + ")" + hostIP + " is added to the register");
 		}
-		//saveRegister();
 	}
 
 	/**
 	 * This method removes a node from the register based on his hash code
 	 * @param nodeName: this is the name of the node that's need to be removed
 	 */
-	public void removeNodeFromRegister(String nodeHash) {
-		//loadRegister();
+	public void removeNodeFromRegister(Integer nodeHash) {
 		if (register.containsKey(nodeHash)) {
 			register.remove(nodeHash);
 			SystemyLogger.log(Level.INFO, logName + nodeHash + " is removed from the register");
@@ -154,24 +145,22 @@ public class NameServerRegister implements Serializable {
 	}
 
 	/**
-	 * This method calculates the ownership of the files. 
+	 * This method calculates the ownership of the files.
 	 * @param fileName: the name of the file we want the IPAddress from where it is stored
 	 * @return nodeIP: this is string that will contains the IPAddress of the node containing the file
 	 */
-	public String getFileLocation(String fileHash) {
-
-		//loadRegister();
+	public String getFileLocation(int fileHash) {
 
 		System.out.println(fileHash);
-		TreeMap<String, String> temp = new TreeMap<>();
+		TreeMap<Integer, String> temp = new TreeMap<>();
 		//if register is empty
 		if (register.size() == 0) {
 			SystemyLogger.log(Level.WARNING, logName + "There are no nodes in the network");
 			return null;
 		} else {
 			// if register is not empty iterate over the register and search for hashvalues smaller than the filehash
-			for (Entry<String, String> entry : register.entrySet()) {
-				if (Integer.parseInt(entry.getKey()) < Integer.parseInt(fileHash)) {
+			for (Entry<Integer, String> entry : register.entrySet()) {
+				if (entry.getKey() < fileHash) {
 					temp.put(entry.getKey(), entry.getValue());
 				}
 			}
@@ -190,98 +179,84 @@ public class NameServerRegister implements Serializable {
 	}
 
 	/**
-	 * This method will calculate the hash value of the next node based on his own
-	 * hash value
-	 * @param nodeHash: this is the hashvalue of the current node in the form of a string 
-	 * @return This returns the next node IPAddress in the form of a string
+	 * This method will lookup the hash value of the next node based on his own hash value
+	 *
+	 * @param nodeHash: String with hash of the current node
+	 * @return Hash of next node
 	 */
-	public String getNextNode(String nodeHash) {
-
-		String tempKey = null;
-
-		//loadRegister();
-
-		//if there are no nodes in the network return null
+	public int getNextNode(int nodeHash) {
 		if (register.size() == 0) {
+			// If there are no nodes in the network return 0
 			SystemyLogger.log(Level.WARNING, logName + "There are no nodes in the network");
-			return null;
-			// if there is one node in the network point to himself
+			return 0;
 		} else if (register.size() == 1) {
+			// If there is one node in the network point to himself
 			SystemyLogger.log(Level.INFO, logName + "This node is the only node in the network");
-			return register.get(nodeHash);
-			// if node is the last node in the network, point to the first one (ring network)
+			return nodeHash;
 		} else if (register.lastKey() == nodeHash) {
-			SystemyLogger.log(Level.INFO, logName + "This is the nextNode " + register.firstKey() + " ("
-					+ register.get(register.firstKey()) + ")");
-			return register.get(register.firstKey());
-			//if this is all not the case then find the nextnode in the network
+			// If node is the last node in the network, point to the first one (ring network)
+			SystemyLogger.log(Level.INFO, logName + "This is the nextNode " + register.firstKey());
+			return register.firstKey();
 		} else {
-			loop: for (Entry<String, String> entry : register.entrySet()) {
-				if (Integer.parseInt(entry.getKey()) > Integer.parseInt(nodeHash)) {
+			// If this is all not the case then find the next node in the network
+			int tempKey = 0;
+			loop: for (Entry<Integer, String> entry : register.entrySet()) {
+				if (entry.getKey() > nodeHash) {
 					tempKey = entry.getKey();
 					break loop;
 				}
 			}
-
-			SystemyLogger.log(Level.INFO,
-					logName + "This is the nextNode " + tempKey + " (" + register.get(tempKey) + ")");
-			return register.get(tempKey);
+			SystemyLogger.log(Level.INFO, logName + "This is the nextNode " + tempKey);
+			return tempKey;
 		}
 
 	}
 
 	/**
-	 * This method will calculate the hash value of the previous node based on his own
-	 * hash value
-	 * @param nodeName: this is the name of the current node
-	 * @return: this is the hash value of the previous node (calculated with the parameter nodeHash)
+	 * This method will lookup the hash value of the previous node based on his own hash value
+	 *
+	 * @param nodeHash: String with hash of the current node
+	 * @return Hash of previous node
 	 */
-	public String getPreviousNode(String nodeHash) {
-
-		int tempKey = 0;
-
-		//loadRegister();
-
+	public int getPreviousNode(int nodeHash) {
 		if (register.size() == 0) {
+			// If there are no nodes in the network return 0
 			SystemyLogger.log(Level.WARNING, logName + "There are no nodes in the network");
-			return null;
+			return 0;
 		} else if (register.size() == 1) {
+			// If there is one node in the network point to himself
 			SystemyLogger.log(Level.INFO, logName + "This node is the only node in the network");
-			return register.get(nodeHash);
+			return nodeHash;
 		} else if (register.firstKey() == nodeHash) {
-			SystemyLogger.log(Level.INFO, logName + "This is the nextNode " + register.firstKey() + " ("
-					+ register.get(register.firstKey()) + ")");
-			return String.valueOf(register.firstKey());
+			// If node is the last node in the network, point to the first one (ring network)
+			SystemyLogger.log(Level.INFO, logName + "This is the previousNode " + register.lastKey());
+			return register.firstKey();
 		} else {
-			loop: for (Entry<String, String> entry : register.entrySet()) {
-				if (Integer.parseInt(entry.getKey()) < Integer.parseInt(nodeHash)) {
-					tempKey = Integer.parseInt(entry.getKey());
+			// If this is all not the case then find the next node in the network
+			int tempKey = 0;
+			loop: for (Entry<Integer, String> entry : register.entrySet()) {
+				if (entry.getKey() < nodeHash) {
+					tempKey = entry.getKey();
 					break loop;
 				}
 			}
-			SystemyLogger.log(Level.INFO, logName + "getPreviousNode >> This is the previousNode " + tempKey + " ("
-					+ register.get(tempKey) + ")");
-			return register.get(tempKey);
+			SystemyLogger.log(Level.INFO, logName + "This is the previousNode " + tempKey);
+			return tempKey;
 		}
-
 	}
 
 	/**
-	 * This method is extra for now, maybe it comes in handy later
-	 * -------------------------------------------------------------
 	 * This method looks up the hostIP in the register based on the hash
-	 * @param hash: this is the hash (of the hostname) where we will calculate the IPAddress of.
+	 * @param hash: this is the hash (of the hostname) of who we want to lookup the IPAddress from.
 	 * @return nodeIP: this will return a string which is the IPAddress of the node if the entry is found else it will return null
 	 */
 	public String getNodeIPFromHash(int nodeHash) {
-		if (register.containsKey(String.valueOf(nodeHash))) {
-			String nodeIP = register.get(nodeHash);
-			SystemyLogger.log(Level.INFO, logName + "The hash: " + nodeHash + " correspond with ip address: " + nodeIP);
-			return nodeIP;
-		} else {
-			SystemyLogger.log(Level.WARNING, logName + "The hash doesn't exist in the register");
-			return null;
-		}
+		String nodeIP = register.get(nodeHash);
+		if (nodeIP != null)
+			SystemyLogger.log(Level.INFO, logName + "The hash " + nodeHash + " correspond with ip address: " + nodeIP);
+		else
+			SystemyLogger.log(Level.WARNING, logName + "The hash " + nodeHash + " doesn't exist in the register");
+		return nodeIP;
 	}
 
 	/**
@@ -291,12 +266,15 @@ public class NameServerRegister implements Serializable {
 	 * @param nodeIP: this is the ip address of the node
 	 * @return hashNode: this is the hashvalue based on the IPAddres, if the value = -1 there is no corresponding entry
 	 */
-	public int getHashFromNodeIP(String nodeIP) {
+	/*
+	 *	Doesn't make sense because an IP address is not always unique 
+	 */
+	/*public int getHashFromNodeIP(String nodeIP) {
 		//loadRegister();
 		int nodeHash = -1;
-		for (Entry<String, String> entry : register.entrySet()) {
+		for (Entry<Integer, String> entry : register.entrySet()) {
 			if (entry.getValue().equals(nodeIP)) {
-				nodeHash = Integer.parseInt(entry.getKey());
+				nodeHash = entry.getKey();
 			}
 		}
 		if (nodeHash == -1) {
@@ -307,5 +285,5 @@ public class NameServerRegister implements Serializable {
 					logName + "The ip address: " + nodeIP + " corresponds with hash: " + nodeHash);
 			return nodeHash;
 		}
-	}
+	}*/
 }
