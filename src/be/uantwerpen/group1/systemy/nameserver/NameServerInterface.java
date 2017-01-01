@@ -7,8 +7,9 @@ import java.rmi.RemoteException;
  * @author Abdil Kaya
  */
 public interface NameServerInterface extends Remote {
-    String getFileLocation (String fileName) throws RemoteException;
+    String getIPAddress (int fileHash) throws RemoteException;
     void removeNode(int hash) throws RemoteException;
 	int getNextNode(int hash) throws RemoteException;
-	public String getPreviousNode(String nodeHash) throws RemoteException;
+	int getPreviousNode(int hash) throws RemoteException;
+	String getNodeIP(int hash) throws RemoteException;
 }

@@ -205,7 +205,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	 * @param nameToConvert : the string of which a hash will be returned
 	 * @return the hash of nameToConvert
 	 */
-	private int hash(String nameToConvert)
+	public int hash(String nameToConvert)
 	{
 		return Hashing.hash(nameToConvert);
 	}
