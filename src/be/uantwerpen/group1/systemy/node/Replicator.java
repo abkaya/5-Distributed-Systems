@@ -111,7 +111,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	{
 		try
 		{
-			return nsi.getFileLocation(fileName);
+			return nsi.getIPAddress(hash(fileName));
 		} catch (RemoteException e)
 		{
 			SystemyLogger.log(Level.WARNING, logName + "Owner of file: " + observedFile + ". could not be found!");
@@ -127,7 +127,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	{
 		try
 		{
-			return nsi.getPreviousNode(nodeIP);
+			return nsi.getNodeIP(nsi.getPreviousNode(hash(nodeIP)));
 		} catch (RemoteException e)
 		{
 			SystemyLogger.log(Level.WARNING, logName + "Owner of file: " + observedFile + ". could not be found!");
@@ -199,7 +199,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		localFiles.add(fileName);
 	}
 
-	/**
+	/** b 
 	 * Hashes the passed string
 	 * The has is bound to range : 0 - 32768
 	 * @param nameToConvert : the string of which a hash will be returned
@@ -281,10 +281,10 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			System.out.println(localFile);
 			try
 			{
-				fileClient = new TCP(tcpFileTranferPort, nsi.getFileLocation(localFile));
+				fileClient = new TCP(tcpFileTranferPort, nsi.getIPAddress(hash(localFile)));
 				fileClient.receiveFile(localFile);
-				SystemyLogger.log(Level.INFO, logName + localFile + " owner request from name server returns: " + nsi.getFileLocation(
-						localFile));
+				SystemyLogger.log(Level.INFO, logName + localFile + " owner request from name server returns: " + nsi.getIPAddress(hash(
+						localFile)));
 			} catch (RemoteException e)
 			{
 				// TODO Auto-generated catch block
