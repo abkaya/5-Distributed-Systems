@@ -94,7 +94,7 @@ public class UserInterface extends Application {
     		SystemyLogger.log(Level.WARNING, logName + "file '" + fileName + "' already in GUI");
     	} else {
     		files.add(new Item(fileName, local));
-    		SystemyLogger.log(Level.WARNING, logName + "Added '" + fileName + "' to GUI");
+    		SystemyLogger.log(Level.INFO, logName + "Added '" + fileName + "' to GUI");
     	}
     }
     
