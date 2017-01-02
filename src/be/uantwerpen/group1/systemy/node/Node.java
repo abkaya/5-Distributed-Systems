@@ -92,17 +92,18 @@ public class Node extends UserInterface implements NodeInterface {
 		/*
 		 * GUI
 		 */
-        UserInterface.add("test file", true);
-        UserInterface.add("test file (2)", false);
-        UserInterface.add("test file (3)", true);
-    
-        
-        new Thread(() -> {
-        	UserInterface.launch();
-        }).start();
-    	
-        UserInterface.add("test file (4)", true);
-
+		if (GUI) {
+	        UserInterface.add("test file", true);
+	        UserInterface.add("test file (2)", false);
+	        UserInterface.add("test file (3)", true);
+	    
+	        
+	        new Thread(() -> {
+	        	UserInterface.launch();
+	        }).start();
+	    	
+	        UserInterface.add("test file (4)", true);
+		}
 
 		/*
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
@@ -367,7 +368,9 @@ public class Node extends UserInterface implements NodeInterface {
      */
     public static void UIDelete(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Delete: " + fileName);
-    	UserInterface.remove(fileName);
+    	if (GUI) {
+    		UserInterface.remove(fileName);
+    	}
     	// TODO
     }
     
@@ -377,8 +380,10 @@ public class Node extends UserInterface implements NodeInterface {
      */
     public static void UIDeleteLocal(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
-    	UserInterface.remove(fileName);
-    	UserInterface.add(fileName, false);
+    	if (GUI) {
+	    	UserInterface.remove(fileName);
+	    	UserInterface.add(fileName, false);
+    	}
     	// TODO
     }
     
