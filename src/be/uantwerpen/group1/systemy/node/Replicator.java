@@ -205,8 +205,34 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	 */
 	private void remoteOwnerReplicationProcess(String fileName, String remoteNodeIP)
 	{
+		sendFile(fileName, getOwnerLocation(fileName));
+		
+		this.localFiles.add(fileName);
+		
+		ReplicatorInterface ri = null;
+		RMI<ReplicatorInterface> rmi = new RMI<ReplicatorInterface>();
+		ri = rmi.getStub(ri, "ReplicatorInterface", remoteNodeIP, 1099);
 
+		try
+		{
+			ri.addDownloadedFile(fileName);
+			ri.addOwnedFile(fileName);
+			ri.addFileRecord(new FileRecord(fileName, getOwnerLocation(fileName), nodeIP));
+		} catch (RemoteException e)
+		{
+			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute the remote owner replication process methods.");
+		}
 	}
+	
+	/**
+	 * Method to add a fileRecord to the fileRecords list. Used by a remote node once the owner is known to be a remote node.
+	 */
+	@Override
+	public void addFileRecord(FileRecord fileRecord) throws RemoteException
+	{
+		this.fileRecords.add(fileRecord);
+	}
+	
 
 	/**
 	 * Request the file's owner IP address from the nameserver, using RMI
