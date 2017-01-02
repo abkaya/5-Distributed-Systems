@@ -146,13 +146,13 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			{
 				String tempOwnerIP = getOwnerLocation(observedFile);
 
-				// IF the owner of thid new file is the local node :
+				// IF the owner of this new file is the local node :
 				if (tempOwnerIP == nodeIP)
 				{
 					localOwnerReplicationProcess(observedFile, tempOwnerIP);
 				}
 				// ELSE if the owner of this file is a remote node :
-				else if(tempOwnerIP != nodeIP)
+				else if (tempOwnerIP != nodeIP)
 				{
 					remoteOwnerReplicationProcess(observedFile, tempOwnerIP);
 				}
@@ -174,8 +174,22 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	 */
 	private void localOwnerReplicationProcess(String fileName, String remoteNodeIP)
 	{
+		sendFile(fileName, getPreviousNode(nodeIP));
+		fileRecords.add(new FileRecord(fileName, remoteNodeIP, nodeIP));
+		this.localFiles.add(fileName);
+		this.ownedFiles.add(fileName);
 		
+		ReplicatorInterface ri = null;
+		RMI<ReplicatorInterface> rmi = new RMI<ReplicatorInterface>();
+		ri = rmi.getStub(ri, "ReplicatorInterface", remoteNodeIP, 1099);
 
+		try
+		{
+			ri.addDownloadedFile(fileName);
+		} catch (RemoteException e)
+		{
+			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute addDownloadedFile method.");
+		}
 	}
 
 	/**
@@ -271,6 +285,15 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	{
 		ownedFiles.add(fileName);
 	}
+	
+	/**
+	 * Method to add a filename to the downloadedFiles list. This is done remotely by another node.
+	 */
+	@Override
+	public void addDownloadedFile(String fileName) throws RemoteException
+	{
+		downloadedFiles.add(fileName);
+	}
 
 	/**
 	 * Possession of a local file is/can be set by a remote node
@@ -309,17 +332,42 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		}
 		return localFiles;
 	}
-	
+
 	/**
-	 * Method to be used remotely on other node replicators, which will make those nodes
-	 * issue a TCP receiveFile request to this node's TCP server, which will then subsequently 
-	 * send  the "requested" file from this node to the target node.
+	 * SendFile method. Used to send files, using the the remote node's receiveFile RMI method, which uses the already
+	 * existing TCP API to request a file receive.
+	 */
+	private void sendFile(String fileName, String targetNodeIP)
+	{
+		ReplicatorInterface ri = null;
+		RMI<ReplicatorInterface> rmi = new RMI<ReplicatorInterface>();
+		ri = rmi.getStub(ri, "ReplicatorInterface", targetNodeIP, 1099);
+
+		try
+		{
+			ri.receiveFile(fileName, nodeIP);
+		} catch (RemoteException e)
+		{
+			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute receiveFile method.");
+		}
+	}
+
+	/**
+	 * A method used when a certain node replicator needs to request a file. The method is strictly called remotely,
+	 * and becomes solely a tool for the node replicator which is trying to send a file.
+	 * So in essence,the sendFile method is used locally by a replicator, which makes a remote call to the 
+	 * remote replicator, telling it to make the TCP file request from the calling node.
+	 * 
 	 * @param String : fileName
+	 * @param String : fileServerNodeIP : the IP address of the node to request a file from. So the remote node calling this method remotely, will
+	 * always provide its own nodeIP, as seen in the private sendFile method.
 	 */
 	@Override
-	public void receiveFile(String fileName, String nodeIP) throws RemoteException
+	public void receiveFile(String fileName, String fileServerNodeIP) throws RemoteException
 	{
-				
+		TCP fileClient = null;
+		fileClient = new TCP(tcpFileTranferPort, fileServerNodeIP);
+		fileClient.receiveFile(fileName);
 	}
 
 	/**
@@ -359,29 +407,6 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		 */
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
-
-
-		/*
-		 * Get the file location for all current files. Any further operation within this for loop block is for testing purposes only and
-		 * must/will be adjusted to its proper functionality asap.
-		 */
-		for (String localFile : localFiles)
-		{
-			SystemyLogger.log(Level.INFO, logName + "---Replication Thread----");
-			SystemyLogger.log(Level.INFO, logName + localFile);
-			System.out.println(localFile);
-			try
-			{
-				fileClient = new TCP(tcpFileTranferPort, nsi.getIPAddress(hash(localFile)));
-				fileClient.receiveFile(localFile);
-				SystemyLogger.log(Level.INFO, logName + localFile + " owner request from name server returns: " + nsi.getIPAddress(hash(
-						localFile)));
-			} catch (RemoteException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
 
 		// This line is where startup ends! From here on out, everything update related is handled.
 

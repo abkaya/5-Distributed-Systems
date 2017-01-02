@@ -14,6 +14,13 @@ public class FileRecord
 	private List<String> downloadedByNodes;
 	private String localByNode;
 	
+	public FileRecord(String fileName, String sentToNode, String localByNode)
+	{
+		this.fileName = fileName;
+		this.localByNode = localByNode;
+		downloadedByNodes.add(sentToNode);
+	}
+	
 	public String getFileName()
 	{
 		return fileName;
