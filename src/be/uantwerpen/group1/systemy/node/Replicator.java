@@ -6,6 +6,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
+import java.util.Observer;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
@@ -135,7 +136,8 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			 * - handle the create operation (observedAction == 1) by the replication process...
 			 */
 			/*
-			 * If the deleted file is one we're the owner of, then 
+			 * If the deleted file is one this node is the owner of, then make sure it is also removed from the 
+			 * ownedFiles list, as well as the fileRecords list
 			 */
 			if (observedAction == 0)
 			{
@@ -144,27 +146,15 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			{
 				String tempOwnerIP = getOwnerLocation(observedFile);
 
-				/*
-				 * Once the owner is known, check whether or not it is the local node. 
-				 */
-
-				// IF it is the local node :
+				// IF the owner of thid new file is the local node :
 				if (tempOwnerIP == nodeIP)
 				{
-
+					localOwnerReplicationProcess(observedFile, tempOwnerIP);
 				}
-				/*
-				 * ELSE if the owner is not this node: 
-				 * 	- replicate the file to the owner 
-				 * 	- create fileRecord : set fileName, set this node as the "localByNode"-node, add the owner node to the 
-				 * 		"downloadedByNode" list, BUT add this fileRecord to the owner's fileRecords list. 
-				 * 	- add fileName to the remote/owner's ownedFiles list. 
-				 * 	- add fileName to the local localFiles list.
-				 * 	- add fileName to the remote/owner's localFiles list.
-				 */
-				else
+				// ELSE if the owner of this file is a remote node :
+				else if(tempOwnerIP != nodeIP)
 				{
-
+					remoteOwnerReplicationProcess(observedFile, tempOwnerIP);
 				}
 			}
 		}
@@ -175,16 +165,31 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	  * - replicate file to previous node 
 	  * - create fileRecord : set fileName, set this node as the "localByNode"-node, add the previous node to the
 	  * 		"downloadedByNode" list AND add this fileRecord to the local fileRecords list. 
+	  * 
 	  * - add fileName to the local localFiles list. 
-	  * - add fileName to the remote previous node's localFiles list. 
 	  * - add fileName to the local ownedFiles list.
+	  * 
+	  * - add fileName to the remote previous node's downloadedFiles list. 
+	  * 
 	 */
-	private void localOwnerReplicationProcess()
+	private void localOwnerReplicationProcess(String fileName, String remoteNodeIP)
 	{
+		
 
 	}
 
-	private void remoteOwnerReplicationProcess()
+	/**
+	 * Replication process to go through when the new local file is owned by a remote node:
+	 * 	- replicate the file to the owner 
+	 * 	- create fileRecord : set fileName, set this node as the "localByNode"-node, add the owner node to the 
+	 * 		"downloadedByNode" list, BUT add this fileRecord to the owner's fileRecords list. 
+	 * 
+	 * 	- add fileName to the remote/owner's ownedFiles list. 
+	 *  - add fileName to the remote/owner's downloadedFiles list.
+	 *  
+	 * 	- add fileName to the local localFiles list.
+	 */
+	private void remoteOwnerReplicationProcess(String fileName, String remoteNodeIP)
 	{
 
 	}
@@ -222,15 +227,6 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	}
 
 	/**
-	 * Method dealing with the replication process, triggered once the observer pattern
-	 * update method is called
-	 */
-	private void replicate()
-	{
-
-	}
-
-	/**
 	 * RMI method used by other nodes to check whether or not this node already knows it owns a file
 	 */
 	@Override
@@ -240,14 +236,15 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	}
 
 	/**
-	 * RMI method used by other nodes to check whether or not this node has a file available locally
+	 * RMI method used by other nodes to check whether or not this node has a file available locally, either
+	 * downloaded or made locally available on its own.
 	 * @param String: fileName
-	 * @return boolean : whether or not the file is available on this machine locally
+	 * @return boolean 
 	 */
 	@Override
-	public boolean hasLocalFile(String fileName) throws RemoteException
+	public boolean hasFile(String fileName) throws RemoteException
 	{
-		return isFileInList(fileName, localFiles);
+		return (isFileInList(fileName, localFiles) || isFileInList(fileName, downloadedFiles));
 	}
 
 	/**
@@ -312,6 +309,18 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		}
 		return localFiles;
 	}
+	
+	/**
+	 * Method to be used remotely on other node replicators, which will make those nodes
+	 * issue a TCP receiveFile request to this node's TCP server, which will then subsequently 
+	 * send  the "requested" file from this node to the target node.
+	 * @param String : fileName
+	 */
+	@Override
+	public void receiveFile(String fileName, String nodeIP) throws RemoteException
+	{
+				
+	}
 
 	/**
 	 * Replicator constructor 
@@ -351,9 +360,6 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
 
-		/*
-		 * 
-		 */
 
 		/*
 		 * Get the file location for all current files. Any further operation within this for loop block is for testing purposes only and
@@ -403,4 +409,5 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		observable.processEvents();
 
 	}
+
 }
