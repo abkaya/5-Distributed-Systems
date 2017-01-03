@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.io.IOException;
 import java.net.InetAddress;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
@@ -34,6 +35,8 @@ public class Node implements NodeInterface {
 	private static final Boolean GUI = Boolean.parseBoolean(ParserXML.parseXML("GUI"));
 	private static final String LOCALFILESLOCATION = ParserXML.parseXML("localFilesLocation");
 	private static final String DOWNLOADEDFILESLOCATION = ParserXML.parseXML("downloadedFilesLocation");
+	private static final int TCPFILETRANSFERPORT = Integer.parseInt(ParserXML.parseXML("TcpFileTranferPort"));
+	private static final int DNSPORT = Integer.parseInt(ParserXML.parseXML("RMIPort"));
 
 	// node RMI interfaces
 	private static RMI<NodeInterface> rmiNodeClient = new RMI<NodeInterface>();
@@ -59,11 +62,9 @@ public class Node implements NodeInterface {
 
 	/**
 	 * @param args: first argument is the nodeName (optional)
-	 * @throws RemoteException
-	 * @throws UnknownHostException
-	 * @throws SocketException
+	 * @throws IOException 
 	 */
-	public static void main(String args[]) throws RemoteException, UnknownHostException, SocketException {
+	public static void main(String args[]) throws IOException {
 
 		if (!debugMode) {
 			nodeIp = Interface.getIP();
@@ -112,8 +113,8 @@ public class Node implements NodeInterface {
 		/*
 		 * once the DNS IP address is known, the replicator can start and run autonomously.
 		 */
-		//Replicator rep = new Replicator(me.getIP(), tcpFileTranferPort, dnsIP, dnsPort);
-		//rep.run();
+		Replicator rep = new Replicator(me.getIP(), TCPFILETRANSFERPORT, dnsIP, DNSPORT);
+		rep.run();
 	}
 
 	/**
