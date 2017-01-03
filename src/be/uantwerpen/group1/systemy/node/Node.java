@@ -44,7 +44,7 @@ public class Node implements NodeInterface {
 	private static NodeInterface nextNodeInterface = null;
 	private static NodeInterface previousNodeInterface = null;
 	
-	static RMI<NameServerInterface> rmi = null;
+	static RMI<NameServerInterface> rmiNameServerInterface = null;
 
 	/**
 	 * Constructor only for debug purposes
@@ -126,7 +126,7 @@ public class Node implements NodeInterface {
 			}
 		}
 		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
-		Replicator rep = new Replicator(me.getIP(), TCPFILETRANSFERPORT, dnsIP, DNSPORT, rmi);
+		Replicator rep = new Replicator(me.getIP(), TCPFILETRANSFERPORT, dnsIP, DNSPORT, rmiNameServerInterface);
 		rep.run();
 	}
 
@@ -295,8 +295,8 @@ public class Node implements NodeInterface {
 	public void setDNSIP(String IP) {
 		dnsIP = IP;
 		SystemyLogger.log(Level.INFO, logName + "NameServer is on IP: " + dnsIP);
-		rmi = new RMI<NameServerInterface>();
-		nameServerInterface = rmi.getStub(nameServerInterface, REMOTENSNAME, dnsIP, RMIPORT);
+		rmiNameServerInterface = new RMI<NameServerInterface>();
+		nameServerInterface = rmiNameServerInterface.getStub(nameServerInterface, REMOTENSNAME, dnsIP, RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created nameserver stub");
 	}
 
