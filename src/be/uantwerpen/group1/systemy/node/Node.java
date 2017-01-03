@@ -259,11 +259,8 @@ public class Node implements NodeInterface
 					 */
 
 					// update the fileAgent with information from the next node
-					fileAgent.setAgentFinished(false);
-					fileAgent.setCurrentNodeIp(me.getIP());
-					fileAgent.setFileListNode(fileList);
-					fileAgent.setFileToLock(fileToLock);
-					fileAgent.setLocationFiles(locationFiles);
+
+
 				}
 
 			}
@@ -467,4 +464,39 @@ public class Node implements NodeInterface
 
 		}
 	}
+
+	/**
+	 * This method will adjust the value for letting know that the file is successful downloaded
+	 * @param downloadedFile: the name of the file that is successful downloaded
+	 */
+	public void downloadComplete(String downloadedFile)
+	{
+		if (fileList.containsKey(downloadedFile) && fileList.get(downloadedFile).equals("locked"))
+		{
+			fileList.replace(downloadedFile, "locked", "downloadSuccessful");
+
+		}
+	}
+
+	@Override
+	public ArrayList<String> getCurrentNodeOwner() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public HashMap<String, String> getFileListNode() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return fileList;
+	}
+
+	@Override
+	public String getIpCurrentNode() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return me.getIP();
+	}
+
 }

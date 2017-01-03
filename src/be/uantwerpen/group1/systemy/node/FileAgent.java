@@ -5,8 +5,12 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
+import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Hashing;
 
@@ -15,23 +19,25 @@ public class FileAgent implements Runnable, Serializable
 
 	private static final long serialVersionUID = 1L;
 
-	private NameServerInterface nameServerInterface;
+	private NodeInterface nodeInterface;
 
 	private HashMap<String, String> fileListAgent;
 	private boolean agentFinished;
 
-	private HashMap<String, String> fileListNode;
-	private HashMap<String, String> updatedFileListNode;
+	
 
 	private String currentNodeIp;
-	private String locationLocalFiles;
-	private String locationDownloadedFiles;
 
-	public FileAgent(NameServerInterface nameServerInterface)
+	public FileAgent(NodeInterface nodeInterface)
 	{
 		// TODO Auto-generated constructor stub
-		this.nameServerInterface = nameServerInterface;
+		this.nodeInterface = nodeInterface;
 
+	}
+	
+	public void setNodeInterface(NodeInterface nodeInterface)
+	{
+		this.nodeInterface = nodeInterface;
 	}
 
 	public void setFileListNode(HashMap<String, String> fileListNode)
@@ -42,11 +48,6 @@ public class FileAgent implements Runnable, Serializable
 	public void setCurrentNodeIp(String currentNodeIp)
 	{
 		this.currentNodeIp = currentNodeIp;
-	}
-
-	public void setLocationFiles(String locationFiles)
-	{
-		this.locationLocalFiles = locationFiles;
 	}
 
 	public void setAgentFinished(boolean agentFinished)
@@ -75,110 +76,120 @@ public class FileAgent implements Runnable, Serializable
 		agentFinished = true;
 
 	}
-	
-	
-	
-	public HashMap<String, Boolean> lockFile(String fileToLock, HashMap<String, Boolean> fileListNode) {
-		if(fileListNode.containsKey(fileToLock)) {
+
+	public HashMap<String, Boolean> lockFile(String fileToLock, HashMap<String, Boolean> fileListNode)
+	{
+		if (fileListNode.containsKey(fileToLock))
+		{
 			fileListNode.put(fileToLock, true);
 		}
 		return fileListNode;
 	}
-	
-	
 
-	/**
-	 * This method will look at the files of the current node and calculate if the
-	 * current node is the owner of certain files (point 2.b.i). Those files will be added
-	 * to an arrayList
-	 */
-	public static ArrayList<String> calculateOwnership(String currentNodeIp, String locationLocalFiles, String locationDownloadedFiles, NameServerInterface nameServerInterface)
+	// This method should be replaced by a setter. Replicator has a getter with the ownership list of the current Node, then Node can push
+	// it true via a setter on FileAgent
+	public void setCurrentNodeOwner(ArrayList<String> currentNodeOwner)
 	{
-		ArrayList<String> currentNodeOwner = new ArrayList<>();
-		ArrayList<String> localFiles = new ArrayList<>();
-		String tempIP = null;
 
-		File folder = new File(locationLocalFiles);
-		File[] listOfFiles = folder.listFiles();
-		for (int i = 0; i < listOfFiles.length; i++)
-		{
-			localFiles.add(listOfFiles[i].getName());
-		}
-
-		for (int i = 0; i < localFiles.size(); i++)
-		{
-			try
-			{
-				tempIP = nameServerInterface.getIPAddress(Hashing.hash(localFiles.get(i)));
-			} catch (RemoteException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			if (tempIP == currentNodeIp)
-			{
-				currentNodeOwner.add(localFiles.get(i));
-			}
-		}
-		
-		folder = new File(locationDownloadedFiles);
-		for (int i = 0; i < listOfFiles.length; i++)
-		{
-			localFiles.
-		} 
-
-		return currentNodeOwner;
 	}
+	// /**
+	// * This method will look at the files of the current node and calculate if the
+	// * current node is the owner of certain files (point 2.b.i). Those files will be added
+	// * to an arrayList
+	// */
+	// public static ArrayList<String> calculateOwnership(String currentNodeIp, String locationLocalFiles, String locationDownloadedFiles,
+	// NameServerInterface nameServerInterface)
+	// {
+	// ArrayList<String> currentNodeOwner = new ArrayList<>();
+	// ArrayList<String> localFiles = new ArrayList<>();
+	// String tempIP = null;
+	//
+	// File folder = new File(locationLocalFiles);
+	// File[] listOfFiles = folder.listFiles();
+	// for (int i = 0; i < listOfFiles.length; i++)
+	// {
+	// localFiles.add(listOfFiles[i].getName());
+	// }
+	//
+	// for (int i = 0; i < localFiles.size(); i++)
+	// {
+	// try
+	// {
+	// tempIP = nameServerInterface.getIPAddress(Hashing.hash(localFiles.get(i)));
+	// } catch (RemoteException e)
+	// {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// }
+	// if (tempIP == currentNodeIp)
+	// {
+	// currentNodeOwner.add(localFiles.get(i));
+	// }
+	// }
+	//
+	// folder = new File(locationDownloadedFiles);
+	// for (int i = 0; i < listOfFiles.length; i++)
+	// {
+	// localFiles.
+	// }
+	//
+	// return currentNodeOwner;
+	// }
 
 	/**
-	 * This method will update the list from the fileAgent. Files where the current node
-	 * is owner off will be added to the list and also if a node deleted a certain file
-	 * this will also be deleted from the list of the fileAgent.
+	 * 
+	 * @param currentNodeOwner: the list of files where the current node is owner off
+	 * @param fileListNode: the fileList of the node (non updated)
+	 * @param fileListAgent: the fileList of the agent (non updated)
+	 * @return: the updated fileList of the agent
 	 */
-	public static HashMap<String, Boolean> updateListAgent(ArrayList<String> currentNodeOwner, HashMap<String, String> fileListAgent)
+	public static HashMap<String, String> updateListAgent(ArrayList<String> currentNodeOwner, HashMap<String, String> fileListNode,
+			HashMap<String, String> fileListAgent)
 	{
-		for (int i = 0; i < currentNodeOwner.size(); i++)
-		{
-			if (!fileListAgent.containsKey(currentNodeOwner.get(i))) {
-				fileListAgent.put(currentNodeOwner.get(i), "notLocked");
-			}
-			
-		}
-		if (fileListAgent.containsKey(fileToLock))
-		{
-			fileListAgent.replace(fileToLock, true);
-		}
 
+		// update the fileList of the agent based on the ownership of the currentNode
 		for (int i = 0; i < currentNodeOwner.size(); i++)
 		{
 			if (!fileListAgent.containsKey(currentNodeOwner.get(i)))
 			{
-				fileListAgent.put(currentNodeOwner.get(i), false);
+				fileListAgent.put(currentNodeOwner.get(i), "notLocked");
 			}
 
+		}
+
+		// check if there are locks that's needs to be processed or files that needs to be unlocked
+		Iterator<Map.Entry<String, String>> entries = fileListNode.entrySet().iterator();
+		while (entries.hasNext())
+		{
+			Map.Entry<String, String> entry = entries.next();
+
+			if (fileListAgent.containsKey(entry.getKey()) && entry.getValue().equals("lockToProcess"))
+			{
+				fileListAgent.replace(entry.getKey(), "lockToProcess", "locked");
+			} else if (fileListAgent.containsKey(entry.getKey()) && entry.getValue().equals("downloadSuccessful"))
+			{
+				fileListAgent.replace(entry.getKey(), "downloadSuccessful", "notLocked");
+			}
 		}
 
 		return fileListAgent;
 	}
 
 	/**
-	 * This method will update the list on the node as mentioned above
+	 * 
+	 * @param fileListAgent
+	 * @param updatedFileListNode
+	 * @return
 	 */
-	public static ArrayList<String> updateFileListOnNode(ArrayList<String> fileListNode, HashMap<String, Boolean> fileListAgent,
-			ArrayList<String> updatedFileListNode)
+	public static HashMap<String, String> updateFileListOnNode(HashMap<String, String> fileListAgent,
+			HashMap<String, String> updatedFileListNode)
 	{
-		// Transform the keys of the hashmap to an ArrayList
-		Set<String> kSet = fileListAgent.keySet();
-		ArrayList<String> fileListAgentArray = new ArrayList<String>(kSet);
-
-		// If the name of the file is not present in the fileList of the node, then add it
-		for (int i = 0; i < fileListAgentArray.size(); i++)
+		Iterator<Map.Entry<String, String>> entries = fileListAgent.entrySet().iterator();
+		while (entries.hasNext())
 		{
-			if (!fileListNode.contains(fileListAgent.get(i)))
-			{
-				updatedFileListNode.add(fileListAgentArray.get(i));
+			Map.Entry<String, String> entry = entries.next();
+			updatedFileListNode.put(entry.getKey(), entry.getValue());
 
-			}
 		}
 
 		return updatedFileListNode;
@@ -190,7 +201,6 @@ public class FileAgent implements Runnable, Serializable
 	 */
 	public static void downloadFile()
 	{
-		
 		
 
 	}
