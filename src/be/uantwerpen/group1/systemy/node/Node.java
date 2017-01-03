@@ -3,10 +3,9 @@ package be.uantwerpen.group1.systemy.node;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.io.IOException;
 import java.net.InetAddress;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
@@ -23,7 +22,6 @@ public class Node implements NodeInterface {
 	private static NodeInfo me = null;
 	private static NodeInfo nextNode = null;
 	private static NodeInfo previousNode = null;
-	private static FileAgent fileAgent = null;
 	private static NameServerInterface nameServerInterface = null;
 	private static String dnsIP = ParserXML.parseXML("DnsIp");
 	private static String HOSTNAME = ParserXML.parseXML("Hostname");
@@ -37,10 +35,8 @@ public class Node implements NodeInterface {
 	private static final Boolean GUI = Boolean.parseBoolean(ParserXML.parseXML("GUI"));
 	private static final String LOCALFILESLOCATION = ParserXML.parseXML("localFilesLocation");
 	private static final String DOWNLOADEDFILESLOCATION = ParserXML.parseXML("downloadedFilesLocation");
-	
-	private static HashMap<String, String> fileList;
-	private static String fileToDownload = null;
-	private static boolean downloadCompleted = false;
+	private static final int TCPFILETRANSFERPORT = Integer.parseInt(ParserXML.parseXML("TcpFileTranferPort"));
+	private static final int DNSPORT = Integer.parseInt(ParserXML.parseXML("RMIPort"));
 
 	// node RMI interfaces
 	private static RMI<NodeInterface> rmiNodeClient = new RMI<NodeInterface>();
