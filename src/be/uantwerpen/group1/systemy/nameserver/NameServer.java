@@ -2,6 +2,7 @@ package be.uantwerpen.group1.systemy.nameserver;
 
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.rmi.RemoteException;
 
 import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.RMI;
@@ -109,6 +110,13 @@ public class NameServer implements NameServerInterface {
 	@Override
 	public String getNodeIP(int hash) {
 		return nsr.getNodeIPFromHash(hash);
+	}
+
+	@Override
+	public Integer getRegisterSize() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return nsr.getSize();
 	}
 
 }
