@@ -62,11 +62,9 @@ public class Node implements NodeInterface {
 
 	/**
 	 * @param args: first argument is the nodeName (optional)
-	 * @throws RemoteException
-	 * @throws UnknownHostException
-	 * @throws SocketException
+	 * @throws IOException 
 	 */
-	public static void main(String args[]) throws RemoteException, UnknownHostException, SocketException {
+	public static void main(String args[]) throws IOException {
 
 		if (!debugMode) {
 			nodeIp = Interface.getIP();
@@ -115,8 +113,8 @@ public class Node implements NodeInterface {
 		/*
 		 * once the DNS IP address is known, the replicator can start and run autonomously.
 		 */
-		//Replicator rep = new Replicator(me.getIP(), tcpFileTranferPort, dnsIP, dnsPort);
-		//rep.run();
+		Replicator rep = new Replicator(me.getIP(), TCPFILETRANSFERPORT, dnsIP, DNSPORT);
+		rep.run();
 	}
 
 	/**

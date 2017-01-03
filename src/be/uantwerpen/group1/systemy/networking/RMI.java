@@ -99,7 +99,7 @@ public class RMI<T>
 			registry = LocateRegistry.getRegistry(hostName, port);
 		} catch (RemoteException e)
 		{
-			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			SystemyLogger.log(Level.SEVERE, logName + "getRegistry :" +e.getMessage());
 			return null;
 		}
 		return registry;
@@ -125,7 +125,7 @@ public class RMI<T>
 			return true;
 		} catch (RemoteException e)
 		{
-			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			SystemyLogger.log(Level.SEVERE, logName + "bindObject : " +e.getMessage());
 			return false;
 		}
 	}
