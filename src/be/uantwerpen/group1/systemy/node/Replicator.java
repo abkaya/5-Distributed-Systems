@@ -36,6 +36,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	String remoteNSName = "NameServerInterface";
 	NameServerInterface nsi = null;
 	List<FileRecord> fileRecords = null;
+	RMI<NameServerInterface> rmi = null;
 
 	/**
 	 * Get ownedFiles
@@ -403,12 +404,13 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	 * @param dnsIP
 	 * @param dnsPort
 	 */
-	public Replicator(String nodeIP, int tcpFileTranferPort, String dnsIP, int dnsPort) throws IOException
+	public Replicator(String nodeIP, int tcpFileTranferPort, String dnsIP, int dnsPort, RMI<NameServerInterface> rmi) throws IOException
 	{
 		this.tcpFileTranferPort = tcpFileTranferPort;
 		this.nodeIP = nodeIP;
 		this.dnsIP = dnsIP;
 		this.dnsPort = dnsPort;
+		this.rmi = rmi;
 	}
 
 	@Override
@@ -430,7 +432,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		 * This block creates the name server stub to use the NS its remote methods
 		 */
 		SystemyLogger.log(Level.INFO, logName + "Trying to set up the nameserver stub for the first time in the replicator.");
-		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
+		//RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
 		SystemyLogger.log(Level.INFO, logName + "dnsip : " + dnsIP + ", port : " + dnsPort + "remotename : " + remoteNSName);
 
