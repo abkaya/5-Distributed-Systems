@@ -36,7 +36,6 @@ public class Node implements NodeInterface {
 	private static final String LOCALFILESLOCATION = ParserXML.parseXML("localFilesLocation");
 	private static final String DOWNLOADEDFILESLOCATION = ParserXML.parseXML("downloadedFilesLocation");
 	private static final int TCPFILETRANSFERPORT = Integer.parseInt(ParserXML.parseXML("TcpFileTranferPort"));
-	private static final int DNSPORT = Integer.parseInt(ParserXML.parseXML("RMIPort"));
 
 	// node RMI interfaces
 	private static RMI<NodeInterface> rmiNodeClient = new RMI<NodeInterface>();
@@ -77,8 +76,8 @@ public class Node implements NodeInterface {
 		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
 
 		// init skeleton
-		//NodeInterface ni = new Node();
-		//RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), "node", ni);
+		NodeInterface ni = new Node();
+		RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), "node", ni);
 
 		// init loopback interface
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "NodeInterface", me.getIP(), RMIPORT);
@@ -126,7 +125,7 @@ public class Node implements NodeInterface {
 			}
 		}
 		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
-		Replicator rep = new Replicator(me.getIP(), TCPFILETRANSFERPORT, dnsIP, DNSPORT, rmiNameServerInterface);
+		Replicator rep = new Replicator(me.getIP(), TCPFILETRANSFERPORT, dnsIP, RMIPORT, rmiNameServerInterface);
 		rep.run();
 	}
 
