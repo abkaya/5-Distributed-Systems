@@ -13,17 +13,14 @@ import java.util.HashMap;
 public interface NodeInterface extends Remote
 {
 	ArrayList<String> getCurrentNodeOwner() throws RemoteException;
-
 	HashMap<String, String> getFileListNode() throws RemoteException;
-
 	String getIpCurrentNode() throws RemoteException;
+	String getFileToLock() throws RemoteException;
+	
 
 	void setDNSIP(String IP) throws RemoteException;
-
 	void updateNextNode(NodeInfo newNode) throws RemoteException;
-
 	void updatePreviousNode(NodeInfo newNode) throws RemoteException;
-
 	void passFileAgent(FileAgent fileAgent) throws RemoteException;
-
+	void setFileListNode(ArrayList<String> fileList) throws RemoteException;
 }

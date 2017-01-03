@@ -22,32 +22,25 @@ public class FileAgent implements Runnable, Serializable
 	private NodeInterface nodeInterface;
 
 	private HashMap<String, String> fileListAgent;
-	private boolean agentFinished;
+	private boolean agentFinished = false;
 
-	
-
-	private String currentNodeIp;
-
+	/**
+	 * Constructor of the FileAgent
+	 * @param nodeInterface
+	 */
 	public FileAgent(NodeInterface nodeInterface)
 	{
 		// TODO Auto-generated constructor stub
 		this.nodeInterface = nodeInterface;
 
 	}
-	
+
+	/**
+	 * Getters and setters
+	 */
 	public void setNodeInterface(NodeInterface nodeInterface)
 	{
 		this.nodeInterface = nodeInterface;
-	}
-
-	public void setFileListNode(HashMap<String, String> fileListNode)
-	{
-		this.fileListNode = fileListNode;
-	}
-
-	public void setCurrentNodeIp(String currentNodeIp)
-	{
-		this.currentNodeIp = currentNodeIp;
 	}
 
 	public void setAgentFinished(boolean agentFinished)
@@ -57,7 +50,7 @@ public class FileAgent implements Runnable, Serializable
 
 	public HashMap<String, String> getUpdatedFileListNode()
 	{
-		return updatedFileListNode;
+		return fileListAgent;
 	}
 
 	public boolean isAgentFinished()
@@ -65,33 +58,21 @@ public class FileAgent implements Runnable, Serializable
 		return agentFinished;
 	}
 
+	/**
+	 * 
+	 */
 	@Override
 	public void run()
 	{
 		// TODO Auto-generated method stub
-
-		ArrayList<String> currentNodeOwner = calculateOwnership(currentNodeIp, locationLocalFiles, nameServerInterface);
-		fileListAgent = updateListAgent(currentNodeOwner, fileToLock, fileListAgent);
-		updatedFileListNode = updateFileListOnNode(fileListNode, fileListAgent, updatedFileListNode);
+		this.fileListAgent = updateListAgent(nodeInterface, fileListAgent);
+		
 		agentFinished = true;
 
 	}
 
-	public HashMap<String, Boolean> lockFile(String fileToLock, HashMap<String, Boolean> fileListNode)
-	{
-		if (fileListNode.containsKey(fileToLock))
-		{
-			fileListNode.put(fileToLock, true);
-		}
-		return fileListNode;
-	}
+	// This method will be replaced via an method in the interface of the node to get the list via RMI
 
-	// This method should be replaced by a setter. Replicator has a getter with the ownership list of the current Node, then Node can push
-	// it true via a setter on FileAgent
-	public void setCurrentNodeOwner(ArrayList<String> currentNodeOwner)
-	{
-
-	}
 	// /**
 	// * This method will look at the files of the current node and calculate if the
 	// * current node is the owner of certain files (point 2.b.i). Those files will be added
@@ -137,15 +118,25 @@ public class FileAgent implements Runnable, Serializable
 	// }
 
 	/**
-	 * 
+	 * This will update the list of the fileAgent based on the ownership (point 2.b.i)
 	 * @param currentNodeOwner: the list of files where the current node is owner off
 	 * @param fileListNode: the fileList of the node (non updated)
 	 * @param fileListAgent: the fileList of the agent (non updated)
 	 * @return: the updated fileList of the agent
 	 */
-	public static HashMap<String, String> updateListAgent(ArrayList<String> currentNodeOwner, HashMap<String, String> fileListNode,
-			HashMap<String, String> fileListAgent)
+	public static HashMap<String, String> updateListAgent(NodeInterface nodeInterface, HashMap<String, String> fileListAgent)
 	{
+		ArrayList<String> currentNodeOwner = null;
+
+		try
+		{
+			currentNodeOwner = nodeInterface.getCurrentNodeOwner();
+
+		} catch (RemoteException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		// update the fileList of the agent based on the ownership of the currentNode
 		for (int i = 0; i < currentNodeOwner.size(); i++)
@@ -157,23 +148,10 @@ public class FileAgent implements Runnable, Serializable
 
 		}
 
-		// check if there are locks that's needs to be processed or files that needs to be unlocked
-		Iterator<Map.Entry<String, String>> entries = fileListNode.entrySet().iterator();
-		while (entries.hasNext())
-		{
-			Map.Entry<String, String> entry = entries.next();
-
-			if (fileListAgent.containsKey(entry.getKey()) && entry.getValue().equals("lockToProcess"))
-			{
-				fileListAgent.replace(entry.getKey(), "lockToProcess", "locked");
-			} else if (fileListAgent.containsKey(entry.getKey()) && entry.getValue().equals("downloadSuccessful"))
-			{
-				fileListAgent.replace(entry.getKey(), "downloadSuccessful", "notLocked");
-			}
-		}
-
 		return fileListAgent;
 	}
+	
+	public 
 
 	/**
 	 * 
@@ -201,7 +179,6 @@ public class FileAgent implements Runnable, Serializable
 	 */
 	public static void downloadFile()
 	{
-		
 
 	}
 
