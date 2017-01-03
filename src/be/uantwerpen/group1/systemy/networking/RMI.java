@@ -149,7 +149,7 @@ public class RMI<T>
 			obj = (T) registry.lookup(name);
 		} catch (RemoteException | NotBoundException e)
 		{
-			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			SystemyLogger.log(Level.SEVERE, logName + "getStub : " + e.getMessage());
 			return null;
 		}
 		return obj;
@@ -193,7 +193,7 @@ public class RMI<T>
 			}
 		} catch (FileNotFoundException e)
 		{
-			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			SystemyLogger.log(Level.SEVERE, logName + "setPermissions" + e.getMessage());
 		}
 
 		if (System.getSecurityManager() == null)

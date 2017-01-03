@@ -23,7 +23,7 @@ public class Node implements NodeInterface {
 	private static NodeInfo nextNode = null;
 	private static NodeInfo previousNode = null;
 	private static NameServerInterface nameServerInterface = null;
-	private static String dnsIP = ParserXML.parseXML("DnsIp");
+	private static String dnsIP = null;
 	private static String HOSTNAME = ParserXML.parseXML("Hostname");
 
 	private static String nodeIp;
@@ -75,11 +75,11 @@ public class Node implements NodeInterface {
 		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
 
 		// init skeleton
-		NodeInterface ni = new Node();
-		RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), "node", ni);
+		//NodeInterface ni = new Node();
+		//RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), "node", ni);
 
 		// init loopback interface
-		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
+		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "NodeInterface", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
 		listenToNewNodes();
@@ -113,6 +113,17 @@ public class Node implements NodeInterface {
 		/*
 		 * once the DNS IP address is known, the replicator can start and run autonomously.
 		 */
+		while(dnsIP == null){
+			 try
+			{
+				Thread.sleep(1000);
+			} catch (InterruptedException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
 		Replicator rep = new Replicator(me.getIP(), TCPFILETRANSFERPORT, dnsIP, DNSPORT);
 		rep.run();
 	}
@@ -295,7 +306,7 @@ public class Node implements NodeInterface {
 	@Override
 	public void updateNextNode(NodeInfo newNode) {
 		nextNode = newNode;
-		nextNodeInterface = rmiNodeClient.getStub(nextNodeInterface, "node", nextNode.getIP(), RMIPORT);
+		nextNodeInterface = rmiNodeClient.getStub(nextNodeInterface, "NodeInterface", nextNode.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "New next node " + nextNode.toString());
 		SystemyLogger.log(Level.INFO, logName + networkStatus());
 	}
@@ -308,7 +319,7 @@ public class Node implements NodeInterface {
 	@Override
 	public void updatePreviousNode(NodeInfo newNode) {
 		previousNode = newNode;
-		previousNodeInterface = rmiNodeClient.getStub(previousNodeInterface, "node", previousNode.getIP(), RMIPORT);
+		previousNodeInterface = rmiNodeClient.getStub(previousNodeInterface, "NodeInterface", previousNode.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "New previous node " + previousNode.toString());
 		SystemyLogger.log(Level.INFO, logName + networkStatus());
 	}

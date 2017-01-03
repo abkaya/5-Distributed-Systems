@@ -33,8 +33,8 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	String dnsIP = null;
 	int dnsPort = 0;
 	int tcpFileTranferPort = 0;
-	static String remoteNSName = "NameServerInterface";
-	static NameServerInterface nsi = null;
+	String remoteNSName = "NameServerInterface";
+	NameServerInterface nsi = null;
 	List<FileRecord> fileRecords = null;
 
 	/**
@@ -409,14 +409,12 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		this.nodeIP = nodeIP;
 		this.dnsIP = dnsIP;
 		this.dnsPort = dnsPort;
-
 	}
 
 	@Override
 	public void run()
 	{
 		localFiles = findLocalFiles();
-		TCP fileClient = null;
 
 		/*
 		 * This block listens in another thread for incoming requests by other nodes who wish to receive files That's all there is to it for
@@ -431,8 +429,10 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		/*
 		 * This block creates the name server stub to use the NS its remote methods
 		 */
+		SystemyLogger.log(Level.INFO, logName + "Trying to set up the nameserver stub for the first time in the replicator.");
 		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
 		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
+		SystemyLogger.log(Level.INFO, logName + "dnsip : " + dnsIP + ", port : " + dnsPort + "remotename : " + remoteNSName);
 
 		// This line is where startup ends! From here on out, everything update related is handled.
 
@@ -456,6 +456,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			e1.printStackTrace();
 		}
 
+		SystemyLogger.log(Level.INFO, logName + "Attempt to start the observable");
 		observable.addObserver(this);
 		observable.processEvents();
 
