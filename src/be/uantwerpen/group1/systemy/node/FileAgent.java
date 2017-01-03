@@ -1,18 +1,15 @@
 package be.uantwerpen.group1.systemy.node;
 
-import java.io.File;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
-import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
-import be.uantwerpen.group1.systemy.networking.Hashing;
 
 public class FileAgent implements Runnable, Serializable
 {
@@ -23,6 +20,7 @@ public class FileAgent implements Runnable, Serializable
 
 	private HashMap<String, String> fileListAgent;
 	private boolean agentFinished = false;
+	private boolean permissionToDownload = false;
 
 	/**
 	 * Constructor of the FileAgent
@@ -58,15 +56,56 @@ public class FileAgent implements Runnable, Serializable
 		return agentFinished;
 	}
 
+	public boolean isPermissionToDownload()
+	{
+		return permissionToDownload;
+	}
+
+	public void setPermissionToDownload(boolean permissionToDownload)
+	{
+		this.permissionToDownload = permissionToDownload;
+	}
+
 	/**
 	 * 
 	 */
 	@Override
 	public void run()
 	{
+
+		HashMap<String, String> fileListNode = null;
+		ArrayList<String> currentNodeOwner = null;
+		String hostName = null;
+		String fileToLock = null;
+
+		try
+		{
+			fileListNode = nodeInterface.getFileListNode();
+			currentNodeOwner = nodeInterface.getCurrentNodeOwner();
+			hostName = nodeInterface.getHostname();
+
+		} catch (RemoteException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		// TODO Auto-generated method stub
-		this.fileListAgent = updateListAgent(nodeInterface, fileListAgent);
-		
+		this.fileListAgent = updateListAgent(fileListAgent, currentNodeOwner);
+		this.fileListAgent = processLock(fileListAgent, fileListNode, hostName);
+		updateFileListNode(nodeInterface, fileListAgent);
+
+		Iterator<Map.Entry<String, String>> entries = fileListAgent.entrySet().iterator();
+		while (entries.hasNext())
+		{
+			Map.Entry<String, String> entry = entries.next();
+			if (entry.getValue().equals(hostName))
+			{
+				this.fileListAgent = downloadFile(entry.getKey(), fileListAgent);
+			}
+
+		}
+
 		agentFinished = true;
 
 	}
@@ -124,19 +163,8 @@ public class FileAgent implements Runnable, Serializable
 	 * @param fileListAgent: the fileList of the agent (non updated)
 	 * @return: the updated fileList of the agent
 	 */
-	public static HashMap<String, String> updateListAgent(NodeInterface nodeInterface, HashMap<String, String> fileListAgent)
+	public static HashMap<String, String> updateListAgent(HashMap<String, String> fileListAgent, ArrayList<String> currentNodeOwner)
 	{
-		ArrayList<String> currentNodeOwner = null;
-
-		try
-		{
-			currentNodeOwner = nodeInterface.getCurrentNodeOwner();
-
-		} catch (RemoteException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
 		// update the fileList of the agent based on the ownership of the currentNode
 		for (int i = 0; i < currentNodeOwner.size(); i++)
@@ -150,35 +178,62 @@ public class FileAgent implements Runnable, Serializable
 
 		return fileListAgent;
 	}
-	
-	public 
 
 	/**
-	 * 
+	 * This method will process locks for files of the currentNode
+	 * @param nodeInterface
 	 * @param fileListAgent
-	 * @param updatedFileListNode
+	 * @param fileListNode
+	 * @param hostname
 	 * @return
 	 */
-	public static HashMap<String, String> updateFileListOnNode(HashMap<String, String> fileListAgent,
-			HashMap<String, String> updatedFileListNode)
+	public static HashMap<String, String> processLock(HashMap<String, String> fileListAgent, HashMap<String, String> fileListNode,
+			String hostname)
 	{
-		Iterator<Map.Entry<String, String>> entries = fileListAgent.entrySet().iterator();
+		Iterator<Map.Entry<String, String>> entries = fileListNode.entrySet().iterator();
 		while (entries.hasNext())
 		{
 			Map.Entry<String, String> entry = entries.next();
-			updatedFileListNode.put(entry.getKey(), entry.getValue());
+			if (entry.getValue().equals("lockRequest"))
+			{
+				if (fileListAgent.get(entry.getKey()).equals("notLocked"))
+				{
+					fileListAgent.replace(entry.getKey(), "notLocked", hostname);
+				}
+			}
 
 		}
 
-		return updatedFileListNode;
+		return fileListAgent;
+	}
 
+	public static void updateFileListNode(NodeInterface nodeInterface, HashMap<String, String> fileListAgent)
+	{
+		try
+		{
+			nodeInterface.updateFileListNode(fileListAgent);
+		} catch (RemoteException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
-	 * A node can only download a file when the fileAgent is active on the node itself
+	 * This method will wait till the download is successful and then put the value back to notLocked
+	 * @param fileName: the name of the file for downloading
+	 * @param fileListAgent: the fileList of the fileAgent
+	 * @return: the updated fileList of the fileAgent
 	 */
-	public static void downloadFile()
+	public static HashMap<String, String> downloadFile(String fileName, HashMap<String, String> fileListAgent)
 	{
+
+		// Some logic for waiting till download is successful
+		// (if download == successful)
+
+		fileListAgent.replace(fileName, "notLocked");
+
+		return fileListAgent;
 
 	}
 

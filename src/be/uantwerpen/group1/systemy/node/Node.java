@@ -3,6 +3,8 @@ package be.uantwerpen.group1.systemy.node;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.net.InetAddress;
@@ -21,6 +23,7 @@ public class Node implements NodeInterface {
 	private static NodeInfo me = null;
 	private static NodeInfo nextNode = null;
 	private static NodeInfo previousNode = null;
+	private static FileAgent fileAgent = null;
 	private static NameServerInterface nameServerInterface = null;
 	private static String dnsIP = ParserXML.parseXML("DnsIp");
 	private static String HOSTNAME = ParserXML.parseXML("Hostname");
@@ -34,6 +37,10 @@ public class Node implements NodeInterface {
 	private static final Boolean GUI = Boolean.parseBoolean(ParserXML.parseXML("GUI"));
 	private static final String LOCALFILESLOCATION = ParserXML.parseXML("localFilesLocation");
 	private static final String DOWNLOADEDFILESLOCATION = ParserXML.parseXML("downloadedFilesLocation");
+	
+	private static HashMap<String, String> fileList;
+	private static String fileToDownload = null;
+	private static boolean downloadCompleted = false;
 
 	// node RMI interfaces
 	private static RMI<NodeInterface> rmiNodeClient = new RMI<NodeInterface>();
@@ -229,6 +236,38 @@ public class Node implements NodeInterface {
 			}
 		}).start();
 	}
+	
+	/**
+	 * This method will start a thread for passing the fileAgent to the other nodes. 
+	 * When the fileAgent is finished with his job on the currentNode a boolean will be high and
+	 * fileList on the node can be updated and the 
+	 */
+	private static void passFileAgentInNetwork()
+	{
+		new Thread(() ->
+		{
+			while (true)
+			{
+				// if fileAgent is finished
+				if (fileAgent.isAgentFinished())
+				{
+					// update the filelist of the node when the fileAgent finished
+					fileList = fileAgent.getUpdatedFileListNode();
+
+					// pass the FileAgent to the nextNode && uodate the interface 
+					/**
+					 * ROBIN, ABDIL?
+					 */
+
+					// update the fileAgent with information from the next node
+
+
+				}
+
+			}
+
+		}).start();
+	}
 
 
 	/**
@@ -334,5 +373,81 @@ public class Node implements NodeInterface {
 		else
 			status += "none";
 		return status;
+	}
+	
+	/**
+	 * This method will lock the requested file
+	 * @param fileToLock: the name of the file for locking
+	 */
+	public static void fileToLock(String fileToLock)
+	{
+		
+		if (fileList.containsKey(fileToLock) && fileList.get(fileToLock).equals("notLocked")) {
+			fileList.replace(fileToLock, "notLocked", "lockRequest");
+		} else {
+			SystemyLogger.log(Level.INFO, "file doesn't exist in list or there is already a lock by the current Node");
+		}
+		
+	}
+	
+	/**
+	 * This method will download the file and 
+	 */
+	public static void downloadFile()
+	{
+		
+		
+		
+	}
+
+	@Override
+	public ArrayList<String> getCurrentNodeOwner() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public HashMap<String, String> getFileListNode() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public String getFileToDownload() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void passFileAgent(FileAgent fileAgent) throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void updateFileListNode(HashMap<String, String> fileList) throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public String getHostname() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return me.getName();
+	}
+
+	@Override
+	public boolean downloadCompleted() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return downloadCompleted;
 	}
 }
