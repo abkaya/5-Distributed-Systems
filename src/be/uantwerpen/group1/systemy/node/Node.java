@@ -15,6 +15,7 @@ import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
 import be.uantwerpen.group1.systemy.networking.RMI;
+import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
@@ -53,6 +54,10 @@ public class Node implements NodeInterface
 	private static NodeInterface nextNodeInterface = null;
 	private static NodeInterface previousNodeInterface = null;
 
+	// TCP
+	private static TCP tcpServer = null;
+	private static TCP tcpClient = null;
+
 	/**
 	 * Constructor only for debug purposes
 	 * @param ipAddress_debug: if where in debug mode, the ipaddress is the ipaddress for the nameserver, otherwise it's zero
@@ -84,6 +89,8 @@ public class Node implements NodeInterface
 		}
 
 		me = new NodeInfo(HOSTNAME, nodeIp);
+		tcpServer = new TCP(me.getName(), TCPFILETRANSFERPORT);
+		tcpClient = new TCP(TCPFILETRANSFERPORT, me.getName());
 
 		SystemyLogger.log(Level.INFO, logName + "node '" + me.toString() + "' is on " + me.getIP());
 
@@ -100,6 +107,7 @@ public class Node implements NodeInterface
 		discover();
 		initShutdownHook();
 		startHeartbeat();
+		tcpServerSocket();
 		startFileAgent();
 
 		/*
@@ -287,7 +295,7 @@ public class Node implements NodeInterface
 				fileList.add(file.getName());
 			}
 		}
-		
+
 		SystemyLogger.log(Level.INFO, "Local files are loaded into the fileList");
 
 	}
@@ -322,24 +330,72 @@ public class Node implements NodeInterface
 		{
 			while (true)
 			{
-				// if fileAgent is finished with updating, the downloading can start
-				if (fileAgent.IsAgentFinishedWithUpdate())
+				fileAgent.run();
+				
+				do
 				{
-					// wait for boolean for permission to download becoming high
+					try
+					{
+						TimeUnit.MILLISECONDS.sleep(1);
+					} catch (InterruptedException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 
-					// download file
-					
-					// download complete, set boolean high
+				} while (!fileAgent.IsAgentFinishedWithUpdate());
 
-					// wait till Agent is completely finished
-
-					// pass agent and update NodeInterface with nextNodeInterface
-
+				// if fileAgent is finished with updating, the downloading can start
+				try
+				{
+					TimeUnit.MILLISECONDS.sleep(1);
+				} catch (InterruptedException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
+
+				if (fileToLock != null)
+				{
+					downloadFile();
+					finishedDownload = true;
+				}
+
+				do
+				{
+					try
+					{
+						TimeUnit.MILLISECONDS.sleep(1);
+					} catch (InterruptedException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} while (!fileAgent.isAgentFinished());
+
+				finishedDownload = false;
+
+				// update the nodeInterface of the fileAgent
+				fileAgent.setNodeInterface(nextNodeInterface);
+
+				// pass fileAgent to the nextNode
+				
 
 			}
 
 		}).start();
+	}
+
+	// Thread for a TCP client socket
+	public static void tcpServerSocket()
+
+	{
+		new Thread(() ->
+		{
+			tcpServer.listenToSendFile();
+
+		}).start();
+
 	}
 
 	/**
@@ -471,7 +527,7 @@ public class Node implements NodeInterface
 	 */
 	public static void downloadFile()
 	{
-
+		tcpClient.receiveFile(fileToLock);
 	}
 
 	@Override

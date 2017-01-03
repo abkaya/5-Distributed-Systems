@@ -53,7 +53,7 @@ public class FileAgent implements Runnable, Serializable
 		return permissionToDownload;
 	}
 
-	public Boolean getAgentFinished()
+	public Boolean isAgentFinished()
 	{
 		return agentFinished;
 	}
@@ -119,7 +119,7 @@ public class FileAgent implements Runnable, Serializable
 			{
 				do
 				{
-					TimeUnit.MILLISECONDS.sleep(500);
+					TimeUnit.MILLISECONDS.sleep(100);
 				} while (!nodeInterface.getFinishedDownload());
 			} catch (RemoteException e)
 			{
@@ -130,13 +130,13 @@ public class FileAgent implements Runnable, Serializable
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+
+			// after download complete, release the lock
+			this.fileListAgent.replace(fileToLock, hostName, "notLocked");
 		}
 
-		// after download complete, release the lock
-		this.fileListAgent.replace(fileToLock, hostName, "notLocked");
-
 		setAgentFinished(true);
-		
+
 		SystemyLogger.log(Level.INFO, "Agent finished on node " + hostName);
 	}
 
@@ -165,11 +165,9 @@ public class FileAgent implements Runnable, Serializable
 
 	/**
 	 * This method will process locks for files of the currentNode
-	 * @param nodeInterface
-	 * @param fileListAgent
-	 * @param fileListNode
-	 * @param hostname
-	 * @return
+	 * @param fileListAgent: the list of the FileAgent
+	 * @param hostname: the hostname of the currentNode
+	 * @return: the updated fileList of the agent
 	 */
 	public static HashMap<String, String> processLock(HashMap<String, String> fileListAgent, String fileToLock, String hostname)
 	{
