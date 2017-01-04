@@ -291,6 +291,7 @@ public class TCP
 	 */
 	private void sendFile(Socket clientSocket)
 	{
+		int count=0;
 		File fileToSend = null;
 		fileToSend = receiveFileName(clientSocket, fileToSend);
 		if (fileToSend != null && sendFileSize(clientSocket, fileToSend))
@@ -298,14 +299,24 @@ public class TCP
 			try
 			{
 
-				byte[] mybytearray = new byte[(int) fileToSend.length()];
+				byte[] buffer = new byte[8192]; //new byte[(int) fileToSend.length()];
 				FileInputStream fis = new FileInputStream(fileToSend);
 				BufferedInputStream bis = new BufferedInputStream(fis);
-				bis.read(mybytearray, 0, mybytearray.length);
+				
+				//bis.read(buffer, 0, buffer.length);
 				OutputStream os = clientSocket.getOutputStream();
-				SystemyLogger.log(Level.INFO, logName + "- Sending : " + fileToSend + "(" + mybytearray.length + " bytes)");
+				
+				SystemyLogger.log(Level.INFO, logName + "- Sending : " + fileToSend + "(" + fileToSend.length() + " bytes)");
 				// System.out.println("- Sending : " + fileToSend + "(" + mybytearray.length + " bytes)");
-				os.write(mybytearray, 0, mybytearray.length);
+				//os.write(buffer, 0, buffer.length);
+				
+				//
+				while ((count = bis.read(buffer)) > 0)
+				{
+				  os.write(buffer, 0, count);
+				}
+				//
+								
 				os.flush();
 				os.close();
 				bis.close();
