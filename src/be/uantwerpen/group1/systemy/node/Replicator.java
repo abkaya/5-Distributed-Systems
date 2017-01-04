@@ -9,6 +9,8 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
 
+import javax.sound.sampled.Port;
+
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Hashing;
@@ -26,16 +28,22 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 {
 	private static String logName = Node.class.getName() + " >> ";
 
-	List<String> ownedFiles;
-	List<String> localFiles;
-	List<String> downloadedFiles;
+	List<String> ownedFiles = new ArrayList<String>();
+	List<String> localFiles = new ArrayList<String>();
+	List<String> downloadedFiles = new ArrayList<String>();
 	String nodeIP = null;
 	String dnsIP = null;
+	String hostName = null;
 	int dnsPort = 0;
 	int tcpFileTranferPort = 0;
-	static String remoteNSName = "NameServerInterface";
-	static NameServerInterface nsi = null;
-	List<FileRecord> fileRecords = null;
+	String remoteNSName = "NameServerInterface";
+	NameServerInterface nsi = null;
+	List<FileRecord> fileRecords =  new ArrayList<FileRecord>();
+	RMI<NameServerInterface> nameServerRMI = null;
+	// init skeleton
+	ReplicatorInterface ri = null;
+	// RMI object does not require the constructor with hostname and whatnot. The registry is already running.
+	RMI<ReplicatorInterface> replicatorRMI = new RMI<ReplicatorInterface>();
 
 	/**
 	 * Get ownedFiles
@@ -147,13 +155,17 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 				String tempOwnerIP = getOwnerLocation(observedFile);
 
 				// IF the owner of this new file is the local node :
-				if (tempOwnerIP == nodeIP)
+				if (tempOwnerIP.equalsIgnoreCase(nodeIP))
 				{
-					localOwnerReplicationProcess(observedFile, tempOwnerIP);
+					SystemyLogger.log(Level.INFO, logName + observedFile + " is owned by this node, (" + tempOwnerIP + "==" + nodeIP
+							+ "). Replicating to the previous node if it exists.");
+					localOwnerReplicationProcess(observedFile, getPreviousNode(nodeIP));
 				}
 				// ELSE if the owner of this file is a remote node :
-				else if (tempOwnerIP != nodeIP)
+				else if (!tempOwnerIP.equalsIgnoreCase(nodeIP) && tempOwnerIP != null)
 				{
+					SystemyLogger.log(Level.INFO, logName + observedFile + " is owned by another node, (" + tempOwnerIP + "!=" + nodeIP
+							+ "). Replicating to the owner node.");
 					remoteOwnerReplicationProcess(observedFile, tempOwnerIP);
 				}
 			}
@@ -174,22 +186,23 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	 */
 	private void localOwnerReplicationProcess(String fileName, String remoteNodeIP)
 	{
-		sendFile(fileName, getPreviousNode(nodeIP));
+		if (!nodeIP.equalsIgnoreCase(remoteNodeIP))
+			sendFile(fileName, getPreviousNode(nodeIP));
 		fileRecords.add(new FileRecord(fileName, remoteNodeIP, nodeIP));
 		this.localFiles.add(fileName);
 		this.ownedFiles.add(fileName);
-		
-		ReplicatorInterface ri = null;
-		RMI<ReplicatorInterface> rmi = new RMI<ReplicatorInterface>();
-		ri = rmi.getStub(ri, "ReplicatorInterface", remoteNodeIP, 1099);
+
+		ReplicatorInterface tempRi = null;
+		tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", remoteNodeIP, 1099);
 
 		try
 		{
-			ri.addDownloadedFile(fileName);
+			tempRi.addDownloadedFile(fileName);
 		} catch (RemoteException e)
 		{
 			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute addDownloadedFile method.");
 		}
+		SystemyLogger.log(Level.INFO, logName + "Added file name and record to the appropriate lists, both locally and remotely.");
 	}
 
 	/**
@@ -205,25 +218,61 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	 */
 	private void remoteOwnerReplicationProcess(String fileName, String remoteNodeIP)
 	{
-		sendFile(fileName, getOwnerLocation(fileName));
-		
+		sendFile(fileName, remoteNodeIP);
+		SystemyLogger.log(Level.INFO, logName + "Owner of "+fileName+" is "+remoteNodeIP);
 		this.localFiles.add(fileName);
-		
-		ReplicatorInterface ri = null;
-		RMI<ReplicatorInterface> rmi = new RMI<ReplicatorInterface>();
-		ri = rmi.getStub(ri, "ReplicatorInterface", remoteNodeIP, 1099);
+
+		ReplicatorInterface tempRi = null;
+		tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", remoteNodeIP, 1099);
 
 		try
 		{
 			ri.addDownloadedFile(fileName);
 			ri.addOwnedFile(fileName);
-			ri.addFileRecord(new FileRecord(fileName, getOwnerLocation(fileName), nodeIP));
+			ri.addFileRecord(new FileRecord(fileName, remoteNodeIP, nodeIP));
 		} catch (RemoteException e)
 		{
 			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute the remote owner replication process methods.");
 		}
+		SystemyLogger.log(Level.INFO, logName + "Added file name and record to the appropriate lists, both locally and remotely.");
 	}
-	
+
+	/**
+	 * SendFile method. Used to send files, using the the remote node's receiveFile RMI method, which uses the already
+	 * existing TCP API to request a file receive.
+	 */
+	private void sendFile(String fileName, String targetNodeIP)
+	{
+		ReplicatorInterface tempRi = null;
+		tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", targetNodeIP, 1099);
+
+		try
+		{
+			tempRi.receiveFile(fileName, nodeIP);
+		} catch (RemoteException e)
+		{
+			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute receiveFile method.");
+		}
+	}
+
+	/**
+	 * A method used when a certain node replicator needs to request a file. The method is strictly called remotely,
+	 * and becomes solely a tool for the node replicator which is trying to send a file.
+	 * So in essence,the sendFile method is used locally by a replicator, which makes a remote call to the 
+	 * remote replicator, telling it to make the TCP file request from the calling node.
+	 * 
+	 * @param String : fileName
+	 * @param String : fileServerNodeIP : the IP address of the node to request a file from. So the remote node calling this method remotely, will
+	 * always provide its own nodeIP, as seen in the private sendFile method.
+	 */
+	@Override
+	public void receiveFile(String fileName, String fileServerNodeIP) throws RemoteException
+	{
+		TCP fileClient = null;
+		fileClient = new TCP(tcpFileTranferPort, fileServerNodeIP);
+		fileClient.receiveFile(fileName);
+	}
+
 	/**
 	 * Method to add a fileRecord to the fileRecords list. Used by a remote node once the owner is known to be a remote node.
 	 */
@@ -232,12 +281,10 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	{
 		this.fileRecords.add(fileRecord);
 	}
-	
 
 	/**
 	 * Request the file's owner IP address from the nameserver, using RMI
 	 */
-	@Override
 	public String getOwnerLocation(String fileName)
 	{
 		try
@@ -253,12 +300,15 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	/**
 	 * Get the previous node of a given node, using the nameserver's remote method
 	 */
-	@Override
 	public String getPreviousNode(String nodeIP)
 	{
 		try
 		{
-			return nsi.getNodeIP(nsi.getPreviousNode(hash(nodeIP)));
+			String prevNode = nsi.getNodeIP(nsi.getPreviousNode(hash(hostName)));
+			if (!prevNode.isEmpty())
+				return prevNode;
+			else
+				return nodeIP;
 		} catch (RemoteException e)
 		{
 			SystemyLogger.log(Level.WARNING, logName + "Owner of file: " + observedFile + ". could not be found!");
@@ -311,7 +361,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	{
 		ownedFiles.add(fileName);
 	}
-	
+
 	/**
 	 * Method to add a filename to the downloadedFiles list. This is done remotely by another node.
 	 */
@@ -360,63 +410,36 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	}
 
 	/**
-	 * SendFile method. Used to send files, using the the remote node's receiveFile RMI method, which uses the already
-	 * existing TCP API to request a file receive.
-	 */
-	private void sendFile(String fileName, String targetNodeIP)
-	{
-		ReplicatorInterface ri = null;
-		RMI<ReplicatorInterface> rmi = new RMI<ReplicatorInterface>();
-		ri = rmi.getStub(ri, "ReplicatorInterface", targetNodeIP, 1099);
-
-		try
-		{
-			ri.receiveFile(fileName, nodeIP);
-		} catch (RemoteException e)
-		{
-			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute receiveFile method.");
-		}
-	}
-
-	/**
-	 * A method used when a certain node replicator needs to request a file. The method is strictly called remotely,
-	 * and becomes solely a tool for the node replicator which is trying to send a file.
-	 * So in essence,the sendFile method is used locally by a replicator, which makes a remote call to the 
-	 * remote replicator, telling it to make the TCP file request from the calling node.
-	 * 
-	 * @param String : fileName
-	 * @param String : fileServerNodeIP : the IP address of the node to request a file from. So the remote node calling this method remotely, will
-	 * always provide its own nodeIP, as seen in the private sendFile method.
-	 */
-	@Override
-	public void receiveFile(String fileName, String fileServerNodeIP) throws RemoteException
-	{
-		TCP fileClient = null;
-		fileClient = new TCP(tcpFileTranferPort, fileServerNodeIP);
-		fileClient.receiveFile(fileName);
-	}
-
-	/**
 	 * Replicator constructor 
 	 * @param nodeIP
 	 * @param tcpFileTranferPort
 	 * @param dnsIP
 	 * @param dnsPort
 	 */
-	public Replicator(String nodeIP, int tcpFileTranferPort, String dnsIP, int dnsPort) throws IOException
+	public Replicator(String hostName, String nodeIP, int tcpFileTranferPort, String dnsIP, NameServerInterface nameServerInterface) throws IOException
 	{
 		this.tcpFileTranferPort = tcpFileTranferPort;
 		this.nodeIP = nodeIP;
 		this.dnsIP = dnsIP;
-		this.dnsPort = dnsPort;
+		this.nsi = nameServerInterface;
+		this.hostName = hostName;
 
+		// Init replicator rmi skeleton, by binding the object to the already running registry
+		ri = this;
+		replicatorRMI.bindObject("ReplicatorInterface", ri, nodeIP, dnsPort);
+	}
+
+	/**
+	 * Replicator constructor for RMI
+	 */
+	public Replicator() throws IOException
+	{
 	}
 
 	@Override
 	public void run()
 	{
 		localFiles = findLocalFiles();
-		TCP fileClient = null;
 
 		/*
 		 * This block listens in another thread for incoming requests by other nodes who wish to receive files That's all there is to it for
@@ -431,8 +454,11 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		/*
 		 * This block creates the name server stub to use the NS its remote methods
 		 */
-		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		nsi = rmi.getStub(nsi, remoteNSName, dnsIP, dnsPort);
+		SystemyLogger.log(Level.INFO, logName + "Trying to set up the nameserver stub for the first time in the replicator.");
+		// RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
+		// no need to get the nameserver stub, because we already pass it in the constructor.
+		// nsi = nameServerRMI.getStub(nsi, remoteNSName, dnsIP, dnsPort);
+		SystemyLogger.log(Level.INFO, logName + "dnsip : " + dnsIP + ", port : " + dnsPort + "remotename : " + remoteNSName);
 
 		// This line is where startup ends! From here on out, everything update related is handled.
 
@@ -456,6 +482,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			e1.printStackTrace();
 		}
 
+		SystemyLogger.log(Level.INFO, logName + "Attempt to start the observable");
 		observable.addObserver(this);
 		observable.processEvents();
 
