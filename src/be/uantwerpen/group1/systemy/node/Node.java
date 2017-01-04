@@ -23,7 +23,7 @@ public class Node implements NodeInterface {
 	private static NodeInfo nextNode = null;
 	private static NodeInfo previousNode = null;
 	private static NameServerInterface nameServerInterface = null;
-	private static String dnsIP = ParserXML.parseXML("DnsIp");
+	private static String dnsIP = null;
 	private static String HOSTNAME = ParserXML.parseXML("Hostname");
 
 	private static String nodeIp;
@@ -36,13 +36,14 @@ public class Node implements NodeInterface {
 	private static final String LOCALFILESLOCATION = ParserXML.parseXML("localFilesLocation");
 	private static final String DOWNLOADEDFILESLOCATION = ParserXML.parseXML("downloadedFilesLocation");
 	private static final int TCPFILETRANSFERPORT = Integer.parseInt(ParserXML.parseXML("TcpFileTranferPort"));
-	private static final int DNSPORT = Integer.parseInt(ParserXML.parseXML("RMIPort"));
 
 	// node RMI interfaces
 	private static RMI<NodeInterface> rmiNodeClient = new RMI<NodeInterface>();
 	private static NodeInterface myNodeInterface = null;
 	private static NodeInterface nextNodeInterface = null;
 	private static NodeInterface previousNodeInterface = null;
+	
+	static RMI<NameServerInterface> rmiNameServerInterface = null;
 
 	/**
 	 * Constructor only for debug purposes
@@ -113,7 +114,19 @@ public class Node implements NodeInterface {
 		/*
 		 * once the DNS IP address is known, the replicator can start and run autonomously.
 		 */
-		Replicator rep = new Replicator(me.getIP(), TCPFILETRANSFERPORT, dnsIP, DNSPORT);
+		while(dnsIP == null){
+			 try
+			{
+				Thread.sleep(1000);
+				SystemyLogger.log(Level.INFO, logName + "No response from nameserver: ");
+			} catch (InterruptedException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
+		Replicator rep = new Replicator(me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
 		rep.run();
 	}
 
@@ -283,8 +296,8 @@ public class Node implements NodeInterface {
 	public void setDNSIP(String IP) {
 		dnsIP = IP;
 		SystemyLogger.log(Level.INFO, logName + "NameServer is on IP: " + dnsIP);
-		RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		nameServerInterface = rmi.getStub(nameServerInterface, REMOTENSNAME, dnsIP, RMIPORT);
+		rmiNameServerInterface = new RMI<NameServerInterface>();
+		nameServerInterface = rmiNameServerInterface.getStub(nameServerInterface, REMOTENSNAME, dnsIP, RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created nameserver stub");
 	}
 
