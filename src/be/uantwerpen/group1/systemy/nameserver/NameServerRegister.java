@@ -27,6 +27,10 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.TreeMap;
@@ -232,16 +236,19 @@ public class NameServerRegister implements Serializable {
 			SystemyLogger.log(Level.INFO, logName + "This is the previousNode " + register.lastKey());
 			return register.firstKey();
 		} else {
-			// If this is all not the case then find the next node in the network
-			int tempKey = 0;
-			loop: for (Entry<Integer, String> entry : register.entrySet()) {
-				if (entry.getKey() < nodeHash) {
-					tempKey = entry.getKey();
-					break loop;
+			// If this is all not the case then find the previous node in the network
+			ArrayList<Integer> tempArray = new ArrayList<>();
+			Iterator<Map.Entry<Integer, String>> entries = register.entrySet().iterator();
+			while (entries.hasNext())
+			{
+				Map.Entry<Integer, String> entry = entries.next();
+				if (entry.getKey() < nodeHash)
+				{
+					tempArray.add(entry.getKey());
 				}
 			}
-			SystemyLogger.log(Level.INFO, logName + "This is the previousNode " + tempKey);
-			return tempKey;
+
+			return Collections.max(tempArray);
 		}
 	}
 

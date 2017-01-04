@@ -1,5 +1,6 @@
 package be.uantwerpen.group1.systemy.node;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,7 +12,7 @@ import java.util.List;
 public class FileRecord
 {
 	private String fileName;
-	private List<String> downloadedByNodes;
+	private List<String> downloadedByNodes = new ArrayList<String>();
 	private String localByNode;
 	
 	public FileRecord(String fileName, String sentToNode, String localByNode)
