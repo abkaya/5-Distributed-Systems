@@ -33,6 +33,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	List<String> downloadedFiles = new ArrayList<String>();
 	String nodeIP = null;
 	String dnsIP = null;
+	String hostName = null;
 	int dnsPort = 0;
 	int tcpFileTranferPort = 0;
 	String remoteNSName = "NameServerInterface";
@@ -303,7 +304,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	{
 		try
 		{
-			String prevNode = nsi.getNodeIP(nsi.getPreviousNode(hash(nodeIP)));
+			String prevNode = nsi.getNodeIP(nsi.getPreviousNode(hash(hostName)));
 			if (!prevNode.isEmpty())
 				return prevNode;
 			else
@@ -415,12 +416,13 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	 * @param dnsIP
 	 * @param dnsPort
 	 */
-	public Replicator(String nodeIP, int tcpFileTranferPort, String dnsIP, NameServerInterface nameServerInterface) throws IOException
+	public Replicator(String hostName, String nodeIP, int tcpFileTranferPort, String dnsIP, NameServerInterface nameServerInterface) throws IOException
 	{
 		this.tcpFileTranferPort = tcpFileTranferPort;
 		this.nodeIP = nodeIP;
 		this.dnsIP = dnsIP;
 		this.nsi = nameServerInterface;
+		this.hostName = hostName;
 
 		// Init replicator rmi skeleton, by binding the object to the already running registry
 		ri = this;

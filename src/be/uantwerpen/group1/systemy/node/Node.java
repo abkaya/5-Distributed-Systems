@@ -126,7 +126,7 @@ public class Node implements NodeInterface {
 			}
 		}
 		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
-		Replicator rep = new Replicator(me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
+		Replicator rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
 		rep.run();
 	}
 
