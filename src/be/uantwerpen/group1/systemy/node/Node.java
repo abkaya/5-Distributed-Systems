@@ -215,7 +215,7 @@ public class Node implements NodeInterface {
 				if (nextNode != null) {
 					// ping next node
 					try {
-						if( !InetAddress.getByName(nextNode.getIP()).isReachable(5) ) {
+						if( !InetAddress.getByName(nextNode.getIP()).isReachable(15) ) {
 							SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
 							nextFailed();
 						}
@@ -226,7 +226,7 @@ public class Node implements NodeInterface {
 				if (previousNode != null) {
 					// ping previous node
 					try {
-						if( !InetAddress.getByName(nextNode.getIP()).isReachable(5) ) {
+						if( !InetAddress.getByName(nextNode.getIP()).isReachable(15) ) {
 							SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
 							nextFailed();
 						}
