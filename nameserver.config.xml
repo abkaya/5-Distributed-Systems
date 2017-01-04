@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<config>
-    <MulticastPort>2000</MulticastPort>
-    <RMIPort>1099</RMIPort>
-    <MulticastIp>234.0.113.0</MulticastIp>
-    <RemoteNsName>NameServerInterface</RemoteNsName>
-</config>
