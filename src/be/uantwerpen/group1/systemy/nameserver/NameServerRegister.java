@@ -125,7 +125,7 @@ public class NameServerRegister implements Serializable {
 	 * @param hostIP: IPAddress of the new node
 	 */
 	public void addNode(String hostName, String hostIP) {
-		int nodeHash = hashing(hostName);
+		int nodeHash = hashing(hostIP);
 		if (register.containsKey(nodeHash)) {
 			SystemyLogger.log(Level.WARNING, logName + "Node with hash "+ nodeHash + " already exists in the register. ("+hostIP+")");
 		} else {
