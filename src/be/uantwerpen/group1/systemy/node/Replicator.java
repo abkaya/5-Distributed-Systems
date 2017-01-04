@@ -38,7 +38,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	int tcpFileTranferPort = 0;
 	String remoteNSName = "NameServerInterface";
 	NameServerInterface nsi = null;
-	List<FileRecord> fileRecords =  new ArrayList<FileRecord>();
+	List<FileRecord> fileRecords = new ArrayList<FileRecord>();
 	RMI<NameServerInterface> nameServerRMI = null;
 	// init skeleton
 	ReplicatorInterface ri = null;
@@ -149,26 +149,45 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			 */
 			if (observedAction == 0)
 			{
-
+				
 			} else if (observedAction == 1)
 			{
-				String tempOwnerIP = getOwnerLocation(observedFile);
-
-				// IF the owner of this new file is the local node :
-				if (tempOwnerIP.equalsIgnoreCase(nodeIP))
-				{
-					SystemyLogger.log(Level.INFO, logName + observedFile + " is owned by this node, (" + tempOwnerIP + "==" + nodeIP
-							+ "). Replicating to the previous node if it exists.");
-					localOwnerReplicationProcess(observedFile, getPreviousNode(nodeIP));
-				}
-				// ELSE if the owner of this file is a remote node :
-				else if (!tempOwnerIP.equalsIgnoreCase(nodeIP) && tempOwnerIP != null)
-				{
-					SystemyLogger.log(Level.INFO, logName + observedFile + " is owned by another node, (" + tempOwnerIP + "!=" + nodeIP
-							+ "). Replicating to the owner node.");
-					remoteOwnerReplicationProcess(observedFile, tempOwnerIP);
-				}
+				replicate(observedFile);
 			}
+		}
+	}
+
+	/**
+	 * Replicate method. This method is used to handle the replication process, from which it branches off
+	 * depending on which node owns the file which is being replicated.
+	 * @param String fileName
+	 */
+	public void replicate(String fileName)
+	{
+		String tempOwnerIP = getOwnerLocation(fileName);
+
+		// IF the owner of this new file is the local node :
+		if (tempOwnerIP.equalsIgnoreCase(nodeIP))
+		{
+			SystemyLogger.log(Level.INFO, logName + fileName + " is owned by this node, (" + tempOwnerIP + "==" + nodeIP
+					+ "). Replicating to the previous node if it exists.");
+			localOwnerReplicationProcess(fileName, getPreviousNode(hostName));
+		}
+		// ELSE if the owner of this file is a remote node :
+		else if (!tempOwnerIP.equalsIgnoreCase(nodeIP) && !tempOwnerIP.isEmpty())
+		{
+			SystemyLogger.log(Level.INFO, logName + fileName + " is owned by another node, (" + tempOwnerIP + "!=" + nodeIP
+					+ "). Replicating to the owner node.");
+			remoteOwnerReplicationProcess(fileName, tempOwnerIP);
+		}
+	}
+	
+	/**
+	 * Method to replicate all local files. Generally used once at startup.
+	 */
+	private void replicateLocalFiles(){
+		for(String localFile : findLocalFiles()){
+			replicate(localFile);
 		}
 	}
 
@@ -187,7 +206,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	private void localOwnerReplicationProcess(String fileName, String remoteNodeIP)
 	{
 		if (!nodeIP.equalsIgnoreCase(remoteNodeIP))
-			sendFile(fileName, getPreviousNode(nodeIP));
+			sendFile(fileName, getPreviousNode(hostName));
 		fileRecords.add(new FileRecord(fileName, remoteNodeIP, nodeIP));
 		this.localFiles.add(fileName);
 		this.ownedFiles.add(fileName);
@@ -219,7 +238,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	private void remoteOwnerReplicationProcess(String fileName, String remoteNodeIP)
 	{
 		sendFile(fileName, remoteNodeIP);
-		SystemyLogger.log(Level.INFO, logName + "Owner of "+fileName+" is "+remoteNodeIP);
+		SystemyLogger.log(Level.INFO, logName + "Owner of " + fileName + " is " + remoteNodeIP);
 		this.localFiles.add(fileName);
 
 		ReplicatorInterface tempRi = null;
@@ -300,7 +319,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	/**
 	 * Get the previous node of a given node, using the nameserver's remote method
 	 */
-	public String getPreviousNode(String nodeIP)
+	public String getPreviousNode(String hostName)
 	{
 		try
 		{
@@ -416,7 +435,8 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	 * @param dnsIP
 	 * @param dnsPort
 	 */
-	public Replicator(String hostName, String nodeIP, int tcpFileTranferPort, String dnsIP, NameServerInterface nameServerInterface) throws IOException
+	public Replicator(String hostName, String nodeIP, int tcpFileTranferPort, String dnsIP, NameServerInterface nameServerInterface)
+			throws IOException
 	{
 		this.tcpFileTranferPort = tcpFileTranferPort;
 		this.nodeIP = nodeIP;
@@ -460,6 +480,9 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		// nsi = nameServerRMI.getStub(nsi, remoteNSName, dnsIP, dnsPort);
 		SystemyLogger.log(Level.INFO, logName + "dnsip : " + dnsIP + ", port : " + dnsPort + "remotename : " + remoteNSName);
 
+		//Replicate all local files first
+		replicateLocalFiles();
+		
 		// This line is where startup ends! From here on out, everything update related is handled.
 
 		/*
