@@ -454,7 +454,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		 */
 		SystemyLogger.log(Level.INFO, logName + "Trying to set up the nameserver stub for the first time in the replicator.");
 		// RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		// no need to get the stub, because we already pass it in the constructor.
+		// no need to get the nameserver stub, because we already pass it in the constructor.
 		// nsi = nameServerRMI.getStub(nsi, remoteNSName, dnsIP, dnsPort);
 		SystemyLogger.log(Level.INFO, logName + "dnsip : " + dnsIP + ", port : " + dnsPort + "remotename : " + remoteNSName);
 

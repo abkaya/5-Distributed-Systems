@@ -83,25 +83,30 @@ public class TCP
 	public TCP(int port, String host)
 	{
 		int trys = 3;
-		while (this.clientSocket == null && trys > 0) {
+		while (this.clientSocket == null && trys > 0)
+		{
 			try
 			{
 				this.clientSocket = new Socket(host, port);
-				SystemyLogger.log(Level.INFO, logName + "- Opened client socket on IP : " + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getLocalPort());
+				SystemyLogger.log(Level.INFO, logName + "- Opened client socket on IP : " + clientSocket.getInetAddress().getHostAddress()
+						+ ":" + clientSocket.getLocalPort());
 				SystemyLogger.log(Level.INFO, logName + "- Socket connection established with server : " + host + ":" + port);
 			} catch (IOException e)
 			{
 				SystemyLogger.log(Level.INFO, logName + "clientsocket exception : could not connect to " + host + ":" + port);
-				try {
+				try
+				{
 					TimeUnit.SECONDS.sleep(2);
-				} catch (InterruptedException e1) {
+				} catch (InterruptedException e1)
+				{
 					SystemyLogger.log(Level.SEVERE, logName + e1.getMessage());
 				}
 				trys--;
 				SystemyLogger.log(Level.INFO, logName + trys + " trys left");
 			}
 		}
-		if (this.clientSocket == null) {
+		if (this.clientSocket == null)
+		{
 			SystemyLogger.log(Level.SEVERE, logName + "unable to connect to " + host + ":" + port);
 		}
 	}
@@ -268,7 +273,8 @@ public class TCP
 			OutputStreamWriter osw = new OutputStreamWriter(os);
 			BufferedWriter bw = new BufferedWriter(osw);
 			bw.write(sizeToSend);
-			SystemyLogger.log(Level.INFO, logName + "- The size of the requested file sent to client: " + Long.toString(fileToSend.length()));
+			SystemyLogger.log(Level.INFO, logName + "- The size of the requested file sent to client: " + Long.toString(fileToSend
+					.length()));
 			bw.flush();
 			return true;
 		} catch (Exception e)
@@ -412,7 +418,7 @@ public class TCP
 					SystemyLogger.log(Level.SEVERE, logName + se.getMessage());
 					// se.printStackTrace();
 				}
-				FileOutputStream fileOutputStream = new FileOutputStream("downloadedFiles/"+fileName);
+				FileOutputStream fileOutputStream = new FileOutputStream("downloadedFiles/" + fileName);
 				BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
 				// once EOF is reached, the read method will return -1, so we'll use
@@ -423,12 +429,15 @@ public class TCP
 					current += bytesRead;
 
 					// print progress every 10%. // using print and \r is nice in a system console, but fills the // eclipse console
-					progress = ((int) Math.floor((100 * current) / fileSize));
-					if (progress % 10 == 0 && prevProgress != progress)
+					if (fileSize > 0)
 					{
-						prevProgress = progress;
-						SystemyLogger.log(Level.INFO, logName + "- Progress: " + progress + "%");
-						// System.out.println("- Progress: " + progress + "%");
+						progress = ((int) Math.floor((100 * current) / fileSize));
+						if (progress % 10 == 0 && prevProgress != progress)
+						{
+							prevProgress = progress;
+							SystemyLogger.log(Level.INFO, logName + "- Progress: " + progress + "%");
+							// System.out.println("- Progress: " + progress + "%");
+						}
 					}
 
 					try
