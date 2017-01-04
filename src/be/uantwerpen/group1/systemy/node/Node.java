@@ -80,7 +80,7 @@ public class Node implements NodeInterface {
 		RMI<NodeInterface> rmiNode = new RMI<NodeInterface>(me.getIP(), "node", ni);
 
 		// init loopback interface
-		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "NodeInterface", me.getIP(), RMIPORT);
+		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
 		listenToNewNodes();
@@ -118,6 +118,7 @@ public class Node implements NodeInterface {
 			 try
 			{
 				Thread.sleep(1000);
+				SystemyLogger.log(Level.INFO, logName + "No response from nameserver: ");
 			} catch (InterruptedException e)
 			{
 				// TODO Auto-generated catch block
@@ -125,7 +126,7 @@ public class Node implements NodeInterface {
 			}
 		}
 		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
-		Replicator rep = new Replicator(me.getIP(), TCPFILETRANSFERPORT, dnsIP, RMIPORT, rmiNameServerInterface);
+		Replicator rep = new Replicator(me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
 		rep.run();
 	}
 
@@ -307,7 +308,7 @@ public class Node implements NodeInterface {
 	@Override
 	public void updateNextNode(NodeInfo newNode) {
 		nextNode = newNode;
-		nextNodeInterface = rmiNodeClient.getStub(nextNodeInterface, "NodeInterface", nextNode.getIP(), RMIPORT);
+		nextNodeInterface = rmiNodeClient.getStub(nextNodeInterface, "node", nextNode.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "New next node " + nextNode.toString());
 		SystemyLogger.log(Level.INFO, logName + networkStatus());
 	}
@@ -320,7 +321,7 @@ public class Node implements NodeInterface {
 	@Override
 	public void updatePreviousNode(NodeInfo newNode) {
 		previousNode = newNode;
-		previousNodeInterface = rmiNodeClient.getStub(previousNodeInterface, "NodeInterface", previousNode.getIP(), RMIPORT);
+		previousNodeInterface = rmiNodeClient.getStub(previousNodeInterface, "node", previousNode.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "New previous node " + previousNode.toString());
 		SystemyLogger.log(Level.INFO, logName + networkStatus());
 	}
