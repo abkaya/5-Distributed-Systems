@@ -82,8 +82,8 @@ public class TCP
 	 */
 	public TCP(int port, String host)
 	{
-		int trys = 3;
-		while (this.clientSocket == null && trys > 0)
+		int tries = 3;
+		while (this.clientSocket == null && tries > 0)
 		{
 			try
 			{
@@ -101,8 +101,8 @@ public class TCP
 				{
 					SystemyLogger.log(Level.SEVERE, logName + e1.getMessage());
 				}
-				trys--;
-				SystemyLogger.log(Level.INFO, logName + trys + " trys left");
+				tries--;
+				SystemyLogger.log(Level.INFO, logName + tries + " tries left");
 			}
 		}
 		if (this.clientSocket == null)
