@@ -2,6 +2,7 @@ package be.uantwerpen.group1.systemy.node;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.io.File;
@@ -99,13 +100,54 @@ public class Node implements NodeInterface
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
-		loadingInitialFiles();
+		fileList = (ArrayList<String>) loadingInitialFiles();
+		SystemyLogger.log(Level.INFO, "Local files are loaded into the fileList");
+
 		listenToNewNodes();
 		discover();
 		initShutdownHook();
 		startHeartbeat();
-		tcpServerSocket();
-		startFileAgent();
+
+		
+		/**
+		 * Abdil, dus de FileAgent start op 1 node en wordt dan doorgegeven naar de andere node maar daar blijft het dan ook bij. Reden?
+		 * Wel de andere node is zich er niet van bewust dat er een fileAgent in het netwerk aanwezig is en zal via RMI upgedated moeten worden...
+		 * 
+		 * Daar zit ik dus klem.. Ik heb in NodeInfo een veld voorzien agentInNetwork (boolean) maar ik heb geen flauw benul hoe ik die nextnode, previousnode (nodeinfo) geüpdated krijg
+		 * 
+		 * 
+		 */
+		try
+		{
+			TimeUnit.SECONDS.sleep(5);
+		} catch (InterruptedException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		try
+		{
+			TimeUnit.SECONDS.sleep(5);
+		} catch (InterruptedException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		if (fileAgent == null)
+		{
+
+		} else
+		{
+			passFileAgentInNetwork();
+		}
+
+		// SystemyLogger.log(Level.INFO, "Starting TCP Socket");
+		// tcpServerSocket();
+		// SystemyLogger.log(Level.INFO, "Starting the agent");
+		// startFileAgent();
+		// passFileAgentInNetwork();
 
 		/*
 		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
@@ -143,9 +185,9 @@ public class Node implements NodeInterface
 				e.printStackTrace();
 			}
 		}
-		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
-		rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
-		rep.run();
+		// SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
+		// rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
+		// rep.run();
 	}
 
 	/**
@@ -296,38 +338,43 @@ public class Node implements NodeInterface
 	 * Returns a list of the local files within the relative directory localFiles/
 	 * @return List<String> localFiles
 	 */
-	public static void loadingInitialFiles()
+	public static List<String> loadingInitialFiles()
 	{
+		List<String> localFiles = new ArrayList<String>();
 		File[] files = new File("localFiles/").listFiles();
 		for (File file : files)
 		{
 			if (file.isFile())
 			{
-				fileList.add(file.getName());
+				localFiles.add(file.getName());
 			}
 		}
 
-		SystemyLogger.log(Level.INFO, "Local files are loaded into the fileList");
-
+		return localFiles;
 	}
 
 	private static void startFileAgent()
 	{
+
 		try
 		{
-			if (nameServerInterface.getRegisterSize() == 1)
+			if (getRegisterSize() == 1)
 			{
-				SystemyLogger.log(Level.INFO, "FileAgent doesn't need to start, only one node in the network");
+
+				SystemyLogger.log(Level.INFO, logName + "There is only one node in the network");
+
 			} else
 			{
+
 				fileAgent = new FileAgent(myNodeInterface);
-				SystemyLogger.log(Level.INFO, "FileAgent started on node " + me.getName());
+				SystemyLogger.log(Level.INFO, logName + "FileAgent started on node " + me.getName());
 			}
 		} catch (RemoteException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
 	}
 
 	/**
@@ -343,53 +390,24 @@ public class Node implements NodeInterface
 			{
 				fileAgent.run();
 
-				do
-				{
-					try
-					{
-						TimeUnit.MILLISECONDS.sleep(1);
-					} catch (InterruptedException e)
-					{
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-
-				} while (!fileAgent.IsAgentFinishedWithUpdate());
-
-				// if fileAgent is finished with updating, the downloading can start
 				try
 				{
-					TimeUnit.MILLISECONDS.sleep(1);
-				} catch (InterruptedException e)
+					Thread.sleep(5000);
+				} catch (InterruptedException e1)
+				{
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+				fileAgent.setNodeInterface(nextNodeInterface);
+				try
+				{
+					nextNodeInterface.passFileAgent(fileAgent);
+				} catch (RemoteException e)
 				{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
-				if (fileToLock != null)
-				{
-					downloadFile();
-					finishedDownload = true;
-				}
-
-				do
-				{
-					try
-					{
-						TimeUnit.MILLISECONDS.sleep(1);
-					} catch (InterruptedException e)
-					{
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				} while (!fileAgent.isAgentFinished());
-
-				finishedDownload = false;
-
-				// update the nodeInterface of the fileAgent
-				fileAgent.setNodeInterface(nextNodeInterface);
-
-				// pass fileAgent to the nextNode
 
 			}
 
@@ -567,7 +585,7 @@ public class Node implements NodeInterface
 	public void passFileAgent(FileAgent fileAgent) throws RemoteException
 	{
 		// TODO Auto-generated method stub
-
+		this.fileAgent = fileAgent;
 	}
 
 	@Override
@@ -582,5 +600,10 @@ public class Node implements NodeInterface
 	{
 		// TODO Auto-generated method stub
 		return finishedDownload;
+	}
+
+	public static int getRegisterSize() throws RemoteException
+	{
+		return nameServerInterface.getRegisterSize();
 	}
 }

@@ -9,12 +9,16 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javax.management.MBeanParameterInfo;
+
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 
 public class FileAgent implements Runnable, Serializable
 {
 
 	private static final long serialVersionUID = 1L;
+	
+	private static String logName = Node.class.getName() + " >> ";
 
 	private NodeInterface nodeInterface;
 
@@ -84,60 +88,69 @@ public class FileAgent implements Runnable, Serializable
 	@Override
 	public void run()
 	{
-		setAgentFinished(false);
-		setAgentFinished(false);
-		setPermissionToDownload(false);
-
-		ArrayList<String> currentNodeOwner = null;
-		String hostName = null;
-		String fileToLock = null;
-
 		try
 		{
-			currentNodeOwner = nodeInterface.getCurrentNodeOwner();
-			hostName = nodeInterface.getHostname();
-			fileToLock = nodeInterface.getNameFileToDownload();
-
+			SystemyLogger.log(Level.INFO, logName + "Agent finished on node " + nodeInterface.getHostname());
 		} catch (RemoteException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		// TODO Auto-generated method stub
-		this.fileListAgent = updateListAgent(this.fileListAgent, currentNodeOwner);
-		this.fileListAgent = processLock(this.fileListAgent, fileToLock, hostName);
-		updateFileListNode(this.nodeInterface, this.fileListAgent);
-
-		setAgentFinishedWithUpdate(true);
-
-		if (this.fileListAgent.get(fileToLock).equals(hostName))
-		{
-			setPermissionToDownload(true);
-
-			try
-			{
-				do
-				{
-					TimeUnit.MILLISECONDS.sleep(100);
-				} while (!nodeInterface.getFinishedDownload());
-			} catch (RemoteException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			// after download complete, release the lock
-			this.fileListAgent.replace(fileToLock, hostName, "notLocked");
-		}
-
-		setAgentFinished(true);
-
-		SystemyLogger.log(Level.INFO, "Agent finished on node " + hostName);
+		
+		// setAgentFinished(false);
+		// setAgentFinished(false);
+		// setPermissionToDownload(false);
+		//
+		// ArrayList<String> currentNodeOwner = null;
+		// String hostName = null;
+		// String fileToLock = null;
+		//
+		// try
+		// {
+		// currentNodeOwner = nodeInterface.getCurrentNodeOwner();
+		// hostName = nodeInterface.getHostname();
+		// fileToLock = nodeInterface.getNameFileToDownload();
+		//
+		// } catch (RemoteException e)
+		// {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+		//
+		// // TODO Auto-generated method stub
+		// this.fileListAgent = updateListAgent(this.fileListAgent, currentNodeOwner);
+		// this.fileListAgent = processLock(this.fileListAgent, fileToLock, hostName);
+		// updateFileListNode(this.nodeInterface, this.fileListAgent);
+		//
+		// setAgentFinishedWithUpdate(true);
+		//
+		// if (this.fileListAgent.get(fileToLock).equals(hostName))
+		// {
+		// setPermissionToDownload(true);
+		//
+		// try
+		// {
+		// do
+		// {
+		// TimeUnit.MILLISECONDS.sleep(100);
+		// } while (!nodeInterface.getFinishedDownload());
+		// } catch (RemoteException e)
+		// {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// } catch (InterruptedException e)
+		// {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+		//
+		// // after download complete, release the lock
+		// this.fileListAgent.replace(fileToLock, hostName, "notLocked");
+		// }
+		//
+		// setAgentFinished(true);
+		//
+		// SystemyLogger.log(Level.INFO, "Agent finished on node " + hostName);
 	}
 
 	/**

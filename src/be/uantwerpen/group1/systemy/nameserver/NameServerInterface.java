@@ -12,5 +12,5 @@ public interface NameServerInterface extends Remote {
 	int getNextNode(int hash) throws RemoteException;
 	int getPreviousNode(int hash) throws RemoteException;
 	String getNodeIP(int hash) throws RemoteException;
-	Integer getRegisterSize() throws RemoteException;
+	int getRegisterSize() throws RemoteException;
 	}

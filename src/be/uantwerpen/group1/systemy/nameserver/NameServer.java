@@ -113,7 +113,7 @@ public class NameServer implements NameServerInterface {
 	}
 
 	@Override
-	public Integer getRegisterSize() throws RemoteException
+	public int getRegisterSize() throws RemoteException
 	{
 		// TODO Auto-generated method stub
 		return nsr.getSize();

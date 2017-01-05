@@ -23,3 +23,4 @@ public interface NodeInterface extends Remote
 	void passFileAgent(FileAgent fileAgent) throws RemoteException;
 	void updateFileListNode(ArrayList<String> fileList) throws RemoteException;
 }
+
