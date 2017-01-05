@@ -19,14 +19,17 @@ import be.uantwerpen.group1.systemy.networking.TCP;
 import java.nio.file.*;
 
 /**
- * Replicator Class which handles replication upon the change of local files in the localFiles folder.
- * The changes are detected using the observer pattern on a watchservice, which is event based.
+ * Replicator Class which handles replication upon the change of local files in the localFiles folder, as well as on startup 
+ * and network member node updates.
+ * The localFiles folder changes are detected using the observer pattern on a watchservice, which  in its turn is event based.
+ * 
+ * Keeps a records of localFiles, ownedFiles, downloadedFiles and a FileRecord for every file this node is an owner of.
  * 
  * @author Abdil Kaya
  */
 public class Replicator implements ReplicatorInterface, Runnable, java.util.Observer
 {
-	private static String logName = Node.class.getName() + " >> ";
+	private static String logName = Replicator.class.getName() + " >> ";
 
 	List<String> ownedFiles = new ArrayList<String>();
 	List<String> localFiles = new ArrayList<String>();
@@ -38,7 +41,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	int tcpFileTranferPort = 0;
 	String remoteNSName = "NameServerInterface";
 	NameServerInterface nsi = null;
-	List<FileRecord> fileRecords =  new ArrayList<FileRecord>();
+	List<FileRecord> fileRecords = new ArrayList<FileRecord>();
 	RMI<NameServerInterface> nameServerRMI = null;
 	// init skeleton
 	ReplicatorInterface ri = null;
@@ -149,26 +152,52 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			 */
 			if (observedAction == 0)
 			{
-
+				if (localFiles.contains(observedFile))
+					localFiles.remove(observedFile);
 			} else if (observedAction == 1)
 			{
-				String tempOwnerIP = getOwnerLocation(observedFile);
-
-				// IF the owner of this new file is the local node :
-				if (tempOwnerIP.equalsIgnoreCase(nodeIP))
-				{
-					SystemyLogger.log(Level.INFO, logName + observedFile + " is owned by this node, (" + tempOwnerIP + "==" + nodeIP
-							+ "). Replicating to the previous node if it exists.");
-					localOwnerReplicationProcess(observedFile, getPreviousNode(nodeIP));
-				}
-				// ELSE if the owner of this file is a remote node :
-				else if (!tempOwnerIP.equalsIgnoreCase(nodeIP) && tempOwnerIP != null)
-				{
-					SystemyLogger.log(Level.INFO, logName + observedFile + " is owned by another node, (" + tempOwnerIP + "!=" + nodeIP
-							+ "). Replicating to the owner node.");
-					remoteOwnerReplicationProcess(observedFile, tempOwnerIP);
-				}
+				replicate(observedFile);
 			}
+		}
+	}
+
+	/**
+	 * Replicate method. This method is used to handle the replication process, from which it branches off
+	 * depending on which node owns the file which is being replicated.
+	 * @param String fileName
+	 */
+	public void replicate(String fileName)
+	{
+		String tempOwnerIP = getOwnerLocation(fileName);
+
+		// IF the owner of this new file is the local node :
+		if (tempOwnerIP.equalsIgnoreCase(nodeIP))
+		{
+			SystemyLogger.log(Level.INFO, logName + fileName + " is owned by this node, (" + tempOwnerIP + "==" + nodeIP
+					+ "). Replicating to the previous node if it exists.");
+			localOwnerReplicationProcess(fileName, getPreviousNode(hostName));
+		}
+		// ELSE if the owner of this file is a remote node :
+		else if (!tempOwnerIP.equalsIgnoreCase(nodeIP) && !tempOwnerIP.isEmpty())
+		{
+			// Every node has to play fair and check for itself whether or not it's wrongfully assigned as an owner.
+			if (ownedFiles.contains(observedFile))
+				ownedFiles.remove(observedFile);
+			deleteFileRecordByFileName(observedFile);
+			SystemyLogger.log(Level.INFO, logName + fileName + " is owned by another node, (" + tempOwnerIP + "!=" + nodeIP
+					+ "). Replicating to the owner node.");
+			remoteOwnerReplicationProcess(fileName, tempOwnerIP);
+		}
+	}
+
+	/**
+	 * Method to replicate all local files. Generally used once at startup.
+	 */
+	public void replicateLocalFiles()
+	{
+		for (String localFile : findLocalFiles())
+		{
+			replicate(localFile);
 		}
 	}
 
@@ -187,17 +216,21 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	private void localOwnerReplicationProcess(String fileName, String remoteNodeIP)
 	{
 		if (!nodeIP.equalsIgnoreCase(remoteNodeIP))
-			sendFile(fileName, getPreviousNode(nodeIP));
-		fileRecords.add(new FileRecord(fileName, remoteNodeIP, nodeIP));
-		this.localFiles.add(fileName);
-		this.ownedFiles.add(fileName);
+			sendFile(fileName, getPreviousNode(hostName));
+		if (!fileRecordsContainFileName(fileName))
+			fileRecords.add(new FileRecord(fileName, remoteNodeIP, nodeIP));
+		if (!localFiles.contains(fileName))
+			this.localFiles.add(fileName);
+		if (!ownedFiles.contains(fileName))
+			this.ownedFiles.add(fileName);
 
 		ReplicatorInterface tempRi = null;
 		tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", remoteNodeIP, 1099);
 
 		try
 		{
-			tempRi.addDownloadedFile(fileName);
+			if (!tempRi.hasDownloadedFile(fileName))
+				tempRi.addDownloadedFile(fileName);
 		} catch (RemoteException e)
 		{
 			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute addDownloadedFile method.");
@@ -219,20 +252,37 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	private void remoteOwnerReplicationProcess(String fileName, String remoteNodeIP)
 	{
 		sendFile(fileName, remoteNodeIP);
-		SystemyLogger.log(Level.INFO, logName + "Owner of "+fileName+" is "+remoteNodeIP);
-		this.localFiles.add(fileName);
+		SystemyLogger.log(Level.INFO, logName + "Owner of " + fileName + " is " + remoteNodeIP);
+		if (!localFiles.contains(fileName))
+			this.localFiles.add(fileName);
 
 		ReplicatorInterface tempRi = null;
-		tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", remoteNodeIP, 1099);
-
+		while (tempRi == null)
+		{
+			tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", remoteNodeIP, 1099);
+			if (tempRi == null)
+			{
+				try
+				{
+					Thread.sleep(10);
+				} catch (InterruptedException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 		try
 		{
-			ri.addDownloadedFile(fileName);
-			ri.addOwnedFile(fileName);
-			ri.addFileRecord(new FileRecord(fileName, remoteNodeIP, nodeIP));
+			if (!tempRi.hasDownloadedFile(fileName))
+				tempRi.addDownloadedFile(fileName);
+			if (!tempRi.hasOwnedFile(fileName))
+				tempRi.addOwnedFile(fileName);
+			if (!tempRi.fileRecordsContainFileName(fileName))
+				tempRi.addFileRecord(new FileRecord(fileName, remoteNodeIP, nodeIP));
 		} catch (RemoteException e)
 		{
-			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute the remote owner replication process methods.");
+			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute the remote owner replication process methods. Is object serializable?");
 		}
 		SystemyLogger.log(Level.INFO, logName + "Added file name and record to the appropriate lists, both locally and remotely.");
 	}
@@ -244,8 +294,21 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	private void sendFile(String fileName, String targetNodeIP)
 	{
 		ReplicatorInterface tempRi = null;
-		tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", targetNodeIP, 1099);
-
+		while (tempRi == null)
+		{
+			tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", targetNodeIP, 1099);
+			if (tempRi == null)
+			{
+				try
+				{
+					Thread.sleep(10);
+				} catch (InterruptedException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 		try
 		{
 			tempRi.receiveFile(fileName, nodeIP);
@@ -271,6 +334,34 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		TCP fileClient = null;
 		fileClient = new TCP(tcpFileTranferPort, fileServerNodeIP);
 		fileClient.receiveFile(fileName);
+	}
+
+	/**
+	 * Method delete a fileRecord by its fileName attribute
+	 */
+	public void deleteFileRecordByFileName(String fileName)
+	{
+		FileRecord toRemove = null;
+		for (FileRecord fr : fileRecords)
+		{
+			if (fr.getFileName().equals(fileName))
+				toRemove = fr;
+		}
+		fileRecords.remove(toRemove);
+	}
+
+	/**
+	 * Method to check whether or not the fileRecords contains a fileRecord with a certain fileName
+	 */
+	@Override
+	public boolean fileRecordsContainFileName(String fileName)
+	{
+		for (FileRecord fr : fileRecords)
+		{
+			if (fr.getFileName().equals(fileName))
+				return true;
+		}
+		return false;
 	}
 
 	/**
@@ -300,7 +391,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	/**
 	 * Get the previous node of a given node, using the nameserver's remote method
 	 */
-	public String getPreviousNode(String nodeIP)
+	public String getPreviousNode(String hostName)
 	{
 		try
 		{
@@ -314,6 +405,18 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			SystemyLogger.log(Level.WARNING, logName + "Owner of file: " + observedFile + ". could not be found!");
 			return null;
 		}
+	}
+
+	/**
+	 * Method to check whether or not a certain file name is listed in  the downloadedFiles list
+	 */
+	@Override
+	public boolean hasDownloadedFile(String fileName) throws RemoteException
+	{
+		if (downloadedFiles.contains(fileName))
+			return true;
+		else
+			return false;
 	}
 
 	/**
@@ -416,17 +519,14 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	 * @param dnsIP
 	 * @param dnsPort
 	 */
-	public Replicator(String hostName, String nodeIP, int tcpFileTranferPort, String dnsIP, NameServerInterface nameServerInterface) throws IOException
+	public Replicator(String hostName, String nodeIP, int tcpFileTranferPort, String dnsIP, NameServerInterface nameServerInterface)
+			throws IOException
 	{
 		this.tcpFileTranferPort = tcpFileTranferPort;
 		this.nodeIP = nodeIP;
 		this.dnsIP = dnsIP;
 		this.nsi = nameServerInterface;
 		this.hostName = hostName;
-
-		// Init replicator rmi skeleton, by binding the object to the already running registry
-		ri = this;
-		replicatorRMI.bindObject("ReplicatorInterface", ri, nodeIP, dnsPort);
 	}
 
 	/**
@@ -451,14 +551,11 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			fileServer.listenToSendFile();
 		}).start();
 
-		/*
-		 * This block creates the name server stub to use the NS its remote methods
-		 */
-		SystemyLogger.log(Level.INFO, logName + "Trying to set up the nameserver stub for the first time in the replicator.");
-		// RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		// no need to get the nameserver stub, because we already pass it in the constructor.
-		// nsi = nameServerRMI.getStub(nsi, remoteNSName, dnsIP, dnsPort);
-		SystemyLogger.log(Level.INFO, logName + "dnsip : " + dnsIP + ", port : " + dnsPort + "remotename : " + remoteNSName);
+		// Init replicator rmi skeleton, by binding the object to the already running registry
+		ri = this;
+		replicatorRMI.bindObject("ReplicatorInterface", ri, nodeIP, dnsPort);
+		// Replicate all local files first
+		replicateLocalFiles();
 
 		// This line is where startup ends! From here on out, everything update related is handled.
 
@@ -478,8 +575,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			observable = new ObservableWatchService(dir, false);
 		} catch (IOException e1)
 		{
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			SystemyLogger.log(Level.SEVERE, logName + "Could not start the observable watch service.");
 		}
 
 		SystemyLogger.log(Level.INFO, logName + "Attempt to start the observable");

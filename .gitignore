@@ -11,3 +11,4 @@ HQImage.jpg
 *.log.lck
 *.log.[123456789]
 *.log.[123456789].lck
+src/be/uantwerpen/group1/systemy/node/Replicator.ucls

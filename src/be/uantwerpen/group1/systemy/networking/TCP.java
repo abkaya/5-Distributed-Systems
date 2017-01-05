@@ -82,8 +82,8 @@ public class TCP
 	 */
 	public TCP(int port, String host)
 	{
-		int trys = 3;
-		while (this.clientSocket == null && trys > 0)
+		int tries = 3;
+		while (this.clientSocket == null && tries > 0)
 		{
 			try
 			{
@@ -101,8 +101,8 @@ public class TCP
 				{
 					SystemyLogger.log(Level.SEVERE, logName + e1.getMessage());
 				}
-				trys--;
-				SystemyLogger.log(Level.INFO, logName + trys + " trys left");
+				tries--;
+				SystemyLogger.log(Level.INFO, logName + tries + " tries left");
 			}
 		}
 		if (this.clientSocket == null)
@@ -291,6 +291,7 @@ public class TCP
 	 */
 	private void sendFile(Socket clientSocket)
 	{
+		int count = 0;
 		File fileToSend = null;
 		fileToSend = receiveFileName(clientSocket, fileToSend);
 		if (fileToSend != null && sendFileSize(clientSocket, fileToSend))
@@ -298,14 +299,24 @@ public class TCP
 			try
 			{
 
-				byte[] mybytearray = new byte[(int) fileToSend.length()];
+				byte[] buffer = new byte[8192]; // new byte[(int) fileToSend.length()];
 				FileInputStream fis = new FileInputStream(fileToSend);
 				BufferedInputStream bis = new BufferedInputStream(fis);
-				bis.read(mybytearray, 0, mybytearray.length);
+
+				// bis.read(buffer, 0, buffer.length);
 				OutputStream os = clientSocket.getOutputStream();
-				SystemyLogger.log(Level.INFO, logName + "- Sending : " + fileToSend + "(" + mybytearray.length + " bytes)");
+
+				SystemyLogger.log(Level.INFO, logName + "- Sending : " + fileToSend + "(" + fileToSend.length() + " bytes)");
 				// System.out.println("- Sending : " + fileToSend + "(" + mybytearray.length + " bytes)");
-				os.write(mybytearray, 0, mybytearray.length);
+				// os.write(buffer, 0, buffer.length);
+
+				//
+				while ((count = bis.read(buffer)) > 0)
+				{
+					os.write(buffer, 0, count);
+				}
+				//
+
 				os.flush();
 				os.close();
 				bis.close();
@@ -426,10 +437,11 @@ public class TCP
 				// of 1kB
 				do
 				{
-					current += bytesRead;
-
+					/*
+					current = bytesRead;
+					
 					// print progress every 10%. // using print and \r is nice in a system console, but fills the // eclipse console
-					if (fileSize > 0)
+					if (current > 0)
 					{
 						progress = ((int) Math.floor((100 * current) / fileSize));
 						if (progress % 10 == 0 && prevProgress != progress)
@@ -439,7 +451,8 @@ public class TCP
 							// System.out.println("- Progress: " + progress + "%");
 						}
 					}
-
+					*/
+					
 					try
 					{
 						bufferedOutputStream.write(byteArray, 0, bytesRead);

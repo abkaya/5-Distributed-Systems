@@ -149,7 +149,7 @@ public class RMI<T>
 			obj = (T) registry.lookup(name);
 		} catch (RemoteException | NotBoundException e)
 		{
-			SystemyLogger.log(Level.SEVERE, logName + "getStub : " + e.getMessage());
+			SystemyLogger.log(Level.SEVERE, logName + "getStub : waiting for bound object in registry");
 			return null;
 		}
 		return obj;
