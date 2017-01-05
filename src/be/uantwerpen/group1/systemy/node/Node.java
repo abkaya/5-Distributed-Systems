@@ -154,6 +154,9 @@ public class Node implements NodeInterface {
 					NodeInfo newNode = new NodeInfo(messageComponents[0], messageComponents[2]);
 					SystemyLogger.log(Level.INFO, logName + "New node! " + newNode.toString() + " at " + newNode.getIP());
 
+					//When a new node is found, replicate your local files appropriately, whilst adjusting the lists and file records.
+					rep.replicateLocalFiles();
+					
 					if (nextNode == null || previousNode == null) {
 						// no nodes -> point to self
 						myNodeInterface.updateNextNode(newNode);
