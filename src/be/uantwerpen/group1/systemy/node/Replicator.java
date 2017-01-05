@@ -150,7 +150,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			 */
 			if (observedAction == 0)
 			{
-				if(localFiles.contains(observedFile))
+				if (localFiles.contains(observedFile))
 					localFiles.remove(observedFile);
 			} else if (observedAction == 1)
 			{
@@ -291,6 +291,24 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	}
 
 	/**
+	 * A method used when a certain node replicator needs to request a file. The method is strictly called remotely,
+	 * and becomes solely a tool for the node replicator which is trying to send a file.
+	 * So in essence,the sendFile method is used locally by a replicator, which makes a remote call to the 
+	 * remote replicator, telling it to make the TCP file request from the calling node.
+	 * 
+	 * @param String : fileName
+	 * @param String : fileServerNodeIP : the IP address of the node to request a file from. So the remote node calling this method remotely, will
+	 * always provide its own nodeIP, as seen in the private sendFile method.
+	 */
+	@Override
+	public void receiveFile(String fileName, String fileServerNodeIP) throws RemoteException
+	{
+		TCP fileClient = null;
+		fileClient = new TCP(tcpFileTranferPort, fileServerNodeIP);
+		fileClient.receiveFile(fileName);
+	}
+
+	/**
 	 * Method delete a fileRecord by its fileName attribute
 	 */
 	public void deleteFileRecordByFileName(String fileName)
@@ -316,24 +334,6 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 				return true;
 		}
 		return false;
-	}
-
-	/**
-	 * A method used when a certain node replicator needs to request a file. The method is strictly called remotely,
-	 * and becomes solely a tool for the node replicator which is trying to send a file.
-	 * So in essence,the sendFile method is used locally by a replicator, which makes a remote call to the 
-	 * remote replicator, telling it to make the TCP file request from the calling node.
-	 * 
-	 * @param String : fileName
-	 * @param String : fileServerNodeIP : the IP address of the node to request a file from. So the remote node calling this method remotely, will
-	 * always provide its own nodeIP, as seen in the private sendFile method.
-	 */
-	@Override
-	public void receiveFile(String fileName, String fileServerNodeIP) throws RemoteException
-	{
-		TCP fileClient = null;
-		fileClient = new TCP(tcpFileTranferPort, fileServerNodeIP);
-		fileClient.receiveFile(fileName);
 	}
 
 	/**
@@ -499,12 +499,6 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		this.dnsIP = dnsIP;
 		this.nsi = nameServerInterface;
 		this.hostName = hostName;
-
-		// Init replicator rmi skeleton, by binding the object to the already running registry
-		ri = this;
-		replicatorRMI.bindObject("ReplicatorInterface", ri, nodeIP, dnsPort);
-		// Replicate all local files first
-		replicateLocalFiles();
 	}
 
 	/**
@@ -518,7 +512,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	public void run()
 	{
 		localFiles = findLocalFiles();
-
+		
 		/*
 		 * This block listens in another thread for incoming requests by other nodes who wish to receive files That's all there is to it for
 		 * sending files.
@@ -528,7 +522,13 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		{
 			fileServer.listenToSendFile();
 		}).start();
-
+		
+		// Init replicator rmi skeleton, by binding the object to the already running registry
+		ri = this;
+		replicatorRMI.bindObject("ReplicatorInterface", ri, nodeIP, dnsPort);
+		// Replicate all local files first
+		replicateLocalFiles();
+		
 		// This line is where startup ends! From here on out, everything update related is handled.
 
 		/*
