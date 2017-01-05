@@ -295,11 +295,13 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	 */
 	public void deleteFileRecordByFileName(String fileName)
 	{
+		FileRecord toRemove = null;
 		for (FileRecord fr : fileRecords)
 		{
 			if (fr.getFileName().equals(fileName))
-				fileRecords.remove(fr);
+				toRemove = fr;
 		}
+		fileRecords.remove(toRemove);
 	}
 
 	/**
@@ -501,6 +503,8 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		// Init replicator rmi skeleton, by binding the object to the already running registry
 		ri = this;
 		replicatorRMI.bindObject("ReplicatorInterface", ri, nodeIP, dnsPort);
+		// Replicate all local files first
+		replicateLocalFiles();
 	}
 
 	/**
@@ -524,18 +528,6 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		{
 			fileServer.listenToSendFile();
 		}).start();
-
-		/*
-		 * This block creates the name server stub to use the NS its remote methods
-		 */
-		SystemyLogger.log(Level.INFO, logName + "Trying to set up the nameserver stub for the first time in the replicator.");
-		// RMI<NameServerInterface> rmi = new RMI<NameServerInterface>();
-		// no need to get the nameserver stub, because we already pass it in the constructor.
-		// nsi = nameServerRMI.getStub(nsi, remoteNSName, dnsIP, dnsPort);
-		SystemyLogger.log(Level.INFO, logName + "dnsip : " + dnsIP + ", port : " + dnsPort + "remotename : " + remoteNSName);
-
-		// Replicate all local files first
-		replicateLocalFiles();
 
 		// This line is where startup ends! From here on out, everything update related is handled.
 
