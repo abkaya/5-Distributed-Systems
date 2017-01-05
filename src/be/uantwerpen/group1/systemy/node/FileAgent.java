@@ -21,6 +21,8 @@ public class FileAgent implements Runnable, Serializable
 	private static String logName = Node.class.getName() + " >> ";
 
 	private NodeInterface nodeInterface;
+	
+	private NodeInterface nextNodeInterface;
 
 	private HashMap<String, String> fileListAgent;
 	private boolean agentFinishedWithUpdate = false;
@@ -48,6 +50,10 @@ public class FileAgent implements Runnable, Serializable
 	public boolean IsAgentFinishedWithUpdate()
 	{
 		return agentFinishedWithUpdate;
+	}
+	
+	public void setNextNodeInterface(NodeInterface nextNodeInterface){
+		this.nextNodeInterface = nextNodeInterface;
 	}
 
 	public Boolean getPermissionToDownload()
@@ -83,7 +89,6 @@ public class FileAgent implements Runnable, Serializable
 	/**
 	 * 
 	 */
-	@Override
 	public void run()
 	{
 		try
@@ -91,11 +96,17 @@ public class FileAgent implements Runnable, Serializable
 			SystemyLogger.log(Level.INFO, logName + "Agent starts on node " + nodeInterface.getHostname());
 			TimeUnit.SECONDS.sleep(1);
 			SystemyLogger.log(Level.INFO, logName + "Agent finished on node " + nodeInterface.getHostname());
+			SystemyLogger.log(Level.INFO, logName + "Sending the fileAgent to  " + nextNodeInterface.getHostname()+" in two seconds");
+			TimeUnit.SECONDS.sleep(2);
+			
+			//when the fileAgent is ready with its tasks, move it along to the next node
+			nextNodeInterface.passFileAgent(this);
 		} catch (RemoteException | InterruptedException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 
 		// setAgentFinished(false);
 		// setAgentFinished(false);
@@ -215,5 +226,6 @@ public class FileAgent implements Runnable, Serializable
 			SystemyLogger.log(Level.SEVERE, e.getMessage());
 		}
 	}
+
 
 }
