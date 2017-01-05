@@ -3,8 +3,11 @@ package be.uantwerpen.group1.systemy.node;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 
@@ -13,6 +16,7 @@ import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
 import be.uantwerpen.group1.systemy.networking.RMI;
+import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
@@ -44,7 +48,18 @@ public class Node implements NodeInterface
 	private static NodeInterface nextNodeInterface = null;
 	private static NodeInterface previousNodeInterface = null;
 
+	//replicator
 	private static Replicator rep = null;
+	
+	//fileAgent
+	private static FileAgent fileAgent = null;
+	private static Boolean fileAgentInNetwork = false;
+	private static ArrayList<String> fileList;
+	private static String fileToLock;
+	private static Boolean finishedDownload;
+	//TCP (only for the agents? I assume)
+	private static TCP tcpServer = null;
+	private static TCP tcpClient = null;
 
 	static RMI<NameServerInterface> rmiNameServerInterface = null;
 
@@ -89,11 +104,21 @@ public class Node implements NodeInterface
 		// init loopback interface
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
+		
+		fileList = (ArrayList<String>) loadingInitialFiles();
+		SystemyLogger.log(Level.INFO, "Local files are loaded into the fileList");
 
 		listenToNewNodes();
 		discover();
 		initShutdownHook();
 		startHeartbeat();
+		
+		tcpServerSocket();
+		// SystemyLogger.log(Level.INFO, "Starting TCP Socket");
+		// tcpServerSocket();
+		// SystemyLogger.log(Level.INFO, "Starting the agent");
+		// startFileAgent();
+		// passFileAgentInNetwork();
 
 		/*
 		 * Once the nameserver interface stub is retrieved, the replicator can run autonomously.
@@ -111,9 +136,9 @@ public class Node implements NodeInterface
 			}
 		}
 
-		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
-		rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
-		rep.run();
+		//SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
+		//rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
+		//rep.run();
 	}
 
 	/**
@@ -378,4 +403,107 @@ public class Node implements NodeInterface
 			status += "none";
 		return status;
 	}
+	
+	/**
+	 * Returns a list of the local files within the relative directory localFiles/
+	 * @return List<String> localFiles
+	 */
+	public static List<String> loadingInitialFiles()
+	{
+		List<String> localFiles = new ArrayList<String>();
+		File[] files = new File("localFiles/").listFiles();
+		for (File file : files)
+		{
+			if (file.isFile())
+			{
+				localFiles.add(file.getName());
+			}
+		}
+		return localFiles;
+	}
+	private static void startFileAgent()
+	{
+			try
+			{
+				if(nameServerInterface.getRegisterSize() == 1 && !fileAgentInNetwork)
+				{
+					fileAgentInNetwork = true;
+					fileAgent.setNodeInterface(myNodeInterface);
+					myNodeInterface.passFileAgent(fileAgent);
+				}
+			} catch (RemoteException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	}
+	/**
+	 * Start the TCP listening socket for file transfer
+	 */
+	public static void tcpServerSocket()
+	{
+		new Thread(() ->
+		{
+			tcpServer.listenToSendFile();
+		}).start();
+	}
+	
+	/**
+	 * This method will lock the requested file
+	 * @param fileName: the name of the file for locking
+	 */
+	public static void LockFile(String fileName)
+	{
+		fileToLock = fileName;
+	}
+	/**
+	 * This method will download the file and 
+	 */
+	public static void downloadFile()
+	{
+		tcpClient.receiveFile(fileToLock);
+	}
+	@Override
+	public ArrayList<String> getCurrentNodeOwner() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return (ArrayList<String>) rep.getOwnedFiles();
+	}
+	@Override
+	public String getNameFileToDownload() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return fileToLock;
+	}
+	@Override
+	public String getHostname() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return me.getName();
+	}
+	@Override
+	public void passFileAgent(FileAgent fileAgent) throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		this.fileAgent = fileAgent;
+		fileAgentInNetwork = true;
+		
+	}
+	@Override
+	public void updateFileListNode(ArrayList<String> fileList) throws RemoteException
+	{
+		Node.fileList = fileList;
+	}
+	@Override
+	public Boolean getFinishedDownload() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return finishedDownload;
+	}
+	public static int getRegisterSize() throws RemoteException
+	{
+		return nameServerInterface.getRegisterSize();
+		
+	}
 }
+ 
