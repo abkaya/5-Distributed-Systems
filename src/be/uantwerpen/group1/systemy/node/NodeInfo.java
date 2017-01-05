@@ -22,7 +22,6 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 	private String name;
 	private int hash;
 	private String ip;
-	private Boolean agentInNetwork = false;
 
 	/**
 	 * constructor using node name
@@ -66,11 +65,6 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 	{
 		return ip;
 	}
-	
-	public Boolean getAgentInNetwork()
-	{
-		return agentInNetwork;
-	}
 
 	// -----
 	// SET
@@ -90,11 +84,6 @@ public class NodeInfo implements Comparable<NodeInfo>, Serializable
 	public void setIP(String nodeIP)
 	{
 		this.ip = nodeIP;
-	}
-	
-	public void setAgentInNetwork(Boolean agentInNetwork)
-	{
-		this.agentInNetwork = agentInNetwork;
 	}
 
 	/**

@@ -17,7 +17,7 @@ public class FileAgent implements Runnable, Serializable
 {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private static String logName = Node.class.getName() + " >> ";
 
 	private NodeInterface nodeInterface;
@@ -31,10 +31,8 @@ public class FileAgent implements Runnable, Serializable
 	 * Constructor of the FileAgent
 	 * @param nodeInterface
 	 */
-	public FileAgent(NodeInterface nodeInterface)
+	public FileAgent()
 	{
-		// TODO Auto-generated constructor stub
-		this.nodeInterface = nodeInterface;
 
 	}
 
@@ -90,13 +88,15 @@ public class FileAgent implements Runnable, Serializable
 	{
 		try
 		{
+			SystemyLogger.log(Level.INFO, logName + "Agent starts on node " + nodeInterface.getHostname());
+			TimeUnit.SECONDS.sleep(1);
 			SystemyLogger.log(Level.INFO, logName + "Agent finished on node " + nodeInterface.getHostname());
-		} catch (RemoteException e)
+		} catch (RemoteException | InterruptedException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		// setAgentFinished(false);
 		// setAgentFinished(false);
 		// setPermissionToDownload(false);

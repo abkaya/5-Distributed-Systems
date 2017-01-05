@@ -26,6 +26,7 @@ public class Node implements NodeInterface
 	private static NodeInfo nextNode = null;
 	private static NodeInfo previousNode = null;
 	private static FileAgent fileAgent = null;
+	private static Boolean fileAgentInNetwork = false;
 	private static Replicator rep = null;
 	private static NameServerInterface nameServerInterface = null;
 	private static String dnsIP = null;
@@ -107,28 +108,7 @@ public class Node implements NodeInterface
 		discover();
 		initShutdownHook();
 		startHeartbeat();
-
-		try
-		{
-			TimeUnit.SECONDS.sleep(5);
-		} catch (InterruptedException e1)
-		{
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-		startFileAgent();
-
-		try
-		{
-			TimeUnit.SECONDS.sleep(5);
-		} catch (InterruptedException e1)
-		{
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-		passFileAgentInNetwork();
+		tcpServerSocket();
 
 		// SystemyLogger.log(Level.INFO, "Starting TCP Socket");
 		// tcpServerSocket();
@@ -342,75 +322,23 @@ public class Node implements NodeInterface
 
 	private static void startFileAgent()
 	{
-
-		try
-		{
-			if (getRegisterSize() == 1)
-			{
-				SystemyLogger.log(Level.INFO, logName + "There is only one node in the network");
-
-			} else
-			{
-				fileAgent = new FileAgent(myNodeInterface);
-				SystemyLogger.log(Level.INFO, logName + "FileAgent started on node " + me.getName());
-			}
-		} catch (RemoteException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-	}
-
-	/**
-	 * This method will start a thread for passing the fileAgent to the other nodes. 
-	 * When the fileAgent is finished with his job on the currentNode a boolean will be high and
-	 * fileList on the node can be updated and the 
-	 */
-	private static void passFileAgentInNetwork()
-	{
-		new Thread(() ->
-		{
 			try
 			{
-				while (true)
+				if(nameServerInterface.getRegisterSize() == 1 && !fileAgentInNetwork)
 				{
-					if (getRegisterSize() > 1 && fileAgent != null)
-					{
-						fileAgent.run();
-
-						try
-						{
-							Thread.sleep(5000);
-						} catch (InterruptedException e1)
-						{
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-
-						fileAgent.setNodeInterface(nextNodeInterface);
-						try
-						{
-							nextNodeInterface.passFileAgent(fileAgent);
-						} catch (RemoteException e)
-						{
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-
+					fileAgentInNetwork = true;
+					fileAgent.setNodeInterface(myNodeInterface);
+					myNodeInterface.passFileAgent(fileAgent);
 				}
 			} catch (RemoteException e)
 			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
-		}).start();
 	}
 
 	/**
-	 * 
+	 * Start the TCP listening socket for file transfer
 	 */
 	public static void tcpServerSocket()
 
@@ -581,6 +509,8 @@ public class Node implements NodeInterface
 	{
 		// TODO Auto-generated method stub
 		this.fileAgent = fileAgent;
+		fileAgentInNetwork = true;
+		
 	}
 
 	@Override
