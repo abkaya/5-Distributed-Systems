@@ -255,8 +255,17 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			this.localFiles.add(fileName);
 
 		ReplicatorInterface tempRi = null;
-		tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", remoteNodeIP, 1099);
-
+		while(tempRi == null){
+			tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", remoteNodeIP, 1099);
+			try
+			{
+				Thread.sleep(500);
+			} catch (InterruptedException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		try
 		{
 			if (!tempRi.hasDownloadedFile(fileName))
@@ -279,8 +288,17 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	private void sendFile(String fileName, String targetNodeIP)
 	{
 		ReplicatorInterface tempRi = null;
-		tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", targetNodeIP, 1099);
-
+		while(tempRi == null){
+			tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", targetNodeIP, 1099);
+			try
+			{
+				Thread.sleep(500);
+			} catch (InterruptedException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		try
 		{
 			tempRi.receiveFile(fileName, nodeIP);
