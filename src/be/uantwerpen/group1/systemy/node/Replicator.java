@@ -23,6 +23,8 @@ import java.nio.file.*;
  * and network member node updates.
  * The localFiles folder changes are detected using the observer pattern on a watchservice, which  in its turn is event based.
  * 
+ * Keeps a records of localFiles, ownedFiles, downloadedFiles and a FileRecord for every file this node is an owner of.
+ * 
  * @author Abdil Kaya
  */
 public class Replicator implements ReplicatorInterface, Runnable, java.util.Observer

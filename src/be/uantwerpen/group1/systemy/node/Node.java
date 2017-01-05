@@ -16,7 +16,8 @@ import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
-public class Node implements NodeInterface {
+public class Node implements NodeInterface
+{
 	private static String logName = Node.class.getName() + " >> ";
 
 	private static NodeInfo me = null;
@@ -42,16 +43,17 @@ public class Node implements NodeInterface {
 	private static NodeInterface myNodeInterface = null;
 	private static NodeInterface nextNodeInterface = null;
 	private static NodeInterface previousNodeInterface = null;
-	
+
 	private static Replicator rep = null;
-	
+
 	static RMI<NameServerInterface> rmiNameServerInterface = null;
 
 	/**
-	 * Constructor only for debug purposes
-	 * @param ipAddress_debug: if where in debug mode, the ipaddress is the ipaddress for the nameserver, otherwise it's zero
+	 * Constructor for debug purposes only
+	 * @param ipAddress_debug: When in debug mode, the ip address is the ip address of the nameserver, and zero otherwise
 	 */
-	public Node(String nodeIP, boolean debugMode) {
+	public Node(String nodeIP, boolean debugMode)
+	{
 		Node.nodeIp = nodeIP;
 		Node.debugMode = debugMode;
 	}
@@ -59,7 +61,8 @@ public class Node implements NodeInterface {
 	/**
 	 * Constructor for RMI
 	 */
-	public Node() {
+	public Node()
+	{
 		// empty
 	}
 
@@ -67,9 +70,11 @@ public class Node implements NodeInterface {
 	 * @param args: first argument is the nodeName (optional)
 	 * @throws IOException 
 	 */
-	public static void main(String args[]) throws IOException {
+	public static void main(String args[]) throws IOException
+	{
 
-		if (!debugMode) {
+		if (!debugMode)
+		{
 			nodeIp = Interface.getIP();
 		}
 
@@ -85,17 +90,17 @@ public class Node implements NodeInterface {
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
-		
 		listenToNewNodes();
 		discover();
 		initShutdownHook();
 		startHeartbeat();
-		
+
 		/*
-		 * Once the nameserver interface stub is retrieved, replicator can run autonomously.
+		 * Once the nameserver interface stub is retrieved, the replicator can run autonomously.
 		 */
-		while(dnsIP == null){
-			 try
+		while (dnsIP == null)
+		{
+			try
 			{
 				Thread.sleep(100);
 				SystemyLogger.log(Level.INFO, logName + "No response from nameserver: ");
@@ -105,23 +110,27 @@ public class Node implements NodeInterface {
 				e.printStackTrace();
 			}
 		}
-		
+
 		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
 		rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
 		rep.run();
 	}
 
 	/**
-	 * Method creates and starts the shutdown hook to notify neighbors and the nameserver
+	 * Method creates and starts the shutdown hook to notify neighbours and the nameserver
 	 */
-	private static void initShutdownHook() {
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+	private static void initShutdownHook()
+	{
+		Runtime.getRuntime().addShutdownHook(new Thread(() ->
+		{
 			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure started");
-			try {
+			try
+			{
 				nextNodeInterface.updatePreviousNode(nextNode);
 				previousNodeInterface.updateNextNode(previousNode);
 				nameServerInterface.removeNode(me.getHash());
-			} catch (Exception e) {
+			} catch (Exception e)
+			{
 				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 			}
 			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure ended");
@@ -131,7 +140,8 @@ public class Node implements NodeInterface {
 	/**
 	 * Send discover request with node data to nameserver
 	 */
-	private static void discover() {
+	private static void discover()
+	{
 		// Request
 		String Message = me.toData();
 		MulticastSender.send("234.0.113.0", MULTICASTPORT, Message);
@@ -142,50 +152,61 @@ public class Node implements NodeInterface {
 	 * Listen to multicast responses on discover requests
 	 * This method creates and starts a thread
 	 */
-	private static void listenToNewNodes() {
+	private static void listenToNewNodes()
+	{
 		/*
 		 * Listen for new nodes
 		 */
 		MulticastListener multicastListener = new MulticastListener("234.0.113.0", MULTICASTPORT);
-		new Thread(() -> {
-			while (true) {
-				try {
+		new Thread(() ->
+		{
+			while (true)
+			{
+				try
+				{
 					String receivedMulticastMessage = multicastListener.receive().trim();
 					SystemyLogger.log(Level.INFO, logName + "Received multicast message: " + receivedMulticastMessage);
 					String messageComponents[] = receivedMulticastMessage.split(",");
 					NodeInfo newNode = new NodeInfo(messageComponents[0], messageComponents[2]);
 					SystemyLogger.log(Level.INFO, logName + "New node! " + newNode.toString() + " at " + newNode.getIP());
 
-					//When a new node is found, replicate your local files appropriately, whilst adjusting the lists and file records.
-					if(rep!=null)
+					// When a new node is found, replicate your local files appropriately, whilst adjusting the lists and file records.
+					if (rep != null)
 						rep.replicateLocalFiles();
-					
-					if (nextNode == null || previousNode == null) {
+
+					if (nextNode == null || previousNode == null)
+					{
 						// no nodes -> point to self
 						myNodeInterface.updateNextNode(newNode);
 						myNodeInterface.updatePreviousNode(newNode);
 						SystemyLogger.log(Level.INFO, logName + "setting new node (probably myself) as next and previous node");
-					} else if (newNode.getHash() == me.getHash()) {
+					} else if (newNode.getHash() == me.getHash())
+					{
 						SystemyLogger.log(Level.INFO, logName + "New node is myself while already having neigbors");
-					} else if (nextNode.getHash() == me.getHash() && previousNode.getHash() == me.getHash()) {
-						// pointing to myself -> point in both ways to 2de known node
+					} else if (nextNode.getHash() == me.getHash() && previousNode.getHash() == me.getHash())
+					{
+						// pointing to myself -> point in both ways to 2nd known node
 						myNodeInterface.updateNextNode(newNode);
 						myNodeInterface.updatePreviousNode(newNode);
 						nextNodeInterface.updatePreviousNode(me);
 						previousNodeInterface.updateNextNode(me);
-					} else if (newNode.isNewNext(me, nextNode)) {
+					} else if (newNode.isNewNext(me, nextNode))
+					{
 						// New next node
 						myNodeInterface.updateNextNode(newNode);
 						nextNodeInterface.updatePreviousNode(me);
-					} else if (newNode.isNewPrevious(me, previousNode)) {
+					} else if (newNode.isNewPrevious(me, previousNode))
+					{
 						// New previous node
 						myNodeInterface.updatePreviousNode(newNode);
 						previousNodeInterface.updateNextNode(me);
-					} else {
+					} else
+					{
 						SystemyLogger.log(Level.INFO, logName + "Node is not a (new) neighbor");
 					}
 					SystemyLogger.log(Level.INFO, logName + networkStatus());
-				} catch(RemoteException e) {
+				} catch (RemoteException e)
+				{
 					SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 				}
 			}
@@ -193,49 +214,63 @@ public class Node implements NodeInterface {
 	}
 
 	/**
-	 * Thread that checks whether or not neighbours are still alive
+	 * Thread which checks whether or not neighbours are still alive
 	 */
-	private static void startHeartbeat() {
-		new Thread(() -> {
-			while(true) {
-				if (nextNode != null) {
+	private static void startHeartbeat()
+	{
+		new Thread(() ->
+		{
+			while (true)
+			{
+				if (nextNode != null)
+				{
 					// ping next node
-					try {
-						if( !InetAddress.getByName(nextNode.getIP()).isReachable(15) ) {
+					try
+					{
+						if (!InetAddress.getByName(nextNode.getIP()).isReachable(15))
+						{
 							SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
 							nextFailed();
 						}
-					} catch (Exception e) {
+					} catch (Exception e)
+					{
 						SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 					}
 				}
-				if (previousNode != null) {
+				if (previousNode != null)
+				{
 					// ping previous node
-					try {
-						if( !InetAddress.getByName(nextNode.getIP()).isReachable(15) ) {
+					try
+					{
+						if (!InetAddress.getByName(nextNode.getIP()).isReachable(15))
+						{
 							SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
 							nextFailed();
 						}
-					} catch (Exception e) {
+					} catch (Exception e)
+					{
 						SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 					}
 				}
 				// wait for 3 seconds
-				try {
+				try
+				{
 					TimeUnit.SECONDS.sleep(3);
-				} catch (Exception e) {
+				} catch (Exception e)
+				{
 					SystemyLogger.log(Level.SEVERE, logName + "Unable to perform sleep");
 				}
 			}
 		}).start();
 	}
 
-
 	/**
-	 * If previous node has failed, replace it in myself by the previous of the failed node and remove the failed node from register
+	 * If previous node has failed, replace this node's previous node by the failed node's previous node and remove the previous node from the name server's registry
 	 */
-	public static void previousFailed() {
-		try {
+	public static void previousFailed()
+	{
+		try
+		{
 			NodeInfo failedNode = previousNode;
 			// get new previous node from nameserver
 			int newPreviousHash = nameServerInterface.getPreviousNode(failedNode.getHash());
@@ -246,16 +281,19 @@ public class Node implements NodeInterface {
 			previousNodeInterface.updateNextNode(me);
 			// remove failed node from register on nameserver
 			nameServerInterface.removeNode(failedNode.getHash());
-		} catch (RemoteException e) {
+		} catch (RemoteException e)
+		{
 			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 		}
 	}
 
 	/**
-	 * If next node is failed, replace it in myself by the next of the failed node and remove the failed node from register
+	 * If next node has failed, replace this node's next node by the failed node's next node and remove the failed node from the name server's registry
 	 */
-	public static void nextFailed() {
-		try {
+	public static void nextFailed()
+	{
+		try
+		{
 			NodeInfo failedNode = nextNode;
 			// get new next node from nameserver
 			int newNextHash = nameServerInterface.getNextNode(failedNode.getHash());
@@ -266,7 +304,8 @@ public class Node implements NodeInterface {
 			nextNodeInterface.updatePreviousNode(me);
 			// remove failed node from register on nameserver
 			nameServerInterface.removeNode(failedNode.getHash());
-		} catch (RemoteException e) {
+		} catch (RemoteException e)
+		{
 			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 		}
 	}
@@ -278,7 +317,8 @@ public class Node implements NodeInterface {
 	 * @param IP: new NS IP
 	 */
 	@Override
-	public void setDNSIP(String IP) {
+	public void setDNSIP(String IP)
+	{
 		dnsIP = IP;
 		SystemyLogger.log(Level.INFO, logName + "NameServer is on IP: " + dnsIP);
 		rmiNameServerInterface = new RMI<NameServerInterface>();
@@ -292,7 +332,8 @@ public class Node implements NodeInterface {
 	* @param newNode: NodeInfo of new next node
 	*/
 	@Override
-	public void updateNextNode(NodeInfo newNode) {
+	public void updateNextNode(NodeInfo newNode)
+	{
 		nextNode = newNode;
 		nextNodeInterface = rmiNodeClient.getStub(nextNodeInterface, "node", nextNode.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "New next node " + nextNode.toString());
@@ -305,7 +346,8 @@ public class Node implements NodeInterface {
 	* @param newNode: NodeInfo of new previous node
 	*/
 	@Override
-	public void updatePreviousNode(NodeInfo newNode) {
+	public void updatePreviousNode(NodeInfo newNode)
+	{
 		previousNode = newNode;
 		previousNodeInterface = rmiNodeClient.getStub(previousNodeInterface, "node", previousNode.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "New previous node " + previousNode.toString());
@@ -317,8 +359,9 @@ public class Node implements NodeInterface {
 	 * 
 	 * @return String: status message
 	 */
-	private static String networkStatus() {
-		String status =  "Current situation: ";
+	private static String networkStatus()
+	{
+		String status = "Current situation: ";
 		if (previousNode != null)
 			status += previousNode.toString();
 		else
