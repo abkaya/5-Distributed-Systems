@@ -85,13 +85,14 @@ public class Node implements NodeInterface {
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
+		
 		listenToNewNodes();
 		discover();
 		initShutdownHook();
 		startHeartbeat();
-
+		
 		/*
-		 * once the DNS IP address is known, the replicator can start and run autonomously.
+		 * Once the nameserver interface stub is retrieved, replicator can run autonomously.
 		 */
 		while(dnsIP == null){
 			 try
@@ -104,6 +105,7 @@ public class Node implements NodeInterface {
 				e.printStackTrace();
 			}
 		}
+		
 		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
 		rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
 		rep.run();
@@ -155,7 +157,8 @@ public class Node implements NodeInterface {
 					SystemyLogger.log(Level.INFO, logName + "New node! " + newNode.toString() + " at " + newNode.getIP());
 
 					//When a new node is found, replicate your local files appropriately, whilst adjusting the lists and file records.
-					rep.replicateLocalFiles();
+					if(rep!=null)
+						rep.replicateLocalFiles();
 					
 					if (nextNode == null || previousNode == null) {
 						// no nodes -> point to self
