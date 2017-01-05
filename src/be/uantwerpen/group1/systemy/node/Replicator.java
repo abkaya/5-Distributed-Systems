@@ -29,7 +29,7 @@ import java.nio.file.*;
  */
 public class Replicator implements ReplicatorInterface, Runnable, java.util.Observer
 {
-	private static String logName = Node.class.getName() + " >> ";
+	private static String logName = Replicator.class.getName() + " >> ";
 
 	List<String> ownedFiles = new ArrayList<String>();
 	List<String> localFiles = new ArrayList<String>();
