@@ -280,8 +280,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 				tempRi.addFileRecord(new FileRecord(fileName, remoteNodeIP, nodeIP));
 		} catch (RemoteException e)
 		{
-			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute the remote owner replication process methods." + e
-					.getMessage() + "------------------" + e.getStackTrace());
+			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute the remote owner replication process methods. Is object serializable?");
 		}
 		SystemyLogger.log(Level.INFO, logName + "Added file name and record to the appropriate lists, both locally and remotely.");
 	}
