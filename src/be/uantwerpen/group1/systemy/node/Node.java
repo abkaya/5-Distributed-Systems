@@ -43,6 +43,8 @@ public class Node implements NodeInterface {
 	private static NodeInterface nextNodeInterface = null;
 	private static NodeInterface previousNodeInterface = null;
 	
+	private static Replicator rep = null;
+	
 	static RMI<NameServerInterface> rmiNameServerInterface = null;
 
 	/**
@@ -83,36 +85,14 @@ public class Node implements NodeInterface {
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
+		
 		listenToNewNodes();
 		discover();
 		initShutdownHook();
 		startHeartbeat();
-
-
-
+		
 		/*
-		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
-		SystemyLogger.log(Level.INFO, logName + "DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n " + "DNS Server RMI tree map return : "
-				+ nameServerInterface.getIPAddress(requestedFile));
-
-		//Temporarily using the same node as if it were some other node hosting files
-
-		TCP fileServer = new TCP(me.getIP(), tcpFileTranferPort);
-		new Thread(() ->
-		{
-
-			fileServer.listenToSendFile();
-		}).start();
-
-
-		//request the file from the server hosting it, according to the dns server
-		TCP fileClient = new TCP(tcpFileTranferPort, nameServerInterface.getIPAddress(requestedFile));
-		fileClient.receiveFile(requestedFile);
-		//As simple as that!
-		*/
-
-		/*
-		 * once the DNS IP address is known, the replicator can start and run autonomously.
+		 * Once the nameserver interface stub is retrieved, replicator can run autonomously.
 		 */
 		while(dnsIP == null){
 			 try
@@ -125,8 +105,9 @@ public class Node implements NodeInterface {
 				e.printStackTrace();
 			}
 		}
+		
 		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
-		Replicator rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
+		rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
 		rep.run();
 	}
 
@@ -175,6 +156,11 @@ public class Node implements NodeInterface {
 					String messageComponents[] = receivedMulticastMessage.split(",");
 					NodeInfo newNode = new NodeInfo(messageComponents[0], messageComponents[2]);
 					SystemyLogger.log(Level.INFO, logName + "New node! " + newNode.toString() + " at " + newNode.getIP());
+
+					//When a new node is found, replicate your local files appropriately, whilst adjusting the lists and file records.
+					if(rep!=null)
+						rep.replicateLocalFiles();
+					
 					if (nextNode == null || previousNode == null) {
 						// no nodes -> point to self
 						myNodeInterface.updateNextNode(newNode);
@@ -208,7 +194,7 @@ public class Node implements NodeInterface {
 	}
 
 	/**
-	 * Thread that checks if neighbors are still alive
+	 * Thread that checks whether or not neighbours are still alive
 	 */
 	private static void startHeartbeat() {
 		new Thread(() -> {
@@ -247,7 +233,7 @@ public class Node implements NodeInterface {
 
 
 	/**
-	 * If previous node is failed, replace it in myself by the previous of the failed node and remove the failed node from register
+	 * If previous node has failed, replace it in myself by the previous of the failed node and remove the failed node from register
 	 */
 	public static void previousFailed() {
 		try {

@@ -139,7 +139,7 @@ public class NameServerRegister implements Serializable {
 	 * This method removes a node from the register based on his hash code
 	 * @param nodeName: this is the name of the node that's need to be removed
 	 */
-	public void removeNodeFromRegister(Integer nodeHash) {
+	public void removeNodeFromRegister(int nodeHash) {
 		if (register.containsKey(nodeHash)) {
 			register.remove(nodeHash);
 			SystemyLogger.log(Level.INFO, logName + nodeHash + " is removed from the register");
