@@ -108,23 +108,16 @@ public class Node implements NodeInterface
 		initShutdownHook();
 		startHeartbeat();
 
+		try
+		{
+			TimeUnit.SECONDS.sleep(5);
+		} catch (InterruptedException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
-		/**
-		 * Abdil, dus de FileAgent start op 1 node en wordt dan doorgegeven naar de andere node maar daar blijft het dan ook bij. Reden?
-		 * Wel de andere node is zich er niet van bewust dat er een fileAgent in het netwerk aanwezig is en zal via RMI upgedated moeten worden...
-		 * 
-		 * Daar zit ik dus klem.. Ik heb in NodeInfo een veld voorzien agentInNetwork (boolean) maar ik heb geen flauw benul hoe ik die nextnode, previousnode (nodeinfo) geüpdated krijg
-		 * 
-		 * 
-		 */
-		try
-		{
-			TimeUnit.SECONDS.sleep(5);
-		} catch (InterruptedException e1)
-		{
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		startFileAgent();
 
 		try
 		{
@@ -134,14 +127,8 @@ public class Node implements NodeInterface
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-
-		if (fileAgent == null)
-		{
-
-		} else
-		{
-			passFileAgentInNetwork();
-		}
+		
+		passFileAgentInNetwork();
 
 		// SystemyLogger.log(Level.INFO, "Starting TCP Socket");
 		// tcpServerSocket();
@@ -360,12 +347,10 @@ public class Node implements NodeInterface
 		{
 			if (getRegisterSize() == 1)
 			{
-
 				SystemyLogger.log(Level.INFO, logName + "There is only one node in the network");
 
 			} else
 			{
-
 				fileAgent = new FileAgent(myNodeInterface);
 				SystemyLogger.log(Level.INFO, logName + "FileAgent started on node " + me.getName());
 			}
@@ -386,29 +371,39 @@ public class Node implements NodeInterface
 	{
 		new Thread(() ->
 		{
-			while (true)
+			try
 			{
-				fileAgent.run();
+				while (true)
+				{
+					if (getRegisterSize() > 1 && fileAgent != null)
+					{
+						fileAgent.run();
 
-				try
-				{
-					Thread.sleep(5000);
-				} catch (InterruptedException e1)
-				{
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+						try
+						{
+							Thread.sleep(5000);
+						} catch (InterruptedException e1)
+						{
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+
+						fileAgent.setNodeInterface(nextNodeInterface);
+						try
+						{
+							nextNodeInterface.passFileAgent(fileAgent);
+						} catch (RemoteException e)
+						{
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+
 				}
-
-				fileAgent.setNodeInterface(nextNodeInterface);
-				try
-				{
-					nextNodeInterface.passFileAgent(fileAgent);
-				} catch (RemoteException e)
-				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
+			} catch (RemoteException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
 		}).start();
