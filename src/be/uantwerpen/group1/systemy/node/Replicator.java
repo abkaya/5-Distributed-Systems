@@ -255,15 +255,19 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			this.localFiles.add(fileName);
 
 		ReplicatorInterface tempRi = null;
-		while(tempRi == null){
+		while (tempRi == null)
+		{
 			tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", remoteNodeIP, 1099);
-			try
+			if (tempRi == null)
 			{
-				Thread.sleep(500);
-			} catch (InterruptedException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				try
+				{
+					Thread.sleep(10);
+				} catch (InterruptedException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		try
@@ -276,7 +280,8 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 				tempRi.addFileRecord(new FileRecord(fileName, remoteNodeIP, nodeIP));
 		} catch (RemoteException e)
 		{
-			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute the remote owner replication process methods.");
+			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute the remote owner replication process methods." + e
+					.getMessage() + "------------------" + e.getStackTrace());
 		}
 		SystemyLogger.log(Level.INFO, logName + "Added file name and record to the appropriate lists, both locally and remotely.");
 	}
@@ -288,15 +293,19 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	private void sendFile(String fileName, String targetNodeIP)
 	{
 		ReplicatorInterface tempRi = null;
-		while(tempRi == null){
+		while (tempRi == null)
+		{
 			tempRi = replicatorRMI.getStub(tempRi, "ReplicatorInterface", targetNodeIP, 1099);
-			try
+			if (tempRi == null)
 			{
-				Thread.sleep(500);
-			} catch (InterruptedException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				try
+				{
+					Thread.sleep(10);
+				} catch (InterruptedException e)
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		try
@@ -530,7 +539,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	public void run()
 	{
 		localFiles = findLocalFiles();
-		
+
 		/*
 		 * This block listens in another thread for incoming requests by other nodes who wish to receive files That's all there is to it for
 		 * sending files.
@@ -540,13 +549,13 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		{
 			fileServer.listenToSendFile();
 		}).start();
-		
+
 		// Init replicator rmi skeleton, by binding the object to the already running registry
 		ri = this;
 		replicatorRMI.bindObject("ReplicatorInterface", ri, nodeIP, dnsPort);
 		// Replicate all local files first
 		replicateLocalFiles();
-		
+
 		// This line is where startup ends! From here on out, everything update related is handled.
 
 		/*

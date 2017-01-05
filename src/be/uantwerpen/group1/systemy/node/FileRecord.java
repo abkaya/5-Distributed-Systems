@@ -1,5 +1,7 @@
 package be.uantwerpen.group1.systemy.node;
 
+import java.io.Serializable;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,8 +11,12 @@ import java.util.List;
  *
  * @author Abdil Kaya
  */
-public class FileRecord
+public class FileRecord implements Serializable
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2434639336708225548L;
 	private String fileName;
 	private List<String> downloadedByNodes = new ArrayList<String>();
 	private String localByNode;

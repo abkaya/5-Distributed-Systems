@@ -97,7 +97,7 @@ public class Node implements NodeInterface {
 		while(dnsIP == null){
 			 try
 			{
-				Thread.sleep(1000);
+				Thread.sleep(100);
 				SystemyLogger.log(Level.INFO, logName + "No response from nameserver: ");
 			} catch (InterruptedException e)
 			{
