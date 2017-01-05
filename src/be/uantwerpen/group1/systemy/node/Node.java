@@ -1,11 +1,10 @@
 package be.uantwerpen.group1.systemy.node;
 
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 
@@ -14,7 +13,6 @@ import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
 import be.uantwerpen.group1.systemy.networking.RMI;
-import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
@@ -25,19 +23,12 @@ public class Node implements NodeInterface
 	private static NodeInfo me = null;
 	private static NodeInfo nextNode = null;
 	private static NodeInfo previousNode = null;
-	private static FileAgent fileAgent = null;
-	private static Boolean fileAgentInNetwork = false;
-	private static Replicator rep = null;
 	private static NameServerInterface nameServerInterface = null;
 	private static String dnsIP = null;
 	private static String HOSTNAME = ParserXML.parseXML("Hostname");
 
 	private static String nodeIp;
 	private static boolean debugMode = false;
-
-	private static ArrayList<String> fileList;
-	private static String fileToLock;
-	private static Boolean finishedDownload;
 
 	private static final int MULTICASTPORT = Integer.parseInt(ParserXML.parseXML("MulticastPort"));
 	private static final String REMOTENSNAME = ParserXML.parseXML("RemoteNsName");
@@ -53,15 +44,13 @@ public class Node implements NodeInterface
 	private static NodeInterface nextNodeInterface = null;
 	private static NodeInterface previousNodeInterface = null;
 
+	private static Replicator rep = null;
+
 	static RMI<NameServerInterface> rmiNameServerInterface = null;
 
-	// TCP
-	private static TCP tcpServer = null;
-	private static TCP tcpClient = null;
-
 	/**
-	 * Constructor only for debug purposes
-	 * @param ipAddress_debug: if where in debug mode, the ipaddress is the ipaddress for the nameserver, otherwise it's zero
+	 * Constructor for debug purposes only
+	 * @param ipAddress_debug: When in debug mode, the ip address is the ip address of the nameserver, and zero otherwise
 	 */
 	public Node(String nodeIP, boolean debugMode)
 	{
@@ -101,50 +90,19 @@ public class Node implements NodeInterface
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
-		fileList = (ArrayList<String>) loadingInitialFiles();
-		SystemyLogger.log(Level.INFO, "Local files are loaded into the fileList");
-
 		listenToNewNodes();
 		discover();
 		initShutdownHook();
 		startHeartbeat();
-		tcpServerSocket();
-
-		// SystemyLogger.log(Level.INFO, "Starting TCP Socket");
-		// tcpServerSocket();
-		// SystemyLogger.log(Level.INFO, "Starting the agent");
-		// startFileAgent();
-		// passFileAgentInNetwork();
 
 		/*
-		// test to see whether our RMI class does its job properly. Spoiler alert: it does.
-		SystemyLogger.log(Level.INFO, logName + "DNS RMI IP address request for machine hosting file: 'HQImage.jpg' \n " + "DNS Server RMI tree map return : "
-				+ nameServerInterface.getIPAddress(requestedFile));
-		
-		//Temporarily using the same node as if it were some other node hosting files
-		
-		TCP fileServer = new TCP(me.getIP(), tcpFileTranferPort);
-		new Thread(() ->
-		{
-		
-			fileServer.listenToSendFile();
-		}).start();
-		
-		
-		//request the file from the server hosting it, according to the dns server
-		TCP fileClient = new TCP(tcpFileTranferPort, nameServerInterface.getIPAddress(requestedFile));
-		fileClient.receiveFile(requestedFile);
-		//As simple as that!
-		*/
-
-		/*
-		 * once the DNS IP address is known, the replicator can start and run autonomously.
+		 * Once the nameserver interface stub is retrieved, the replicator can run autonomously.
 		 */
 		while (dnsIP == null)
 		{
 			try
 			{
-				Thread.sleep(1000);
+				Thread.sleep(100);
 				SystemyLogger.log(Level.INFO, logName + "No response from nameserver: ");
 			} catch (InterruptedException e)
 			{
@@ -152,13 +110,14 @@ public class Node implements NodeInterface
 				e.printStackTrace();
 			}
 		}
-		// SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
-		// rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
-		// rep.run();
+
+		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
+		rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
+		rep.run();
 	}
 
 	/**
-	 * Method creates and starts the shutdown hook to notify neighbors and the nameserver
+	 * Method creates and starts the shutdown hook to notify neighbours and the nameserver
 	 */
 	private static void initShutdownHook()
 	{
@@ -171,8 +130,7 @@ public class Node implements NodeInterface
 				previousNodeInterface.updateNextNode(previousNode);
 				if (nameServerInterface != null)
 					nameServerInterface.removeNode(me.getHash());
-			} catch (Exception e)
-			{
+			} catch (Exception e) {
 				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 			}
 			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure ended");
@@ -211,6 +169,11 @@ public class Node implements NodeInterface
 					String messageComponents[] = receivedMulticastMessage.split(",");
 					NodeInfo newNode = new NodeInfo(messageComponents[0], messageComponents[2]);
 					SystemyLogger.log(Level.INFO, logName + "New node! " + newNode.toString() + " at " + newNode.getIP());
+
+					// When a new node is found, replicate your local files appropriately, whilst adjusting the lists and file records.
+					if (rep != null)
+						rep.replicateLocalFiles();
+
 					if (nextNode == null || previousNode == null)
 					{
 						// no nodes -> point to self
@@ -222,7 +185,7 @@ public class Node implements NodeInterface
 						SystemyLogger.log(Level.INFO, logName + "New node is myself while already having neigbors");
 					} else if (nextNode.getHash() == me.getHash() && previousNode.getHash() == me.getHash())
 					{
-						// pointing to myself -> point in both ways to 2de known node
+						// pointing to myself -> point in both ways to 2nd known node
 						myNodeInterface.updateNextNode(newNode);
 						myNodeInterface.updatePreviousNode(newNode);
 						nextNodeInterface.updatePreviousNode(me);
@@ -251,7 +214,7 @@ public class Node implements NodeInterface
 	}
 
 	/**
-	 * Thread that checks if neighbors are still alive
+	 * Thread which checks whether or not neighbours are still alive
 	 */
 	private static void startHeartbeat()
 	{
@@ -264,7 +227,7 @@ public class Node implements NodeInterface
 					// ping next node
 					try
 					{
-						if (!InetAddress.getByName(nextNode.getIP()).isReachable(5))
+						if (!InetAddress.getByName(nextNode.getIP()).isReachable(15))
 						{
 							SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
 							nextFailed();
@@ -279,7 +242,7 @@ public class Node implements NodeInterface
 					// ping previous node
 					try
 					{
-						if (!InetAddress.getByName(nextNode.getIP()).isReachable(5))
+						if (!InetAddress.getByName(nextNode.getIP()).isReachable(15))
 						{
 							SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
 							nextFailed();
@@ -302,57 +265,7 @@ public class Node implements NodeInterface
 	}
 
 	/**
-	 * Returns a list of the local files within the relative directory localFiles/
-	 * @return List<String> localFiles
-	 */
-	public static List<String> loadingInitialFiles()
-	{
-		List<String> localFiles = new ArrayList<String>();
-		File[] files = new File("localFiles/").listFiles();
-		for (File file : files)
-		{
-			if (file.isFile())
-			{
-				localFiles.add(file.getName());
-			}
-		}
-
-		return localFiles;
-	}
-
-	private static void startFileAgent()
-	{
-			try
-			{
-				if(nameServerInterface.getRegisterSize() == 1 && !fileAgentInNetwork)
-				{
-					fileAgentInNetwork = true;
-					fileAgent.setNodeInterface(myNodeInterface);
-					myNodeInterface.passFileAgent(fileAgent);
-				}
-			} catch (RemoteException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	}
-
-	/**
-	 * Start the TCP listening socket for file transfer
-	 */
-	public static void tcpServerSocket()
-
-	{
-		new Thread(() ->
-		{
-			tcpServer.listenToSendFile();
-
-		}).start();
-
-	}
-
-	/**
-	 * If previous node is failed, replace it in myself by the previous of the failed node and remove the failed node from register
+	 * If previous node has failed, replace this node's previous node by the failed node's previous node and remove the previous node from the name server's registry
 	 */
 	public static void previousFailed()
 	{
@@ -375,7 +288,7 @@ public class Node implements NodeInterface
 	}
 
 	/**
-	 * If next node is failed, replace it in myself by the next of the failed node and remove the failed node from register
+	 * If next node has failed, replace this node's next node by the failed node's next node and remove the failed node from the name server's registry
 	 */
 	public static void nextFailed()
 	{
@@ -464,71 +377,5 @@ public class Node implements NodeInterface
 		else
 			status += "none";
 		return status;
-	}
-
-	/**
-	 * This method will lock the requested file
-	 * @param fileName: the name of the file for locking
-	 */
-	public static void LockFile(String fileName)
-	{
-		fileToLock = fileName;
-	}
-
-	/**
-	 * This method will download the file and 
-	 */
-	public static void downloadFile()
-	{
-		tcpClient.receiveFile(fileToLock);
-	}
-
-	@Override
-	public ArrayList<String> getCurrentNodeOwner() throws RemoteException
-	{
-		// TODO Auto-generated method stub
-		return (ArrayList<String>) rep.getOwnedFiles();
-	}
-
-	@Override
-	public String getNameFileToDownload() throws RemoteException
-	{
-		// TODO Auto-generated method stub
-		return fileToLock;
-	}
-
-	@Override
-	public String getHostname() throws RemoteException
-	{
-		// TODO Auto-generated method stub
-		return me.getName();
-	}
-
-	@Override
-	public void passFileAgent(FileAgent fileAgent) throws RemoteException
-	{
-		// TODO Auto-generated method stub
-		this.fileAgent = fileAgent;
-		fileAgentInNetwork = true;
-		
-	}
-
-	@Override
-	public void updateFileListNode(ArrayList<String> fileList) throws RemoteException
-	{
-		Node.fileList = fileList;
-
-	}
-
-	@Override
-	public Boolean getFinishedDownload() throws RemoteException
-	{
-		// TODO Auto-generated method stub
-		return finishedDownload;
-	}
-
-	public static int getRegisterSize() throws RemoteException
-	{
-		return nameServerInterface.getRegisterSize();
 	}
 }
