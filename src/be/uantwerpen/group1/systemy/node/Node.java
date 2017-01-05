@@ -128,9 +128,9 @@ public class Node implements NodeInterface
 			{
 				nextNodeInterface.updatePreviousNode(nextNode);
 				previousNodeInterface.updateNextNode(previousNode);
-				nameServerInterface.removeNode(me.getHash());
-			} catch (Exception e)
-			{
+				if (nameServerInterface != null)
+					nameServerInterface.removeNode(me.getHash());
+			} catch (Exception e) {
 				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 			}
 			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure ended");
