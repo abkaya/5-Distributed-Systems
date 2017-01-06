@@ -12,4 +12,5 @@ public interface NodeInterface extends Remote {
 	void setDNSIP(String IP) throws RemoteException;
 	void updateNextNode(NodeInfo newNode) throws RemoteException;
 	void updatePreviousNode(NodeInfo newNode) throws RemoteException;
+	void replicateLocalFiles() throws RemoteException;
 }
