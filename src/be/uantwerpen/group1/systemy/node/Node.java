@@ -131,7 +131,8 @@ public class Node implements NodeInterface
 				if (nameServerInterface != null)
 					nameServerInterface.removeNode(me.getHash());
 				nextNodeInterface.replicateLocalFiles();
-			} catch (Exception e) {
+			} catch (Exception e)
+			{
 				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 			}
 			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure ended");
@@ -391,5 +392,14 @@ public class Node implements NodeInterface
 	public void replicateLocalFiles() throws RemoteException
 	{
 		rep.replicateLocalFiles();
+	}
+
+	/**
+	 * Method to print the current file records status on the replicator of a node
+	 */
+	@Override
+	public void printFileRecordsStatus()
+	{
+		rep.printFileRecords();
 	}
 }
