@@ -20,9 +20,9 @@ import java.nio.file.*;
 
 /**
  * Replicator Class which handles replication upon the change of local files in the localFiles folder, as well as on startup 
- * and network member node updates.
- * The localFiles folder changes are detected using the observer pattern on a watchservice, which  in its turn is event based.
- * 
+ * and network member node updates.<br>
+ * The localFiles folder changes are detected using the observer pattern on a watchservice, which  in its turn is event based.<br>
+ * <br>
  * Keeps a records of localFiles, ownedFiles, downloadedFiles and a FileRecord for every file this node is an owner of.
  * 
  * @author Abdil Kaya
@@ -202,15 +202,15 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 	}
 
 	/**
-	 * Replication process to go through when the new local file is owned by the local node:
-	  * - replicate file to previous node 
-	  * - create fileRecord : set fileName, set this node as the "localByNode"-node, add the previous node to the
-	  * 		"downloadedByNode" list AND add this fileRecord to the local fileRecords list. 
-	  * 
-	  * - add fileName to the local localFiles list. 
-	  * - add fileName to the local ownedFiles list.
-	  * 
-	  * - add fileName to the remote previous node's downloadedFiles list. 
+	 * Replication process to go through when the new local file is owned by the local node:<br>
+	  * - replicate file to previous node <br>
+	  * - create fileRecord : set fileName, set this node as the "localByNode"-node, add the previous node to the<br>
+	  * 		"downloadedByNode" list AND add this fileRecord to the local fileRecords list. <br>
+	  * <br>
+	  * - add fileName to the local localFiles list. <br>
+	  * - add fileName to the local ownedFiles list.<br>
+	  * <br>
+	  * - add fileName to the remote previous node's downloadedFiles list. <br>
 	  * 
 	 */
 	private void localOwnerReplicationProcess(String fileName, String remoteNodeIP)
@@ -240,14 +240,16 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 
 	/**
 	 * Replication process to go through when the new local file is owned by a remote node:
-	 * 	- replicate the file to the owner 
-	 * 	- create fileRecord : set fileName, set this node as the "localByNode"-node, add the owner node to the 
-	 * 		"downloadedByNode" list, BUT add this fileRecord to the owner's fileRecords list. 
-	 * 
-	 * 	- add fileName to the remote/owner's ownedFiles list. 
-	 *  - add fileName to the remote/owner's downloadedFiles list.
-	 *  
-	 * 	- add fileName to the local localFiles list.
+	 * <br>
+	 * replicate the file to the owner <br>
+	 * 	- create fileRecord : set fileName, set this node as the "localByNode"-node, add the owner node to the <br>
+	 * 		"downloadedByNode" list, BUT add this fileRecord to the owner's fileRecords list. <br>
+	 * 	- IF the fileRecord is already available on this node, then make sure to adjust and pass that fileRecord, and delete it from this node afterwards.<br>
+	 * <br>
+	 * 	- add fileName to the remote/owner's ownedFiles list. <br>
+	 *  - add fileName to the remote/owner's downloadedFiles list.<br>
+	 *  <br>
+	 * 	- add fileName to the local localFiles list.<br>
 	 */
 	private void remoteOwnerReplicationProcess(String fileName, String remoteNodeIP)
 	{
@@ -279,10 +281,19 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			if (!tempRi.hasOwnedFile(fileName))
 				tempRi.addOwnedFile(fileName);
 			if (!tempRi.fileRecordsContainFileName(fileName))
-				tempRi.addFileRecord(new FileRecord(fileName, remoteNodeIP, nodeIP));
+			{
+				if (!fileRecordsContainFileName(fileName))
+					tempRi.addFileRecord(new FileRecord(fileName, remoteNodeIP, nodeIP));
+				else{
+					tempRi.addFileRecord(getFileRecordByFileName(fileName));
+					deleteFileRecordByFileName(fileName);
+				}
+
+			}
 		} catch (RemoteException e)
 		{
-			SystemyLogger.log(Level.WARNING, logName + "The remote node could not execute the remote owner replication process methods. Is object serializable?");
+			SystemyLogger.log(Level.WARNING, logName
+					+ "The remote node could not execute the remote owner replication process methods. Is object serializable?");
 		}
 		SystemyLogger.log(Level.INFO, logName + "Added file name and record to the appropriate lists, both locally and remotely.");
 	}
@@ -320,9 +331,9 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 
 	/**
 	 * A method used when a certain node replicator needs to request a file. The method is strictly called remotely,
-	 * and becomes solely a tool for the node replicator which is trying to send a file.
+	 * and becomes solely a tool for the node replicator which is trying to send a file.<br>
 	 * So in essence,the sendFile method is used locally by a replicator, which makes a remote call to the 
-	 * remote replicator, telling it to make the TCP file request from the calling node.
+	 * remote replicator, telling it to make the TCP file request from the calling node.<br>
 	 * 
 	 * @param String : fileName
 	 * @param String : fileServerNodeIP : the IP address of the node to request a file from. So the remote node calling this method remotely, will
@@ -348,6 +359,21 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 				toRemove = fr;
 		}
 		fileRecords.remove(toRemove);
+	}
+
+	/**
+	 * Method to get fileRecord by filename
+	 * Used when sending the fileRecord to a new owner.
+	 */
+	public FileRecord getFileRecordByFileName(String fileName)
+	{
+		FileRecord toReturn = null;
+		for (FileRecord fr : fileRecords)
+		{
+			if (fr.getFileName().equals(fileName))
+				toReturn = fr;
+		}
+		return toReturn;
 	}
 
 	/**
@@ -578,7 +604,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			SystemyLogger.log(Level.SEVERE, logName + "Could not start the observable watch service.");
 		}
 
-		SystemyLogger.log(Level.INFO, logName + "Attempt to start the observable");
+		SystemyLogger.log(Level.INFO, logName + "Starting the observable watchService now");
 		observable.addObserver(this);
 		observable.processEvents();
 
