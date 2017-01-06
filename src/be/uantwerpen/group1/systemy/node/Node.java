@@ -616,4 +616,47 @@ public class Node extends UserInterface implements NodeInterface {
 
 		return true;
 	}
+
+	/**
+     * GUI Callback function for button press "Open"
+     * @param fileName: file name of file in question
+     */
+    public static void UIOPen(String fileName) {
+    	SystemyLogger.log(Level.INFO, logName + "Open: " + fileName);
+    	// TODO
+    }
+
+    /**
+     * GUI Callback function for button press "Delete"
+     * @param fileName: file name of file in question
+     */
+    public static void UIDelete(String fileName) {
+    	SystemyLogger.log(Level.INFO, logName + "Delete: " + fileName);
+    	if (GUI) {
+    		UserInterface.remove(fileName);
+    	}
+    	// TODO
+    }
+
+    /**
+     * GUI Callback function for button press "Delete Local"
+     * @param fileName: file name of file in question
+     */
+    public static void UIDeleteLocal(String fileName) {
+    	SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
+    	if (GUI) {
+	    	UserInterface.remove(fileName);
+	    	UserInterface.add(fileName, false);
+    	}
+    	// TODO
+    }
+
+    /**
+     * GUI Callback function for button press "Shutdown"
+     */
+    public static void UIShutdown() {
+		SystemyLogger.log(Level.INFO, logName + "Shuting down node after button press");
+    	System.exit(0);
+	}
+
 }
