@@ -453,17 +453,13 @@ public class Node extends UserInterface implements NodeInterface {
 		files = new File("localFiles/").listFiles();
 		for (File file : files)
 		{
-			List<String> localFiles = new ArrayList<String>();
-			File[] files = new File("localFiles/").listFiles();
-			for (File file : files)
+			if (file.isFile())
 			{
-				if (file.isFile())
-				{
-					localFiles.add(file.getName());
-				}
+				localFiles.add(file.getName());
 			}
-			return localFiles;
 		}
+		return localFiles;
+	}
 
 	private static void startFileAgent()
 	{
