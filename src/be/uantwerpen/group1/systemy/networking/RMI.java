@@ -29,7 +29,7 @@ public class RMI<T>
 	private static String logName = RMI.class.getName() + " >> ";
 
 	/** Remote method invocation registry */
-	private Registry registry = null;
+	static Registry registry = null;
 
 	/**
 	 * Constructor w/o parameters typically used by nodes which don't need to start
@@ -43,7 +43,7 @@ public class RMI<T>
 	/**
 	 * Constructor for RMI servers Starts the rmi registry on this machine on a given port.
 	 *
-	 * @param hostName : The IP address of the name server
+	 * @param hostName : The IP address of the server on which the registry is running
 	 * @param name : name to bind the remote reference to in the registry
 	 * @param obj : Object of which to create a stub
 	 * @param port : (optional) The port to bind the registry on. Default at 1099 if not provided.
@@ -53,7 +53,7 @@ public class RMI<T>
 		setPermissions();
 		System.setProperty("java.rmi.server.hostname", hostName);
 		startRegistry(port);
-		bindObject(name, obj);
+		bindObject(name, obj, hostName, port);
 	}
 
 	/**
@@ -99,7 +99,7 @@ public class RMI<T>
 			registry = LocateRegistry.getRegistry(hostName, port);
 		} catch (RemoteException e)
 		{
-			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			SystemyLogger.log(Level.SEVERE, logName + "getRegistry :" +e.getMessage());
 			return null;
 		}
 		return registry;
@@ -114,25 +114,25 @@ public class RMI<T>
 	 * @return boolean result to check whether or not calling this method failed
 	 */
 	@SuppressWarnings("unchecked")
-	public boolean bindObject(String name, T obj)
+	public boolean bindObject(String name, T obj, String hostName, int port)
 	{
 		try
 		{
 			T stub = (T) UnicastRemoteObject.exportObject((Remote) obj, 0);
-			registry.rebind(name, (Remote) stub);
+			getRegistry(hostName, port).rebind(name, (Remote) stub);
 			SystemyLogger.log(Level.INFO, logName + name + "bound");
 			// System.out.println(name + " bound");
 			return true;
 		} catch (RemoteException e)
 		{
-			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			SystemyLogger.log(Level.SEVERE, logName + "bindObject : " +e.getMessage());
 			return false;
 		}
 	}
 
 	/**
 	 * Returns the stub of the remote object requested. Requires the name it was bound to in the registry.
-	 * This method is to be used by nodes utilising
+	 * This method is to be used by nodes utilizing
 	 *
 	 * @param obj : an object of the interface to which the stub will be returned
 	 * @param name : name of the remote object as it was bound in the registry
@@ -149,7 +149,7 @@ public class RMI<T>
 			obj = (T) registry.lookup(name);
 		} catch (RemoteException | NotBoundException e)
 		{
-			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			SystemyLogger.log(Level.SEVERE, logName + "getStub : waiting for bound object in registry");
 			return null;
 		}
 		return obj;
@@ -193,7 +193,7 @@ public class RMI<T>
 			}
 		} catch (FileNotFoundException e)
 		{
-			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			SystemyLogger.log(Level.SEVERE, logName + "setPermissions" + e.getMessage());
 		}
 
 		if (System.getSecurityManager() == null)

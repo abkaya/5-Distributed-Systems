@@ -14,7 +14,7 @@
  * Key = hash
  * Value = ip address
  *
- * @author	MariÃ«n Levi
+ * @author	Mariën Levi
  * @version 1.0
  * @since 29/10/2016
  *
@@ -27,6 +27,10 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.TreeMap;
@@ -123,7 +127,7 @@ public class NameServerRegister implements Serializable {
 	public void addNode(String hostName, String hostIP) {
 		int nodeHash = hashing(hostName);
 		if (register.containsKey(nodeHash)) {
-			SystemyLogger.log(Level.WARNING, logName + "This node already exist");
+			SystemyLogger.log(Level.WARNING, logName + "Node with hash "+ nodeHash + " already exists in the register. ("+hostIP+")");
 		} else {
 			register.put(nodeHash, hostIP);
 			SystemyLogger.log(Level.INFO,
@@ -135,7 +139,7 @@ public class NameServerRegister implements Serializable {
 	 * This method removes a node from the register based on his hash code
 	 * @param nodeName: this is the name of the node that's need to be removed
 	 */
-	public void removeNodeFromRegister(Integer nodeHash) {
+	public void removeNodeFromRegister(int nodeHash) {
 		if (register.containsKey(nodeHash)) {
 			register.remove(nodeHash);
 			SystemyLogger.log(Level.INFO, logName + nodeHash + " is removed from the register");
@@ -232,16 +236,19 @@ public class NameServerRegister implements Serializable {
 			SystemyLogger.log(Level.INFO, logName + "This is the previousNode " + register.lastKey());
 			return register.firstKey();
 		} else {
-			// If this is all not the case then find the next node in the network
-			int tempKey = 0;
-			loop: for (Entry<Integer, String> entry : register.entrySet()) {
-				if (entry.getKey() < nodeHash) {
-					tempKey = entry.getKey();
-					break loop;
+			// If this is all not the case then find the previous node in the network
+			ArrayList<Integer> tempArray = new ArrayList<>();
+			Iterator<Map.Entry<Integer, String>> entries = register.entrySet().iterator();
+			while (entries.hasNext())
+			{
+				Map.Entry<Integer, String> entry = entries.next();
+				if (entry.getKey() < nodeHash)
+				{
+					tempArray.add(entry.getKey());
 				}
 			}
-			SystemyLogger.log(Level.INFO, logName + "This is the previousNode " + tempKey);
-			return tempKey;
+
+			return Collections.max(tempArray);
 		}
 	}
 

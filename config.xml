@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <config>
-    <Hostname>Node5</Hostname>
+    <Hostname>Node1</Hostname>
     <DnsIp>null</DnsIp>
     <RMIPort>1099</RMIPort>
     <MulticastPort>2000</MulticastPort>
