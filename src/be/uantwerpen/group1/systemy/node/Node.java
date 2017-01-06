@@ -1,7 +1,5 @@
 package be.uantwerpen.group1.systemy.node;
 
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +12,6 @@ import java.net.InetAddress;
 import be.uantwerpen.group1.systemy.gui.UserInterface;
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
-import be.uantwerpen.group1.systemy.networking.Hashing;
 import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
 import be.uantwerpen.group1.systemy.networking.RMI;
@@ -56,9 +53,10 @@ public class Node extends UserInterface implements NodeInterface {
 	// fileAgent
 	private static FileAgent fileAgent = null;
 	private static Boolean fileAgentInNetwork = false;
-	private static ArrayList<String> fileList;
-	private static String fileToLock;
+	private static ArrayList<String> fileList = new ArrayList<String>();
+	private String fileToDownload = null;
 	private static Boolean finishedDownload;
+
 	// TCP (only for the agents? I assume)
 	private static TCP tcpServer = null;
 	private static TCP tcpClient = null;
@@ -114,13 +112,18 @@ public class Node extends UserInterface implements NodeInterface {
 		discover();
 		initShutdownHook();
 		startHeartbeat();
-
 		tcpServerSocket();
-		// SystemyLogger.log(Level.INFO, "Starting TCP Socket");
-		// tcpServerSocket();
-		// SystemyLogger.log(Level.INFO, "Starting the agent");
-		// startFileAgent();
-		// passFileAgentInNetwork();
+
+		try
+		{
+			TimeUnit.SECONDS.sleep(1);
+		} catch (InterruptedException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		startFileAgent();
 
 		/*
 		 * GUI
@@ -154,11 +157,10 @@ public class Node extends UserInterface implements NodeInterface {
 			}
 		}
 
-		// SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
-		// rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
-		// rep.run();
+		SystemyLogger.log(Level.INFO, logName + "REPLICATOR STARTED: ");
+		rep = new Replicator(HOSTNAME, me.getIP(), TCPFILETRANSFERPORT, dnsIP, nameServerInterface);
+		rep.run();
 
-		startFileAgent();
 	}
 
 	/**
@@ -168,11 +170,22 @@ public class Node extends UserInterface implements NodeInterface {
 	{
 		Runtime.getRuntime().addShutdownHook(new Thread(() ->
 		{
+
 			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure started");
 			try
 			{
+				if (fileAgent.getActiveNode() == me.getName())
+				{
+					fileAgent.setNextNodeInterface(nextNodeInterface);
+					fileAgent.wait(2500);
+
+				} else if (fileAgent.getActiveNode() == previousNode.getName())
+				{
+					fileAgent.wait(2500);
+				}
 				nextNodeInterface.updatePreviousNode(nextNode);
 				previousNodeInterface.updateNextNode(previousNode);
+				fileAgent.setNextNodeInterface(nextNodeInterface);
 				if (nameServerInterface != null)
 					nameServerInterface.removeNode(me.getHash());
 			} catch (Exception e)
@@ -425,54 +438,20 @@ public class Node extends UserInterface implements NodeInterface {
 		return status;
 	}
 
-    /**
-     * GUI Callback function for button press "Open"
-     * @param fileName: file name of file in question
-     */
-    public static void UIOPen(String fileName) {
-    	SystemyLogger.log(Level.INFO, logName + "Open: " + fileName);
-    	// TODO
-    }
+	/**
+	 * Removes the remaining files in the download folder of the node
+	 * Returns a list of the local files within the relative directory localFiles/
+	 * @return List<String> localFiles
+	 */
+	public static List<String> loadingInitialFiles()
+	{
+		File[] files = new File("downloadedFiles/").listFiles();
+		for (File f : files)
+			f.delete();
 
-    /**
-     * GUI Callback function for button press "Delete"
-     * @param fileName: file name of file in question
-     */
-    public static void UIDelete(String fileName) {
-    	SystemyLogger.log(Level.INFO, logName + "Delete: " + fileName);
-    	if (GUI) {
-    		UserInterface.remove(fileName);
-    	}
-    	// TODO
-    }
-
-    /**
-     * GUI Callback function for button press "Delete Local"
-     * @param fileName: file name of file in question
-     */
-    public static void UIDeleteLocal(String fileName) {
-    	SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
-    	if (GUI) {
-	    	UserInterface.remove(fileName);
-	    	UserInterface.add(fileName, false);
-    	}
-    	// TODO
-    }
-
-    /**
-     * GUI Callback function for button press "Shutdown"
-     */
-    public static void UIShutdown() {
-    	SystemyLogger.log(Level.INFO, logName + "Shuting down node after button press");
-    	System.exit(0);
-    }
-
-
-		/**
-		 * Returns a list of the local files within the relative directory localFiles/
-		 * @return List<String> localFiles
-		 */
-		public static List<String> loadingInitialFiles()
+		List<String> localFiles = new ArrayList<String>();
+		files = new File("localFiles/").listFiles();
+		for (File file : files)
 		{
 			List<String> localFiles = new ArrayList<String>();
 			File[] files = new File("localFiles/").listFiles();
@@ -486,13 +465,15 @@ public class Node extends UserInterface implements NodeInterface {
 			return localFiles;
 		}
 
-		private static void startFileAgent()
+	private static void startFileAgent()
+	{
+		new Thread(() ->
 		{
 			try
 			{
 				if (nameServerInterface.getRegisterSize() == 1 && !fileAgentInNetwork)
 				{
-					fileAgent = new FileAgent();
+					fileAgent = new FileAgent(nameServerInterface);
 					fileAgentInNetwork = true;
 					fileAgent.setNodeInterface(myNodeInterface);
 					myNodeInterface.passFileAgent(fileAgent);
@@ -502,7 +483,8 @@ public class Node extends UserInterface implements NodeInterface {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
+		}).start();
+	}
 
 		/**
 		 * Start the TCP listening socket for file transfer
@@ -515,75 +497,127 @@ public class Node extends UserInterface implements NodeInterface {
 			}).start();
 		}
 
-		/**
-		 * This method will lock the requested file
-		 * @param fileName: the name of the file for locking
-		 */
-		public static void LockFile(String fileName)
+	/**
+	 * Method for deleting a file in the whole system
+	 * @param fileToDelete: name of the file to delete
+	 */
+	public static void deleteFileInNetwork(String fileToDelete)
+	{
+		try
 		{
-			fileToLock = fileName;
+			nextNodeInterface.delete(fileToDelete);
+		} catch (RemoteException e)
+		{
+			// TODO Auto-generated catch block
+			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+		}
+	}
+
+	// /**
+	// * This method will download the locked file once the fileAgent is active on the node.
+	// * After the download is complete the lockedFile will be set to null and a boolean is set
+	// * to true so the fileAgent is notified.
+	// *
+	// */
+	// public static void downloadFile()
+	// {
+	// tcpClient.receiveFile(fileToLock);
+	// }
+
+	@Override
+	public void passFileAgent(FileAgent fileAgent) throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		Node.fileAgent = fileAgent;
+		fileAgentInNetwork = true;
+
+		// make sure the fileAgent is immediately aware of its own location
+		fileAgent.setNodeInterface(myNodeInterface);
+		fileAgent.setNextNodeInterface(nextNodeInterface);
+
+		// run the tasks a fileAgent needs to perform
+		fileAgent.run();
+	}
+
+	/**
+	 * Method for updating the file list of the node via RMI
+	 */
+	@Override
+	public void updateFileListNode(ArrayList<String> fileList) throws RemoteException
+	{
+		Node.fileList = fileList;
+	}
+
+	@Override
+	public String getHostname() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return me.getName();
+	}
+
+	@Override
+	public String getIPAddress() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return me.getIP();
+	}
+
+	/**
+	 * Method for testing
+	 */
+	@Override
+	public ArrayList<String> getFileListNode() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return fileList;
+	}
+
+	@Override
+	public String getFileToDownload() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return fileToDownload;
+	}
+
+	@Override
+	public void setFileToDownload(String fileToDownload) throws RemoteException
+	{
+		this.fileToDownload = fileToDownload;
+
+	}
+
+	@Override
+	public void delete(String fileToDelete) throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		File[] files = new File("downloadedFiles/").listFiles();
+		for (File file : files)
+		{
+			if (file.getName() == fileToDelete)
+			{
+				file.delete();
+			}
 		}
 
-		/**
-		 * This method will download the file and
-		 */
-		public static void downloadFile()
+		files = new File("localFiles/").listFiles();
+		for (File file : files)
 		{
-			tcpClient.receiveFile(fileToLock);
+			if (file.getName() == fileToDelete)
+			{
+				file.delete();
+			}
 		}
 
-		@Override
-		public ArrayList<String> getCurrentNodeOwner() throws RemoteException
-		{
-			// TODO Auto-generated method stub
-			return (ArrayList<String>) rep.getOwnedFiles();
-		}
+		SystemyLogger.log(Level.INFO, logName + fileToDelete + " is deleted from the system");
 
-		@Override
-		public String getNameFileToDownload() throws RemoteException
-		{
-			// TODO Auto-generated method stub
-			return fileToLock;
-		}
+	}
 
-		@Override
-		public String getHostname() throws RemoteException
-		{
-			// TODO Auto-generated method stub
-			return me.getName();
-		}
+	@Override
+	public Boolean downloadFile(String fileToDownload, String ipOwner) throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		tcpClient.receiveFile(fileToDownload);
 
-		@Override
-		public void passFileAgent(FileAgent fileAgent) throws RemoteException
-		{
-			// TODO Auto-generated method stub
-			Node.fileAgent = fileAgent;
-			fileAgentInNetwork = true;
-
-			// make sure the fileAgent is immediately aware of its own location
-			fileAgent.setNodeInterface(myNodeInterface);
-			fileAgent.setNextNodeInterface(nextNodeInterface);
-
-			// run the tasks a fileAgent needs to perform
-			fileAgent.run();
-		}
-
-		@Override
-		public void updateFileListNode(ArrayList<String> fileList) throws RemoteException
-		{
-			Node.fileList = fileList;
-		}
-
-		@Override
-		public Boolean getFinishedDownload() throws RemoteException
-		{
-			// TODO Auto-generated method stub
-			return finishedDownload;
-		}
-
-		public static int getRegisterSize() throws RemoteException
-		{
-			return nameServerInterface.getRegisterSize();
-
-		}
+		return true;
+	}
 }

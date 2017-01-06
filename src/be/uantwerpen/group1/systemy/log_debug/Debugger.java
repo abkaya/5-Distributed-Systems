@@ -13,30 +13,23 @@ public class Debugger
 		//NameServer nameServer = new NameServer("localhost", true);
 
 		//Add nodes to the register
-		nameServerRegister.addNode("Node 1", "192.168.1.106");
-		nameServerRegister.addNode("Node 1", "192.168.1.107");
-		nameServerRegister.addNode("Node 2", "192.168.1.110");
-		nameServerRegister.addNode("Node 3", "192.168.1.109");
-		nameServerRegister.addNode("Node 4", "192.168.1.120");
-		nameServerRegister.addNode("Node 5", "192.168.1.125");
-		nameServerRegister.addNode("Node 25", "192.168.1.150");
-		nameServerRegister.addNode("Node 50", "192.168.1.200");
+		nameServerRegister.addNode("Node_Abdil", "192.168.1.106");
+		nameServerRegister.addNode("Node_Robin", "192.168.1.110");
+		nameServerRegister.addNode("Node_Levi", "192.168.1.109");
+		nameServerRegister.addNode("Node_Extra", "192.168.1.120");
+
 		
 		//get size register
 		System.out.println(nameServerRegister.getSize());
 
-		//test ringnetwork
-		nameServerRegister.getNextNode(Hashing.hash("Node 1"));
-		nameServerRegister.getNextNode(Hashing.hash("Node 4"));
-		nameServerRegister.getPreviousNode(Hashing.hash("Node 2"));
-		nameServerRegister.getPreviousNode(Hashing.hash("Node 5"));
-		nameServerRegister.getPreviousNode(Hashing.hash("Node 25"));
-		
-		//remove node from register
-		nameServerRegister.removeNodeFromRegister(Hashing.hash("Node 2"));
-
-		//get size register
-		System.out.println(nameServerRegister.getSize());
+		nameServerRegister.getFileLocation(Hashing.hash("testFile"));
+		nameServerRegister.getFileLocation(Hashing.hash("Abdil"));
+		nameServerRegister.getFileLocation(Hashing.hash("Robin"));
+		nameServerRegister.getFileLocation(Hashing.hash("Levi"));
+		nameServerRegister.getFileLocation(Hashing.hash("test.txt"));
+		nameServerRegister.getFileLocation(Hashing.hash("picture.jpg"));
+		nameServerRegister.getFileLocation(Hashing.hash("Node 1"));
+		nameServerRegister.getFileLocation(Hashing.hash("192.168.1.110"));
 	}
 
 }

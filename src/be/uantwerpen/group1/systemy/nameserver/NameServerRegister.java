@@ -14,7 +14,7 @@
  * Key = hash
  * Value = ip address
  *
- * @author	Mariën Levi
+ * @author	Mariï¿½n Levi
  * @version 1.0
  * @since 29/10/2016
  *
@@ -155,7 +155,7 @@ public class NameServerRegister implements Serializable {
 	 */
 	public String getFileLocation(int fileHash) {
 
-		System.out.println(fileHash);
+		System.out.println("hash of the file: " +fileHash);
 		TreeMap<Integer, String> temp = new TreeMap<>();
 		//if register is empty
 		if (register.size() == 0) {
