@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import org.omg.PortableServer.IMPLICIT_ACTIVATION_POLICY_ID;
+
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Hashing;
@@ -78,13 +80,51 @@ public class FileAgent implements Runnable, Serializable
 		{
 			SystemyLogger.log(Level.INFO, logName + "Agent starts on node " + nodeInterface.getHostname());
 
-			testCode();
+			TimeUnit.SECONDS.sleep(1);
 
-			// String hostname = nodeInterface.getHostname();
-			// String ipAddress = nodeInterface.getIPAddress();
-			// String fileToLock = nodeInterface.getFileToDownload();
-			//
-			// // First, if there is a lock the file download
+			// testCode();
+
+			String hostname = nodeInterface.getHostname();
+			String ipAddress = nodeInterface.getIPAddress();
+			String fileToLock = nodeInterface.getFileToDownload();
+			String fileToDelete = nodeInterface.getFileToDeleteInNetwork();
+
+			// First, if there is a lock the file download
+			if (fileListAgent.containsValue(nodeInterface.getHostname()))
+			{
+				String fileToDownload = null;
+
+				Iterator<Map.Entry<String, String>> entries = fileListAgent.entrySet().iterator();
+				while (entries.hasNext())
+				{
+					Map.Entry<String, String> entry = entries.next();
+					if (entry.getValue().equals(nodeInterface.getHostname()))
+					{
+						fileToDownload = entry.getKey();
+					}
+				}
+
+				this.fileListAgent = downloadFile(fileListAgent, fileToDownload);
+			}
+
+			ArrayList<String> files = new ArrayList<>();
+			files.addAll((ArrayList<String>) loadLocalFiles());
+			files.addAll((ArrayList<String>) loadDownloadedFiles());
+			ArrayList<String> currentNodeOwner = calculateOwner(nameServerInterface, files, ipAddress);
+			this.fileListAgent = updateListAgent(this.fileListAgent, currentNodeOwner, fileToDelete);
+
+			// if there is no file to lock, just update the lists
+			if (!(fileToLock == null))
+			{
+				processLock(this.fileListAgent, fileToLock, hostname);
+
+			}
+
+			SystemyLogger.log(Level.INFO, logName + fileToLock);
+
+			updateFileListNode(this.nodeInterface, this.fileListAgent);
+
+			// // First, if there is a lock of the current node, download the file
 			// if (fileListAgent.containsValue(nodeInterface.getHostname()))
 			// {
 			// String fileToDownload = null;
@@ -99,26 +139,21 @@ public class FileAgent implements Runnable, Serializable
 			// }
 			// }
 			//
-			// this.fileListAgent = downloadFile(fileListAgent, fileToDownload);
-			// }
+			// String ipOwner = nameServerInterface.getIPAddress(Hashing.hash(fileToDownload));
+			// SystemyLogger.log(Level.INFO, logName + "The owner of this file is: " + ipOwner);
 			//
-			// ArrayList<String> files = new ArrayList<>();
-			// files.addAll((ArrayList<String>) loadLocalFiles());
-			// files.addAll((ArrayList<String>) loadDownloadedFiles());
-			// ArrayList<String> currentNodeOwner = calculateOwner(nameServerInterface, files, ipAddress);
-			// this.fileListAgent = updateListAgent(this.fileListAgent, currentNodeOwner);
-			// updateFileListNode(this.nodeInterface, this.fileListAgent);
+			// TimeUnit.MILLISECONDS.sleep(1);
 			//
-			// if (!(fileToLock == null))
-			// {
-			// processLock(fileListAgent, fileToLock, hostname);
+			// fileListAgent.replace(fileToDownload, nodeInterface.getHostname(), "notLocked");
 			//
+			// nodeInterface.setFileToDownload(null);
+			// SystemyLogger.log(Level.INFO, logName + "fileToDownload: " + nodeInterface.getFileToDownload());
 			// }
 
 			SystemyLogger.log(Level.INFO, logName + "Agent finished on node " + nodeInterface.getHostname());
 			SystemyLogger.log(Level.INFO, logName + "Sending the fileAgent to " + nextNodeInterface.getHostname() + " in 5 seconds");
 
-			TimeUnit.SECONDS.sleep(5);
+			TimeUnit.SECONDS.sleep(2);
 
 			// when the fileAgent is ready with its tasks, move it along to the next node
 			nextNodeInterface.passFileAgent(this);
@@ -205,40 +240,9 @@ public class FileAgent implements Runnable, Serializable
 	 * @param fileListAgent: the fileList of the agent (non updated)
 	 * @return: the updated fileList of the agent
 	 */
-	public HashMap<String, String> updateListAgent(HashMap<String, String> fileListAgent, ArrayList<String> currentNodeOwner)
+	public HashMap<String, String> updateListAgent(HashMap<String, String> fileListAgent, ArrayList<String> currentNodeOwner,
+			String fileToDelete)
 	{
-
-		// code for removing files, still need to test
-		////////////////////////////////////////////////////////////////
-
-		// // remove old files from the filelist
-		// ArrayList<String> tempArray = new ArrayList<>();
-		//
-		// Iterator<Map.Entry<String, String>> entries = fileListAgent.entrySet().iterator();
-		// while (entries.hasNext())
-		// {
-		// Map.Entry<String, String> entry = entries.next();
-		// if (!currentNodeOwner.contains(entry.getKey()))
-		// {
-		// fileListAgent.remove(entry.getKey());
-		// }
-		// }
-		//
-		// for (int i = 0; i < tempArray.size(); i++)
-		// {
-		// if (currentNodeOwner.contains(tempArray.get(i)) == false)
-		// {
-		// tempArray.remove(i);
-		// }
-		//
-		// }
-		//
-		// for (int i = 0; i < tempArray.size(); i++)
-		// {
-		// fileListAgent.remove(tempArray.get(i));
-		//
-		// }
-
 		// add files to the file list that are new
 		for (int i = 0; i < currentNodeOwner.size(); i++)
 		{
@@ -247,6 +251,11 @@ public class FileAgent implements Runnable, Serializable
 				fileListAgent.put(currentNodeOwner.get(i), "notLocked");
 			}
 
+		}
+
+		if (fileListAgent.containsKey(fileToDelete))
+		{
+			fileListAgent.remove(fileToDelete);
 		}
 
 		return fileListAgent;
@@ -286,22 +295,22 @@ public class FileAgent implements Runnable, Serializable
 	 */
 	private HashMap<String, String> processLock(HashMap<String, String> fileListAgent, String fileToLock, String hostname)
 	{
-		if (fileListAgent.containsKey(fileToLock) && fileListAgent.get(fileToLock).equals("notLocked"))
+		if (fileListAgent.get(fileToLock).equals("notLocked"))
 		{
-			fileListAgent.replace(fileToLock, "notLocked", hostname);
+			fileListAgent.replace(fileToLock, hostname);
 
 			SystemyLogger.log(Level.INFO, logName + fileToLock + " is locked by " + hostname);
 
 		} else
 		{
-			SystemyLogger.log(Level.INFO, logName + "file already locked, try again later");
+			SystemyLogger.log(Level.INFO, logName + fileToLock + " already locked, try again later");
 		}
 
 		return fileListAgent;
 	}
 
 	/**
-	 * 
+	 * This method will let the specified node download a certain file
 	 * @param fileListAgent
 	 * @param fileToDownload
 	 * @return
@@ -342,24 +351,7 @@ public class FileAgent implements Runnable, Serializable
 			String ipAddress = nodeInterface.getIPAddress();
 			String fileToLock = nodeInterface.getFileToDownload();
 			ArrayList<String> fileListNode = nodeInterface.getFileListNode();
-
-			// // First, if there is a lock the file download
-			// if (fileListAgent.containsValue(nodeInterface.getHostname()))
-			// {
-			// String fileToDownload = null;
-			//
-			// Iterator<Map.Entry<String, String>> entries = fileListAgent.entrySet().iterator();
-			// while (entries.hasNext())
-			// {
-			// Map.Entry<String, String> entry = entries.next();
-			// if (entry.getValue().equals(nodeInterface.getHostname()))
-			// {
-			// fileToDownload = entry.getKey();
-			// }
-			// }
-			//
-			// this.fileListAgent = downloadFile(fileListAgent, fileToDownload);
-			// }
+			String fileToDelete = nodeInterface.getFileToDeleteInNetwork();
 
 			System.out.println("current fileList of node");
 			System.out.println("_____________________________________");
@@ -395,7 +387,7 @@ public class FileAgent implements Runnable, Serializable
 
 			}
 
-			this.fileListAgent = updateListAgent(this.fileListAgent, currentNodeOwner);
+			this.fileListAgent = updateListAgent(this.fileListAgent, currentNodeOwner, fileToDelete);
 
 			System.out.println();
 			System.out.println();
@@ -408,10 +400,39 @@ public class FileAgent implements Runnable, Serializable
 			{
 				Map.Entry<String, String> entry = entries.next();
 				System.out.println(entry.getKey());
+				System.out.println(entry.getValue());
 			}
 
 			System.out.println();
 			System.out.println();
+
+			// if there is no file to lock, just update the lists
+			if (!(fileToLock == null))
+			{
+				processLock(this.fileListAgent, fileToLock, hostname);
+
+			}
+
+			SystemyLogger.log(Level.INFO, logName + fileToLock);
+
+			System.out.println();
+			System.out.println();
+
+			System.out.println("file list from the agent");
+			System.out.println("_____________________________________");
+
+			entries = this.fileListAgent.entrySet().iterator();
+			while (entries.hasNext())
+			{
+				Map.Entry<String, String> entry = entries.next();
+				System.out.println(entry.getKey());
+				System.out.println(entry.getValue());
+			}
+
+			System.out.println();
+			System.out.println();
+
+			TimeUnit.SECONDS.sleep(5);
 
 			updateFileListNode(this.nodeInterface, this.fileListAgent);
 
@@ -427,17 +448,37 @@ public class FileAgent implements Runnable, Serializable
 			System.out.println();
 			System.out.println();
 
-			 // if there is no file to lock, just update the lists
-			 if (!(fileToLock == null))
-			 {
-			 processLock(fileListAgent, fileToLock, hostname);
-			
-			 }
+			// First, if there is a lock of the current node, download the file
+			if (fileListAgent.containsValue(nodeInterface.getHostname()))
+			{
+				String fileToDownload = null;
 
-		} catch (RemoteException e)
+				entries = fileListAgent.entrySet().iterator();
+				while (entries.hasNext())
+				{
+					Map.Entry<String, String> entry = entries.next();
+					if (entry.getValue().equals(nodeInterface.getHostname()))
+					{
+						fileToDownload = entry.getKey();
+					}
+				}
+
+				String ipOwner = nameServerInterface.getIPAddress(Hashing.hash(fileToDownload));
+				SystemyLogger.log(Level.INFO, logName + "The owner of this file is: " + ipOwner);
+
+				TimeUnit.MILLISECONDS.sleep(1);
+
+				fileListAgent.replace(fileToDownload, nodeInterface.getHostname(), "notLocked");
+				nodeInterface.setFileToDownload(null);
+				SystemyLogger.log(Level.INFO, logName + "fileToDownload: " + nodeInterface.getFileToDownload());
+			}
+
+			TimeUnit.SECONDS.sleep(5);
+
+		} catch (RemoteException | InterruptedException e)
 		{
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			SystemyLogger.log(Level.SEVERE, e.getMessage());
 		}
 
 	}
