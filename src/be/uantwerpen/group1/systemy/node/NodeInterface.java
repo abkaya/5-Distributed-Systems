@@ -15,6 +15,7 @@ public interface NodeInterface extends Remote
 	String getFileToDownload() throws RemoteException;
 	String getHostname() throws RemoteException;
 	String getIPAddress() throws RemoteException;
+	String getFileToDeleteInNetwork() throws RemoteException;
 	
 	//for testing purpose
 	ArrayList<String>getFileListNode() throws RemoteException;
@@ -27,6 +28,5 @@ public interface NodeInterface extends Remote
 	void updateFileListNode(ArrayList<String> fileList) throws RemoteException;
 	void setFileToDownload(String fileToDownload) throws RemoteException;
 	Boolean downloadFile(String fileToDownload, String ipOwner) throws RemoteException;
-	void delete(String fileToDelete) throws RemoteException;
 }
 

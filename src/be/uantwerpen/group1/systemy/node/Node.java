@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+
+import org.apache.commons.lang3.ObjectUtils.Null;
+import org.omg.PortableServer.ServantActivator;
+
+import java.awt.event.HierarchyBoundsAdapter;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -54,12 +59,9 @@ public class Node extends UserInterface implements NodeInterface {
 	private static FileAgent fileAgent = null;
 	private static Boolean fileAgentInNetwork = false;
 	private static ArrayList<String> fileList = new ArrayList<String>();
-	private String fileToDownload = null;
-	private static Boolean finishedDownload;
-
-	// TCP (only for the agents? I assume)
-	private static TCP tcpServer = null;
-	private static TCP tcpClient = null;
+	private static String fileToDownload = null;
+	private static String fileToDeleteInNetwork = null;
+	private static String fileToDeleteLocal = null;
 
 	static RMI<NameServerInterface> rmiNameServerInterface = null;
 
@@ -112,7 +114,6 @@ public class Node extends UserInterface implements NodeInterface {
 		discover();
 		initShutdownHook();
 		startHeartbeat();
-		tcpServerSocket();
 
 		try
 		{
@@ -482,43 +483,34 @@ public class Node extends UserInterface implements NodeInterface {
 		}).start();
 	}
 
-		/**
-		 * Start the TCP listening socket for file transfer
-		 */
-		public static void tcpServerSocket()
-		{
-			new Thread(() ->
-			{
-				tcpServer.listenToSendFile();
-			}).start();
-		}
-
 	/**
-	 * Method for deleting a file in the whole system
-	 * @param fileToDelete: name of the file to delete
+	 * Method for deleting file localy
+	 * @param fileToDelete: the specified file to delete
 	 */
-	public static void deleteFileInNetwork(String fileToDelete)
+	private static void FileToDeleteLocal(String fileToDelete)
 	{
-		try
+		// TODO Auto-generated method stub
+		File[] files = new File("downloadedFiles/").listFiles();
+		for (File file : files)
 		{
-			nextNodeInterface.delete(fileToDelete);
-		} catch (RemoteException e)
-		{
-			// TODO Auto-generated catch block
-			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			if (file.getName() == fileToDelete)
+			{
+				file.delete();
+			}
 		}
-	}
 
-	// /**
-	// * This method will download the locked file once the fileAgent is active on the node.
-	// * After the download is complete the lockedFile will be set to null and a boolean is set
-	// * to true so the fileAgent is notified.
-	// *
-	// */
-	// public static void downloadFile()
-	// {
-	// tcpClient.receiveFile(fileToLock);
-	// }
+		files = new File("localFiles/").listFiles();
+		for (File file : files)
+		{
+			if (file.getName() == fileToDelete)
+			{
+				file.delete();
+			}
+		}
+
+		SystemyLogger.log(Level.INFO, logName + fileToDelete + " is deleted localy");
+
+	}
 
 	@Override
 	public void passFileAgent(FileAgent fileAgent) throws RemoteException
@@ -583,38 +575,22 @@ public class Node extends UserInterface implements NodeInterface {
 	}
 
 	@Override
-	public void delete(String fileToDelete) throws RemoteException
-	{
-		// TODO Auto-generated method stub
-		File[] files = new File("downloadedFiles/").listFiles();
-		for (File file : files)
-		{
-			if (file.getName() == fileToDelete)
-			{
-				file.delete();
-			}
-		}
-
-		files = new File("localFiles/").listFiles();
-		for (File file : files)
-		{
-			if (file.getName() == fileToDelete)
-			{
-				file.delete();
-			}
-		}
-
-		SystemyLogger.log(Level.INFO, logName + fileToDelete + " is deleted from the system");
-
-	}
-
-	@Override
 	public Boolean downloadFile(String fileToDownload, String ipOwner) throws RemoteException
 	{
 		// TODO Auto-generated method stub
-		tcpClient.receiveFile(fileToDownload);
 
+		/**
+		 * Hier dient de download methode the komen, de naam van de file en het IP adres van de eigenaar wordt meegeven
+		 * een boolean op true zetten indien de file gedownload is
+		 */
 		return true;
+	}
+
+	@Override
+	public String getFileToDeleteInNetwork() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return fileToDeleteInNetwork;
 	}
 
 	/**
