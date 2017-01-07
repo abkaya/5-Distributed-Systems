@@ -14,6 +14,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import be.uantwerpen.group1.systemy.gui.Item;
 import be.uantwerpen.group1.systemy.gui.UserInterface;
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
@@ -58,7 +62,7 @@ public class Node extends UserInterface implements NodeInterface {
 	// fileAgent
 	private static FileAgent fileAgent = null;
 	private static Boolean fileAgentInNetwork = false;
-	private static ArrayList<String> fileList = new ArrayList<String>();
+	private static ObservableList<String> fileList = FXCollections.observableArrayList();
 	private static String fileToDownload = null;
 	private static String fileToDeleteInNetwork = null;
 	private static String fileToDeleteLocal = null;
@@ -107,7 +111,7 @@ public class Node extends UserInterface implements NodeInterface {
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
-		fileList = (ArrayList<String>) loadingInitialFiles();
+		fileList = FXCollections.observableArrayList( loadingInitialFiles() );
 		SystemyLogger.log(Level.INFO, "Local files are loaded into the fileList");
 
 		listenToNewNodes();
@@ -130,7 +134,19 @@ public class Node extends UserInterface implements NodeInterface {
 		 * GUI
 		 */
 		if (GUI) {
-	        UserInterface.add("test file", true);
+
+			fileList.addListener(new ListChangeListener<String>() {
+				@Override
+				public void onChanged(javafx.collections.ListChangeListener.Change<? extends String> arg0) {
+//					update();
+					System.out.println("update GUI: " + arg0);
+				}
+	    	});
+			
+			fileList.add("bla");
+			fileList.add("bla");
+			
+			UserInterface.add("test file", true);
 	        UserInterface.add("test file (2)", false);
 	        UserInterface.add("test file (3)", true);
 
@@ -533,7 +549,7 @@ public class Node extends UserInterface implements NodeInterface {
 	@Override
 	public void updateFileListNode(ArrayList<String> fileList) throws RemoteException
 	{
-		Node.fileList = fileList;
+		Node.fileList = FXCollections.observableArrayList( fileList );
 	}
 
 	@Override
@@ -557,7 +573,7 @@ public class Node extends UserInterface implements NodeInterface {
 	public ArrayList<String> getFileListNode() throws RemoteException
 	{
 		// TODO Auto-generated method stub
-		return fileList;
+		return (ArrayList<String>) fileList;
 	}
 
 	@Override
