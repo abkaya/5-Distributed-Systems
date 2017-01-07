@@ -112,7 +112,7 @@ public class Node extends UserInterface implements NodeInterface {
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
 		fileList = FXCollections.observableArrayList( loadingInitialFiles() );
-		SystemyLogger.log(Level.INFO, "Local files are loaded into the fileList");
+		SystemyLogger.log(Level.INFO, logName + "Local files are loaded into the fileList");
 
 		listenToNewNodes();
 		discover();
