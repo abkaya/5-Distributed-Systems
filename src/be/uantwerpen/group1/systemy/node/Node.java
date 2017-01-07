@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import org.apache.commons.lang3.ObjectUtils.Null;
 import org.omg.PortableServer.ServantActivator;
 
+import java.awt.event.HierarchyBoundsAdapter;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -560,8 +561,11 @@ public class Node implements NodeInterface
 	public Boolean downloadFile(String fileToDownload, String ipOwner) throws RemoteException
 	{
 		// TODO Auto-generated method stub
-		//tcpClient.receiveFile(fileToDownload);
-
+	
+		/**
+		 * Hier dient de download methode the komen, de naam van de file en het IP adres van de eigenaar wordt meegeven
+		 * een boolean op true zetten indien de file gedownload is
+		 */
 		return true;
 	}
 
