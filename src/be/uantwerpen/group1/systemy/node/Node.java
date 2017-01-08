@@ -137,25 +137,30 @@ public class Node extends UserInterface implements NodeInterface {
 
 			fileList.addListener(new ListChangeListener<String>() {
 				@Override
-				public void onChanged(javafx.collections.ListChangeListener.Change<? extends String> arg0) {
-//					update();
-					System.out.println("update GUI: " + arg0);
+				public void onChanged(javafx.collections.ListChangeListener.Change<? extends String> change) {
+					while (change.next()) {
+                        for (String file : change.getAddedSubList()) {
+                        	UserInterface.add(file,true);
+                        }
+                        for (String file : change.getRemoved()) {
+                        	UserInterface.remove(file);
+                        }
+		            }
 				}
 	    	});
 			
-			fileList.add("bla");
-			fileList.add("bla");
-			
-			UserInterface.add("test file", true);
-	        UserInterface.add("test file (2)", false);
-	        UserInterface.add("test file (3)", true);
-
 
 	        new Thread(() -> {
 	        	UserInterface.launch();
 	        }).start();
 
-	        UserInterface.add("test file (4)", true);
+	        /*
+	         * update test
+	         */
+			fileList.add("bla");
+			fileList.add("test");
+			fileList.remove(0);
+			
 		}
 
 		/*
