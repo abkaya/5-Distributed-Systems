@@ -17,7 +17,6 @@ import java.net.InetAddress;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import be.uantwerpen.group1.systemy.gui.Item;
 import be.uantwerpen.group1.systemy.gui.UserInterface;
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
@@ -63,6 +62,7 @@ public class Node extends UserInterface implements NodeInterface {
 	private static FileAgent fileAgent = null;
 	private static Boolean fileAgentInNetwork = false;
 	private static ObservableList<String> fileList = FXCollections.observableArrayList();
+	private static ListChangeListener<String> listChangeListener = null;
 	private static String fileToDownload = null;
 	private static String fileToDeleteInNetwork = null;
 	private static String fileToDeleteLocal = null;
@@ -168,7 +168,7 @@ public class Node extends UserInterface implements NodeInterface {
 	 */
 	private static void startGUI() {
 		if (GUI) {
-			fileList.addListener(new ListChangeListener<String>() {
+			listChangeListener = new ListChangeListener<String>() {
 				@Override
 				public void onChanged(javafx.collections.ListChangeListener.Change<? extends String> change) {
 					while (change.next()) {
@@ -180,7 +180,8 @@ public class Node extends UserInterface implements NodeInterface {
                         }
 		            }
 				}
-	    	});
+	    	};
+			fileList.addListener(listChangeListener);
 	        new Thread(() -> {
 	        	UserInterface.launch();
 	        }).start();	
@@ -555,6 +556,9 @@ public class Node extends UserInterface implements NodeInterface {
 	public void updateFileListNode(ArrayList<String> fileList) throws RemoteException
 	{
 		Node.fileList = FXCollections.observableArrayList( fileList );
+		if (GUI) {
+			Node.fileList.addListener(listChangeListener);
+		}
 	}
 
 	@Override
