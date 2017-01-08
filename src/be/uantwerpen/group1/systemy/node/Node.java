@@ -134,13 +134,7 @@ public class Node extends UserInterface implements NodeInterface {
 		}
 
 		startFileAgent();
-
-        /*
-         * GUI update test
-         */
-		fileList.add("bla");
-		fileList.add("test");
-		fileList.remove(0);
+		
 
 		/*
 		 * Once the nameserver interface stub is retrieved, the replicator can run autonomously.
