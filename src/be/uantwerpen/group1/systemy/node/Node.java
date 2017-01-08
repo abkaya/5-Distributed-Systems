@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import org.apache.commons.lang3.ObjectUtils.Null;
 import org.omg.PortableServer.ServantActivator;
 
+import java.awt.Desktop;
 import java.awt.event.HierarchyBoundsAdapter;
 import java.io.File;
 import java.io.IOException;
@@ -113,7 +114,7 @@ public class Node extends UserInterface implements NodeInterface {
 
 		createListChangeListener();
     	fileList.addListener(listChangeListener);
-    	
+
 		loadingInitialFiles();
 		SystemyLogger.log(Level.INFO, logName + "Local files are loaded into the fileList");
 
@@ -134,7 +135,7 @@ public class Node extends UserInterface implements NodeInterface {
 		}
 
 		startFileAgent();
-		
+
 
 		/*
 		 * Once the nameserver interface stub is retrieved, the replicator can run autonomously.
@@ -157,7 +158,7 @@ public class Node extends UserInterface implements NodeInterface {
 		rep.run();
 
 	}
-	
+
 	private static void createListChangeListener()
 	{
 		listChangeListener = new ListChangeListener<String>() {
@@ -509,7 +510,7 @@ public class Node extends UserInterface implements NodeInterface {
 	 * Method for deleting file localy
 	 * @param fileToDelete: the specified file to delete
 	 */
-	private static void FileToDeleteLocal(String fileToDelete)
+	private static void fileToDeleteLocal(String fileToDelete)
 	{
 		// TODO Auto-generated method stub
 		File[] files = new File("downloadedFiles/").listFiles();
@@ -619,9 +620,24 @@ public class Node extends UserInterface implements NodeInterface {
 	/**
      * GUI Callback function for button press "Open"
      * @param fileName: file name of file in question
+	 * @throws IOException 
      */
     public static void UIOPen(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Open: " + fileName);
+		try {
+        	//if (local??) {
+        		File file = new File(LOCALFILESLOCATION + fileName);
+    			Desktop.getDesktop().open(file);
+        	//}
+        	//else { // remote
+        		// download
+        		// File file = new File(DOWNLOADEDFILESLOCATION + fileName);
+        		// Desktop.getDesktop().open(file). 
+        	//}
+    	} catch (IOException e) {
+    		SystemyLogger.log(Level.SEVERE, logName + "Cant't Open " + fileName + "\n" + e.getMessage());
+    	}
+    	
     	// TODO
     }
 
@@ -643,12 +659,7 @@ public class Node extends UserInterface implements NodeInterface {
      */
     public static void UIDeleteLocal(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
-    	if (GUI) {
-
-    		UserInterface.remove(fileName);
-	    	UserInterface.add(fileName, false);
-    	}
-    	// TODO
+		fileToDeleteLocal(fileName);
     }
 
     /**
