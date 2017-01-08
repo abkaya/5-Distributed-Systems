@@ -113,10 +113,8 @@ public class Node extends UserInterface implements NodeInterface {
 
 		
 		startGUI();
-		loadingInitialFiles();
 		
-//		fileList = FXCollections.observableArrayList( loadingInitialFiles() );
-//		fileList = (ObservableList<String>) loadingInitialFiles();
+		loadingInitialFiles();
 		SystemyLogger.log(Level.INFO, logName + "Local files are loaded into the fileList");
 		
 		
