@@ -111,17 +111,18 @@ public class Node extends UserInterface implements NodeInterface {
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
-		
-		startGUI();
-		
+		createListChangeListener();
+    	fileList.addListener(listChangeListener);
+    	
 		loadingInitialFiles();
 		SystemyLogger.log(Level.INFO, logName + "Local files are loaded into the fileList");
-		
-		
+
 		listenToNewNodes();
 		discover();
 		initShutdownHook();
 		startHeartbeat();
+
+		startGUI();
 
 		try
 		{
@@ -140,7 +141,7 @@ public class Node extends UserInterface implements NodeInterface {
 		fileList.add("bla");
 		fileList.add("test");
 		fileList.remove(0);
-		
+
 		/*
 		 * Once the nameserver interface stub is retrieved, the replicator can run autonomously.
 		 */
@@ -162,15 +163,13 @@ public class Node extends UserInterface implements NodeInterface {
 		rep.run();
 
 	}
-
-	/**
-	 * start GUI if the GUI boolean is set
-	 */
-	private static void startGUI() {
-		if (GUI) {
-			listChangeListener = new ListChangeListener<String>() {
-				@Override
-				public void onChanged(javafx.collections.ListChangeListener.Change<? extends String> change) {
+	
+	private static void createListChangeListener()
+	{
+		listChangeListener = new ListChangeListener<String>() {
+			@Override
+			public void onChanged(javafx.collections.ListChangeListener.Change<? extends String> change) {
+				if (GUI) {
 					while (change.next()) {
                         for (String file : change.getAddedSubList()) {
                         	UserInterface.add(file,true);
@@ -180,14 +179,21 @@ public class Node extends UserInterface implements NodeInterface {
                         }
 		            }
 				}
-	    	};
-			fileList.addListener(listChangeListener);
+			}
+    	};
+	}
+
+	/**
+	 * start GUI if the GUI boolean is set
+	 */
+	private static void startGUI() {
+		if (GUI) {
 	        new Thread(() -> {
 	        	UserInterface.launch();
-	        }).start();	
+	        }).start();
 		}
 	}
-	
+
 	/**
 	 * Method creates and starts the shutdown hook to notify neighbours and the nameserver
 	 */
@@ -556,9 +562,7 @@ public class Node extends UserInterface implements NodeInterface {
 	public void updateFileListNode(ArrayList<String> fileList) throws RemoteException
 	{
 		Node.fileList = FXCollections.observableArrayList( fileList );
-		if (GUI) {
-			Node.fileList.addListener(listChangeListener);
-		}
+		Node.fileList.addListener(listChangeListener);
 	}
 
 	@Override
@@ -646,7 +650,7 @@ public class Node extends UserInterface implements NodeInterface {
     public static void UIDeleteLocal(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
     	if (GUI) {
-	    	
+
     		UserInterface.remove(fileName);
 	    	UserInterface.add(fileName, false);
     	}
