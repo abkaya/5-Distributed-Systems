@@ -111,9 +111,14 @@ public class Node extends UserInterface implements NodeInterface {
 		myNodeInterface = rmiNodeClient.getStub(myNodeInterface, "node", me.getIP(), RMIPORT);
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
-		fileList = FXCollections.observableArrayList( loadingInitialFiles() );
+		
+		startGUI();
+		fileList = loadingInitialFiles();
+//		fileList = FXCollections.observableArrayList( loadingInitialFiles() );
+//		fileList = (ObservableList<String>) loadingInitialFiles();
 		SystemyLogger.log(Level.INFO, logName + "Local files are loaded into the fileList");
-
+		
+		
 		listenToNewNodes();
 		discover();
 		initShutdownHook();
@@ -130,39 +135,13 @@ public class Node extends UserInterface implements NodeInterface {
 
 		startFileAgent();
 
-		/*
-		 * GUI
-		 */
-		if (GUI) {
-
-			fileList.addListener(new ListChangeListener<String>() {
-				@Override
-				public void onChanged(javafx.collections.ListChangeListener.Change<? extends String> change) {
-					while (change.next()) {
-                        for (String file : change.getAddedSubList()) {
-                        	UserInterface.add(file,true);
-                        }
-                        for (String file : change.getRemoved()) {
-                        	UserInterface.remove(file);
-                        }
-		            }
-				}
-	    	});
-			
-
-	        new Thread(() -> {
-	        	UserInterface.launch();
-	        }).start();
-
-	        /*
-	         * update test
-	         */
-			fileList.add("bla");
-			fileList.add("test");
-			fileList.remove(0);
-			
-		}
-
+        /*
+         * GUI update test
+         */
+		fileList.add("bla");
+		fileList.add("test");
+		fileList.remove(0);
+		
 		/*
 		 * Once the nameserver interface stub is retrieved, the replicator can run autonomously.
 		 */
@@ -185,6 +164,31 @@ public class Node extends UserInterface implements NodeInterface {
 
 	}
 
+	/**
+	 * start GUI if the GUI boolean is set
+	 */
+	private static void startGUI() {
+		if (GUI) {
+			fileList.addListener(new ListChangeListener<String>() {
+				@Override
+				public void onChanged(javafx.collections.ListChangeListener.Change<? extends String> change) {
+					System.out.println("change");
+					while (change.next()) {
+                        for (String file : change.getAddedSubList()) {
+                        	UserInterface.add(file,true);
+                        }
+                        for (String file : change.getRemoved()) {
+                        	UserInterface.remove(file);
+                        }
+		            }
+				}
+	    	});
+	        new Thread(() -> {
+	        	UserInterface.launch();
+	        }).start();	
+		}
+	}
+	
 	/**
 	 * Method creates and starts the shutdown hook to notify neighbours and the nameserver
 	 */
@@ -463,15 +467,15 @@ public class Node extends UserInterface implements NodeInterface {
 	/**
 	 * Removes the remaining files in the download folder of the node
 	 * Returns a list of the local files within the relative directory localFiles/
-	 * @return List<String> localFiles
+	 * @return ObservableList<String> localFiles
 	 */
-	public static List<String> loadingInitialFiles()
+	public static ObservableList<String> loadingInitialFiles()
 	{
 		File[] files = new File("downloadedFiles/").listFiles();
 		for (File f : files)
 			f.delete();
 
-		List<String> localFiles = new ArrayList<String>();
+		ObservableList<String> localFiles = FXCollections.observableArrayList();
 		files = new File("localFiles/").listFiles();
 		for (File file : files)
 		{
@@ -591,7 +595,7 @@ public class Node extends UserInterface implements NodeInterface {
 	@Override
 	public void setFileToDownload(String fileToDownload) throws RemoteException
 	{
-		this.fileToDownload = fileToDownload;
+		Node.fileToDownload = fileToDownload;
 
 	}
 
@@ -642,7 +646,8 @@ public class Node extends UserInterface implements NodeInterface {
     public static void UIDeleteLocal(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
     	if (GUI) {
-	    	UserInterface.remove(fileName);
+	    	
+    		UserInterface.remove(fileName);
 	    	UserInterface.add(fileName, false);
     	}
     	// TODO
