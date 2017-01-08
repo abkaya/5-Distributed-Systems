@@ -113,7 +113,8 @@ public class Node extends UserInterface implements NodeInterface {
 
 		
 		startGUI();
-		fileList = loadingInitialFiles();
+		loadingInitialFiles();
+		
 //		fileList = FXCollections.observableArrayList( loadingInitialFiles() );
 //		fileList = (ObservableList<String>) loadingInitialFiles();
 		SystemyLogger.log(Level.INFO, logName + "Local files are loaded into the fileList");
@@ -172,7 +173,6 @@ public class Node extends UserInterface implements NodeInterface {
 			fileList.addListener(new ListChangeListener<String>() {
 				@Override
 				public void onChanged(javafx.collections.ListChangeListener.Change<? extends String> change) {
-					System.out.println("change");
 					while (change.next()) {
                         for (String file : change.getAddedSubList()) {
                         	UserInterface.add(file,true);
@@ -469,22 +469,20 @@ public class Node extends UserInterface implements NodeInterface {
 	 * Returns a list of the local files within the relative directory localFiles/
 	 * @return ObservableList<String> localFiles
 	 */
-	public static ObservableList<String> loadingInitialFiles()
+	public static void loadingInitialFiles()
 	{
 		File[] files = new File("downloadedFiles/").listFiles();
 		for (File f : files)
 			f.delete();
 
-		ObservableList<String> localFiles = FXCollections.observableArrayList();
 		files = new File("localFiles/").listFiles();
 		for (File file : files)
 		{
 			if (file.isFile())
 			{
-				localFiles.add(file.getName());
+				fileList.add(file.getName());
 			}
 		}
-		return localFiles;
 	}
 
 	private static void startFileAgent()
