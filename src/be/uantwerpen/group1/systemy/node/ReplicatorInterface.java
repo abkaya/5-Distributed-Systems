@@ -21,4 +21,6 @@ public interface ReplicatorInterface extends Remote
 	public void addDownloadedFile(String fileName) throws RemoteException;
 	public void addFileRecord(FileRecord fileRecord) throws RemoteException;
 	public void receiveFile(String fileName, String nodeIP) throws RemoteException;
+	public void printFileRecords() throws RemoteException;
+	public void replicate(String fileName) throws RemoteException;
 }

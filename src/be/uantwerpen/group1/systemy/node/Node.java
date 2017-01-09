@@ -126,11 +126,13 @@ public class Node implements NodeInterface
 			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure started");
 			try
 			{
-				nextNodeInterface.updatePreviousNode(nextNode);
-				previousNodeInterface.updateNextNode(previousNode);
+				nextNodeInterface.updatePreviousNode(previousNode);
+				previousNodeInterface.updateNextNode(nextNode);
 				if (nameServerInterface != null)
 					nameServerInterface.removeNode(me.getHash());
-			} catch (Exception e) {
+				nextNodeInterface.replicateLocalFiles();
+			} catch (Exception e)
+			{
 				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
 			}
 			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure ended");
@@ -377,5 +379,27 @@ public class Node implements NodeInterface
 		else
 			status += "none";
 		return status;
+	}
+
+	/**
+	 * Method to force a node's replicator to replicate its localFiles again.
+	 * Used upon shutdown, forcing the next node to replicate its files to the new previous node. 
+	 * This this is done consistently, this current node doesn't need to go through all
+	 * its replicated/downloaded files and reconsider new owners. It'll be up to the next node to
+	 * do that.
+	 */
+	@Override
+	public void replicateLocalFiles() throws RemoteException
+	{
+		rep.replicateLocalFiles();
+	}
+
+	/**
+	 * Method to print the current file records status on the replicator of a node
+	 */
+	@Override
+	public void printFileRecordsStatus()
+	{
+		rep.printFileRecords();
 	}
 }
