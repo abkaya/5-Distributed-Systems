@@ -620,25 +620,24 @@ public class Node extends UserInterface implements NodeInterface {
 	/**
      * GUI Callback function for button press "Open"
      * @param fileName: file name of file in question
-	 * @throws IOException 
+	 * @throws IOException
      */
     public static void UIOPen(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Open: " + fileName);
 		try {
-        	//if (local??) {
+        	// TODO: if (local??) {
         		File file = new File(LOCALFILESLOCATION + fileName);
     			Desktop.getDesktop().open(file);
-        	//}
-        	//else { // remote
-        		// download
-        		// File file = new File(DOWNLOADEDFILESLOCATION + fileName);
-        		// Desktop.getDesktop().open(file). 
-        	//}
+        	// TODO: } else { // remote
+        		// TODO: download
+        		// TODO: File file = new File(DOWNLOADEDFILESLOCATION + fileName);
+        		// TODO: Desktop.getDesktop().open(file).
+        	// TODO: }
     	} catch (IOException e) {
     		SystemyLogger.log(Level.SEVERE, logName + "Cant't Open " + fileName + "\n" + e.getMessage());
     	}
-    	
-    	// TODO
+
+    	// TODO:
     }
 
     /**
@@ -647,10 +646,10 @@ public class Node extends UserInterface implements NodeInterface {
      */
     public static void UIDelete(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Delete: " + fileName);
+		// TODO: remove from local and remote
     	if (GUI) {
     		UserInterface.remove(fileName);
     	}
-    	// TODO
     }
 
     /**
@@ -660,6 +659,7 @@ public class Node extends UserInterface implements NodeInterface {
     public static void UIDeleteLocal(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
 		fileToDeleteLocal(fileName);
+		// TODO: does this work?
     }
 
     /**
