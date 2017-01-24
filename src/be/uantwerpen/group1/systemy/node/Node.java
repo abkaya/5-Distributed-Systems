@@ -18,7 +18,7 @@ import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
 public class Node implements NodeInterface
 {
-	private static String logName = Node.class.getName() + " >> ";
+	private static String logName = Node.class.getName().replace("be.uantwerpen.group1.systemy.", "") + " >> ";
 
 	private static NodeInfo me = null;
 	private static NodeInfo nextNode = null;

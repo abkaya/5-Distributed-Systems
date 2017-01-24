@@ -26,7 +26,7 @@ import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 public class RMI<T>
 {
 
-	private static String logName = RMI.class.getName() + " >> ";
+	private static String logName = RMI.class.getName().replace("be.uantwerpen.group1.systemy.", "") + " >> ";
 
 	/** Remote method invocation registry */
 	static Registry registry = null;

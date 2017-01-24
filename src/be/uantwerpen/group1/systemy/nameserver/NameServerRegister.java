@@ -40,7 +40,7 @@ import be.uantwerpen.group1.systemy.networking.Hashing;
 
 public class NameServerRegister implements Serializable {
 
-	private static String logName = NameServerRegister.class.getName() + " >> ";
+	private static String logName = NameServerRegister.class.getName().replace("be.uantwerpen.group1.systemy.", "") + " >> ";
 
 	/*
 	 * Default number
