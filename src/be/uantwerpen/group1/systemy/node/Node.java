@@ -516,7 +516,7 @@ public class Node extends UserInterface implements NodeInterface {
 		File[] files = new File("downloadedFiles/").listFiles();
 		for (File file : files)
 		{
-			if (file.getName() == fileToDelete)
+			if (file.getName().equals(fileToDelete))
 			{
 				file.delete();
 			}
@@ -525,7 +525,7 @@ public class Node extends UserInterface implements NodeInterface {
 		files = new File("localFiles/").listFiles();
 		for (File file : files)
 		{
-			if (file.getName() == fileToDelete)
+			if (file.getName().equals(fileToDelete))
 			{
 				file.delete();
 			}
