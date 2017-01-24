@@ -29,24 +29,25 @@ import java.nio.file.*;
  */
 public class Replicator implements ReplicatorInterface, Runnable, java.util.Observer
 {
-	private static String logName = Node.class.getName() + " >> ";
+	private static String logName = Node.class.getName().replace("be.uantwerpen.group1.systemy.", "") + " >> ";
 
-	List<String> ownedFiles = new ArrayList<String>();
-	List<String> localFiles = new ArrayList<String>();
-	List<String> downloadedFiles = new ArrayList<String>();
-	String nodeIP = null;
-	String dnsIP = null;
-	String hostName = null;
-	int dnsPort = 0;
-	int tcpFileTranferPort = 0;
-	String remoteNSName = "NameServerInterface";
-	NameServerInterface nsi = null;
-	List<FileRecord> fileRecords = new ArrayList<FileRecord>();
-	RMI<NameServerInterface> nameServerRMI = null;
+	private List<String> ownedFiles = new ArrayList<String>();
+	private List<String> localFiles = new ArrayList<String>();
+	private List<String> downloadedFiles = new ArrayList<String>();
+	private TCP fileServer = null;
+	private String nodeIP = null;
+	private String dnsIP = null;
+	private String hostName = null;
+	private int dnsPort = 0;
+	private int tcpFileTranferPort = 0;
+	private String remoteNSName = "NameServerInterface";
+	private NameServerInterface nsi = null;
+	private List<FileRecord> fileRecords = new ArrayList<FileRecord>();
+	private RMI<NameServerInterface> nameServerRMI = null;
 	// init skeleton
-	ReplicatorInterface ri = null;
+	private ReplicatorInterface ri = null;
 	// RMI object does not require the constructor with hostname and whatnot. The registry is already running.
-	RMI<ReplicatorInterface> replicatorRMI = new RMI<ReplicatorInterface>();
+	private RMI<ReplicatorInterface> replicatorRMI = new RMI<ReplicatorInterface>();
 
 	/**
 	 * Get ownedFiles
@@ -156,8 +157,9 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 					localFiles.remove(observedFile);
 			} else if (observedAction == 1)
 			{
-				maintainFileRecords();
 				replicate(observedFile);
+				//Do the maintenance after the replication operation
+				maintainFileRecords();
 			}
 		}
 		printFileRecords();
@@ -642,7 +644,7 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 		 * This block listens in another thread for incoming requests by other nodes who wish to receive files That's all there is to it for
 		 * sending files.
 		 */
-		TCP fileServer = new TCP(nodeIP, tcpFileTranferPort);
+		fileServer = new TCP(nodeIP, tcpFileTranferPort);
 		new Thread(() ->
 		{
 			fileServer.listenToSendFile();
