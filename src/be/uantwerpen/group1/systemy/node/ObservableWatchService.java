@@ -106,20 +106,6 @@ public class ObservableWatchService extends Observable {
     }
     
     /**
-     * If this object has changed, as indicated by the hasChanged method, then notify all of its observers </br>
-     *  and then call the clearChanged method to indicate that this object has no longer changed.</br> 
-     * Each observer has its update method called with two arguments: </br>
-     * this observable object and null. In other words, this method is equivalent to: </br>
-     * notifyObservers(null)
-     * 
-     */
-    @Override
-    public void notifyObservers()
-    { 
-    	notifyObservers();
-    }
-
-    /**
      * Process all events for keys queued to the watcher
      */
     void processEvents() {
