@@ -3,7 +3,6 @@ package be.uantwerpen.group1.systemy.node;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * RMI interface for inter node communication
@@ -16,6 +15,7 @@ public interface NodeInterface extends Remote
 	String getHostname() throws RemoteException;
 	String getIPAddress() throws RemoteException;
 	String getFileToDeleteInNetwork() throws RemoteException;
+	NodeInterface getNextNodeInterface() throws RemoteException;
 	
 	//for testing purpose
 	ArrayList<String>getFileListNode() throws RemoteException;

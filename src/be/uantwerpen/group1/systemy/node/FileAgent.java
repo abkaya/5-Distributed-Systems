@@ -3,6 +3,7 @@ package be.uantwerpen.group1.systemy.node;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-
-import org.omg.PortableServer.IMPLICIT_ACTIVATION_POLICY_ID;
 
 import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
@@ -79,8 +78,6 @@ public class FileAgent implements Runnable, Serializable
 		try
 		{
 			SystemyLogger.log(Level.INFO, logName + "Agent starts on node " + nodeInterface.getHostname());
-
-			TimeUnit.SECONDS.sleep(1);
 
 			// testCode();
 
@@ -150,14 +147,31 @@ public class FileAgent implements Runnable, Serializable
 			// SystemyLogger.log(Level.INFO, logName + "fileToDownload: " + nodeInterface.getFileToDownload());
 			// }
 
+			SystemyLogger.log(Level.INFO, logName + "ping is going to begin");
+
+			// ping next node
+			try
+			{
+				if (!InetAddress.getByName(nextNodeInterface.getIPAddress()).isReachable(15))
+				{
+					SystemyLogger.log(Level.SEVERE, logName + "Next node is losted, set interface to new node");
+					setNextNodeInterface(nodeInterface.getNextNodeInterface());
+					do
+					{
+						TimeUnit.MILLISECONDS.sleep(10);
+					} while (!InetAddress.getByName(nextNodeInterface.getIPAddress()).isReachable(15));
+				}
+			} catch (Exception e)
+			{
+				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
+			}
+
 			SystemyLogger.log(Level.INFO, logName + "Agent finished on node " + nodeInterface.getHostname());
 			SystemyLogger.log(Level.INFO, logName + "Sending the fileAgent to " + nextNodeInterface.getHostname() + " in 5 seconds");
 
-			TimeUnit.SECONDS.sleep(2);
-
 			// when the fileAgent is ready with its tasks, move it along to the next node
 			nextNodeInterface.passFileAgent(this);
-		} catch (InterruptedException | IOException e)
+		} catch (IOException e)
 		{
 			// TODO Auto-generated catch block
 			SystemyLogger.log(Level.SEVERE, logName + e.getMessage());

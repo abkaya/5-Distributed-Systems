@@ -158,14 +158,8 @@ public class Node implements NodeInterface
 			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure started");
 			try
 			{
-				if (fileAgent.getActiveNode() == me.getName())
-				{
+				if (fileAgent.getActiveNode() == me.getName()) {
 					fileAgent.setNextNodeInterface(nextNodeInterface);
-					fileAgent.wait(2500);
-
-				} else if (fileAgent.getActiveNode() == previousNode.getName())
-				{
-					fileAgent.wait(2500);
 				}
 				nextNodeInterface.updatePreviousNode(nextNode);
 				previousNodeInterface.updateNextNode(previousNode);
@@ -574,6 +568,13 @@ public class Node implements NodeInterface
 	{
 		// TODO Auto-generated method stub
 		return fileToDeleteInNetwork;
+	}
+
+	@Override
+	public NodeInterface getNextNodeInterface() throws RemoteException
+	{
+		// TODO Auto-generated method stub
+		return nextNodeInterface;
 	}
 
 
