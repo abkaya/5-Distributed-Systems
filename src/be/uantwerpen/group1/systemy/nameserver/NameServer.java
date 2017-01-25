@@ -14,7 +14,7 @@ import java.util.logging.Level;
 
 public class NameServer implements NameServerInterface {
 
-	private static String logName = NameServer.class.getName() + " >> ";
+	private static String logName = NameServer.class.getName().replace("be.uantwerpen.group1.systemy.", "") + " >> ";
 	
 	private static final int MULTICASTPORT = Integer.parseInt(ParserXML.parseXML("MulticastPort"));
 	private static final int RMIPORT = Integer.parseInt(ParserXML.parseXML("RMIPort"));

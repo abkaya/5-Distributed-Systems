@@ -18,7 +18,7 @@ import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
 public class Node implements NodeInterface
 {
-	private static String logName = Node.class.getName() + " >> ";
+	private static String logName = Node.class.getName().replace("be.uantwerpen.group1.systemy.", "") + " >> ";
 
 	private static NodeInfo me = null;
 	private static NodeInfo nextNode = null;
@@ -102,7 +102,7 @@ public class Node implements NodeInterface
 		{
 			try
 			{
-				Thread.sleep(100);
+				Thread.sleep(1000);
 				SystemyLogger.log(Level.INFO, logName + "No response from nameserver: ");
 			} catch (InterruptedException e)
 			{

@@ -35,7 +35,7 @@ import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
 public class TCP
 {
 
-	private static String logName = TCP.class.getName() + " >> ";
+	private static String logName = TCP.class.getName().replace("be.uantwerpen.group1.systemy.", "") + " >> ";
 
 	/* sockets */
 	private ServerSocket serverSocket = null;

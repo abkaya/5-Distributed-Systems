@@ -104,7 +104,7 @@ public class ObservableWatchService extends Observable {
         // enable trace after initial registration
         this.trace = true;
     }
-
+    
     /**
      * Process all events for keys queued to the watcher
      */
