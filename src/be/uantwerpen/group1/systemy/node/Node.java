@@ -194,14 +194,16 @@ public class Node extends UserInterface implements NodeInterface
 			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure started");
 			try
 			{
-				if (fileAgent.getActiveNode() == me.getName())
-				{
-					fileAgent.setNextNodeInterface(nextNodeInterface);
-					fileAgent.wait(2500);
-
-				} else if (fileAgent.getActiveNode() == previousNode.getName())
-				{
-					fileAgent.wait(2500);
+				if (fileAgent != null) {
+    				if (fileAgent.getActiveNode() == me.getName())
+    				{
+    					fileAgent.setNextNodeInterface(nextNodeInterface);
+    					fileAgent.wait(2500);
+    
+    				} else if (fileAgent.getActiveNode() == previousNode.getName())
+    				{
+    					fileAgent.wait(2500);
+    				}
 				}
 				if (nextNodeInterface != null)
 					nextNodeInterface.updatePreviousNode(previousNode);
