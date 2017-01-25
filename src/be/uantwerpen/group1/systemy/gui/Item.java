@@ -42,7 +42,7 @@ public class Item {
             @Override
             public void handle(ActionEvent event) {
             	SystemyLogger.log(Level.INFO, logName + "Button Open '" + fileName + "' pressed");
-            	Node.UIOPen(fileName);
+            	Node.UIOpen(fileName);
             }
         });
         

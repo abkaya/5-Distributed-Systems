@@ -641,7 +641,7 @@ public class Node extends UserInterface implements NodeInterface
      * @param fileName: file name of file in question
 	 * @throws IOException
      */
-    public static void UIOPen(String fileName) {
+    public static void UIOpen(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Open: " + fileName);
 		try {
 			if (isLocal(fileName)) {
