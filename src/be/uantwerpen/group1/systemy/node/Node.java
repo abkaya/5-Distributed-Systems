@@ -616,7 +616,22 @@ public class Node extends UserInterface implements NodeInterface {
 		// TODO Auto-generated method stub
 		return fileToDeleteInNetwork;
 	}
-
+	
+	/**
+	 * Check if a file is local
+	 * 
+	 * @param fileName : String
+	 * @return boolean : true if local 
+	 */
+	public boolean isLocal(String fileName) {
+		for (String localFile : rep.getLocalFiles()) {
+			if(localFile.equals(fileName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
      * GUI Callback function for button press "Open"
      * @param fileName: file name of file in question
