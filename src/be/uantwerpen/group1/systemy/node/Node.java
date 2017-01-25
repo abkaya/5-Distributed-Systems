@@ -636,8 +636,6 @@ public class Node extends UserInterface implements NodeInterface {
     	} catch (IOException e) {
     		SystemyLogger.log(Level.SEVERE, logName + "Cant't Open " + fileName + "\n" + e.getMessage());
     	}
-
-    	// TODO:
     }
 
     /**
@@ -647,9 +645,6 @@ public class Node extends UserInterface implements NodeInterface {
     public static void UIDelete(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Delete: " + fileName);
 		// TODO: remove from local and remote
-    	if (GUI) {
-    		UserInterface.remove(fileName);
-    	}
     }
 
     /**
@@ -659,7 +654,6 @@ public class Node extends UserInterface implements NodeInterface {
     public static void UIDeleteLocal(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
 		fileToDeleteLocal(fileName);
-		// TODO: does this work?
     }
 
     /**
