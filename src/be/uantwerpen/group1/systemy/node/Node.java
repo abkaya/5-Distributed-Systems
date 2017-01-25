@@ -2,15 +2,10 @@ package be.uantwerpen.group1.systemy.node;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-import org.apache.commons.lang3.ObjectUtils.Null;
-import org.omg.PortableServer.ServantActivator;
-
 import java.awt.Desktop;
-import java.awt.event.HierarchyBoundsAdapter;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -24,7 +19,6 @@ import be.uantwerpen.group1.systemy.nameserver.NameServerInterface;
 import be.uantwerpen.group1.systemy.networking.Interface;
 import be.uantwerpen.group1.systemy.networking.MulticastListener;
 import be.uantwerpen.group1.systemy.networking.RMI;
-import be.uantwerpen.group1.systemy.networking.TCP;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
@@ -513,7 +507,7 @@ public class Node extends UserInterface implements NodeInterface {
 	private static void fileToDeleteLocal(String fileToDelete)
 	{
 		// TODO Auto-generated method stub
-		File[] files = new File("downloadedFiles/").listFiles();
+		File[] files = new File(DOWNLOADEDFILESLOCATION).listFiles();
 		for (File file : files)
 		{
 			if (file.getName().equals(fileToDelete))
@@ -522,7 +516,7 @@ public class Node extends UserInterface implements NodeInterface {
 			}
 		}
 
-		files = new File("localFiles/").listFiles();
+		files = new File(LOCALFILESLOCATION).listFiles();
 		for (File file : files)
 		{
 			if (file.getName().equals(fileToDelete))
@@ -645,7 +639,7 @@ public class Node extends UserInterface implements NodeInterface {
     public static void UIOPen(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Open: " + fileName);
 		try {
-			if (islocal(fileName)) {
+			if (isLocal(fileName)) {
         		File file = new File(LOCALFILESLOCATION + fileName);
     			Desktop.getDesktop().open(file);
         	} else { // remote
