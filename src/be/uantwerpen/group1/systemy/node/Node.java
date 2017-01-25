@@ -604,8 +604,27 @@ public class Node extends UserInterface implements NodeInterface
 	 * @return boolean : downloaded file
 	 */
 	@Override
-	public Boolean downloadFile(String fileToDownload, String ipOwner) throws RemoteException
+	public Boolean downloadFile(String fileToDownload, String ipOwner)
 	{
+		rep.getOwnerLocation(fileToDownload);
+		try
+		{
+			rep.receiveFile(fileToDownload, ipOwner);
+		} catch (RemoteException e)
+		{
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Method to download a certain file from its owner. Returns a boolean if the file is downloaded as intended
+	 * @param String fileToDownload
+	 * @return boolean : downloaded file
+	 */
+	public Boolean downloadFile(String fileToDownload)
+	{
+		String ipOwner = rep.getOwnerLocation(fileToDownload);
 		try
 		{
 			rep.receiveFile(fileToDownload, ipOwner);
