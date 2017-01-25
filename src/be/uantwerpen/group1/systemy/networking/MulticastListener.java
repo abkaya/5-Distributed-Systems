@@ -16,7 +16,7 @@ import be.uantwerpen.group1.systemy.log_debug.SystemyLogger;
  */
 public class MulticastListener {
 
-	private static String logName = MulticastListener.class.getName() + " >> ";
+	private static String logName = MulticastListener.class.getName().replace("be.uantwerpen.group1.systemy.", "") + " >> ";
 
 	private MulticastSocket s = null;
 

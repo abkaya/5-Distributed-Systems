@@ -22,9 +22,9 @@ import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
-public class Node extends UserInterface implements NodeInterface {
-
-	private static String logName = Node.class.getName() + " >> ";
+public class Node implements NodeInterface
+{
+	private static String logName = Node.class.getName().replace("be.uantwerpen.group1.systemy.", "") + " >> ";
 
 	private static NodeInfo me = null;
 	private static NodeInfo nextNode = null;
@@ -138,7 +138,7 @@ public class Node extends UserInterface implements NodeInterface {
 		{
 			try
 			{
-				Thread.sleep(100);
+				Thread.sleep(1000);
 				SystemyLogger.log(Level.INFO, logName + "No response from nameserver: ");
 			} catch (InterruptedException e)
 			{
@@ -203,11 +203,11 @@ public class Node extends UserInterface implements NodeInterface {
 				{
 					fileAgent.wait(2500);
 				}
-				nextNodeInterface.updatePreviousNode(nextNode);
-				previousNodeInterface.updateNextNode(previousNode);
-				fileAgent.setNextNodeInterface(nextNodeInterface);
+				nextNodeInterface.updatePreviousNode(previousNode);
+				previousNodeInterface.updateNextNode(nextNode);
 				if (nameServerInterface != null)
 					nameServerInterface.removeNode(me.getHash());
+				nextNodeInterface.replicateLocalFiles();
 			} catch (Exception e)
 			{
 				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
@@ -678,4 +678,24 @@ public class Node extends UserInterface implements NodeInterface {
     	System.exit(0);
 	}
 
+	* Method to force a node's replicator to replicate its localFiles again.
+	* Used upon shutdown, forcing the next node to replicate its files to the new previous node.
+	* This this is done consistently, this current node doesn't need to go through all
+	* its replicated/downloaded files and reconsider new owners. It'll be up to the next node to
+	* do that.
+	*/
+   @Override
+   public void replicateLocalFiles() throws RemoteException
+   {
+	   rep.replicateLocalFiles();
+   }
+
+   /**
+	* Method to print the current file records status on the replicator of a node
+	*/
+   @Override
+   public void printFileRecordsStatus()
+   {
+	   rep.printFileRecords();
+   }
 }

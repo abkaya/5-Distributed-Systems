@@ -40,7 +40,7 @@ import be.uantwerpen.group1.systemy.networking.Hashing;
 
 public class NameServerRegister implements Serializable {
 
-	private static String logName = NameServerRegister.class.getName() + " >> ";
+	private static String logName = NameServerRegister.class.getName().replace("be.uantwerpen.group1.systemy.", "") + " >> ";
 
 	/*
 	 * Default number
@@ -154,8 +154,6 @@ public class NameServerRegister implements Serializable {
 	 * @return nodeIP: this is string that will contains the IPAddress of the node containing the file
 	 */
 	public String getFileLocation(int fileHash) {
-
-		System.out.println("hash of the file: " +fileHash);
 		TreeMap<Integer, String> temp = new TreeMap<>();
 		//if register is empty
 		if (register.size() == 0) {
@@ -274,7 +272,7 @@ public class NameServerRegister implements Serializable {
 	 * @return hashNode: this is the hashvalue based on the IPAddres, if the value = -1 there is no corresponding entry
 	 */
 	/*
-	 *	Doesn't make sense because an IP address is not always unique 
+	 *	Doesn't make sense because an IP address is not always unique
 	 */
 	/*public int getHashFromNodeIP(String nodeIP) {
 		//loadRegister();
