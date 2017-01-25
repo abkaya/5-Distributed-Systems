@@ -203,8 +203,10 @@ public class Node implements NodeInterface
 				{
 					fileAgent.wait(2500);
 				}
-				nextNodeInterface.updatePreviousNode(previousNode);
-				previousNodeInterface.updateNextNode(nextNode);
+				if (nextNodeInterface != null)
+					nextNodeInterface.updatePreviousNode(previousNode);
+				if (previousNodeInterface != null)
+					previousNodeInterface.updateNextNode(nextNode);
 				if (nameServerInterface != null)
 					nameServerInterface.removeNode(me.getHash());
 				nextNodeInterface.replicateLocalFiles();
