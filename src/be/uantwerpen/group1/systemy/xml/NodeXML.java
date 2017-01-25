@@ -45,6 +45,12 @@ public class NodeXML {
 			Element DnsPort = docNode.createElement("RMIPort");
 			DnsPort.appendChild(docNode.createTextNode("1099"));
 			Node.appendChild(DnsPort);
+			
+			//set gui to true or false
+			Element gui = docNode.createElement("GUI");
+			gui.appendChild(docNode.createTextNode("true"));
+			Node.appendChild(gui);
+			
 
 			//Define the multicastport for the node
 			Element MulticastPort = docNode.createElement("MulticastPort");
