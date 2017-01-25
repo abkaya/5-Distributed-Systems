@@ -678,6 +678,7 @@ public class Node implements NodeInterface
     	System.exit(0);
 	}
 
+    /**
 	* Method to force a node's replicator to replicate its localFiles again.
 	* Used upon shutdown, forcing the next node to replicate its files to the new previous node.
 	* This this is done consistently, this current node doesn't need to go through all
