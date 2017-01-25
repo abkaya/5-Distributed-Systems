@@ -209,7 +209,8 @@ public class Node extends UserInterface implements NodeInterface
 					previousNodeInterface.updateNextNode(nextNode);
 				if (nameServerInterface != null)
 					nameServerInterface.removeNode(me.getHash());
-				nextNodeInterface.replicateLocalFiles();
+				if (nextNodeInterface != null)
+					nextNodeInterface.replicateLocalFiles();
 			} catch (Exception e)
 			{
 				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
