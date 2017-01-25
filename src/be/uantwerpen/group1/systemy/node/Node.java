@@ -167,7 +167,7 @@ public class Node extends UserInterface implements NodeInterface {
 				if (GUI) {
 					while (change.next()) {
                         for (String file : change.getAddedSubList()) {
-                        	UserInterface.add(file,true);
+                        	UserInterface.add(file,isLocal(file));
                         }
                         for (String file : change.getRemoved()) {
                         	UserInterface.remove(file);
@@ -623,13 +623,18 @@ public class Node extends UserInterface implements NodeInterface {
 	 * @param fileName : String
 	 * @return boolean : true if local 
 	 */
-	public boolean isLocal(String fileName) {
-		for (String localFile : rep.getLocalFiles()) {
-			if(localFile.equals(fileName)) {
-				return true;
-			}
+	public static boolean isLocal(String fileName) {
+		if (rep != null) {
+    		for (String localFile : rep.getLocalFiles()) {
+    			System.out.println("local file: " + localFile);
+    			if(localFile.equals(fileName)) {
+    				return true;
+    			}
+    		}
+    		return false;
+		} else {
+			return true;
 		}
-		return false;
 	}
 	
 	/**
