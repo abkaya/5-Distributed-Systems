@@ -34,6 +34,11 @@ public class NameServerXML {
 			Element MulticastPort = docNameServer.createElement("MulticastPort");
 			MulticastPort.appendChild(docNameServer.createTextNode("2000"));
 			NameServer.appendChild(MulticastPort);
+			
+			//Define the NodeDnsPort for the node
+			Element DnsPort = docNameServer.createElement("RMIPort");
+			DnsPort.appendChild(docNameServer.createTextNode("1099"));
+			NameServer.appendChild(DnsPort);
 
 			//Define the MulticastIp of the NameServer
 			Element MulticastIp = docNameServer.createElement("MulticastIp");
