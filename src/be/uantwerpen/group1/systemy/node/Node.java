@@ -594,15 +594,22 @@ public class Node implements NodeInterface
 
 	}
 
+	/**
+	 * Method to download a certain file. Returns a boolean if the file is downloaded as intended
+	 * @param String fileToDownload
+	 * @param String ipOwner 
+	 * @return boolean : downloaded file
+	 */
 	@Override
 	public Boolean downloadFile(String fileToDownload, String ipOwner) throws RemoteException
 	{
-		// TODO Auto-generated method stub
-
-		/**
-		 * Hier dient de download methode the komen, de naam van de file en het IP adres van de eigenaar wordt meegeven
-		 * een boolean op true zetten indien de file gedownload is
-		 */
+		try
+		{
+			rep.receiveFile(fileToDownload, ipOwner);
+		} catch (RemoteException e)
+		{
+			return false;
+		}
 		return true;
 	}
 
