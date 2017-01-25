@@ -616,12 +616,12 @@ public class Node extends UserInterface implements NodeInterface {
 		// TODO Auto-generated method stub
 		return fileToDeleteInNetwork;
 	}
-	
+
 	/**
 	 * Check if a file is local
-	 * 
+	 *
 	 * @param fileName : String
-	 * @return boolean : true if local 
+	 * @return boolean : true if local
 	 */
 	public static boolean isLocal(String fileName) {
 		if (rep != null) {
@@ -636,7 +636,7 @@ public class Node extends UserInterface implements NodeInterface {
 			return true;
 		}
 	}
-	
+
 	/**
      * GUI Callback function for button press "Open"
      * @param fileName: file name of file in question
@@ -645,14 +645,14 @@ public class Node extends UserInterface implements NodeInterface {
     public static void UIOPen(String fileName) {
     	SystemyLogger.log(Level.INFO, logName + "Open: " + fileName);
 		try {
-        	// TODO: if (local??) {
+			if (islocal(fileName)) {
         		File file = new File(LOCALFILESLOCATION + fileName);
     			Desktop.getDesktop().open(file);
-        	// TODO: } else { // remote
+        	} else { // remote
         		// TODO: download
         		// TODO: File file = new File(DOWNLOADEDFILESLOCATION + fileName);
         		// TODO: Desktop.getDesktop().open(file).
-        	// TODO: }
+        	}
     	} catch (IOException e) {
     		SystemyLogger.log(Level.SEVERE, logName + "Cant't Open " + fileName + "\n" + e.getMessage());
     	}
