@@ -22,7 +22,7 @@ import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
-public class Node implements NodeInterface
+public class Node extends UserInterface implements NodeInterface
 {
 	private static String logName = Node.class.getName().replace("be.uantwerpen.group1.systemy.", "") + " >> ";
 
