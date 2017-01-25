@@ -107,7 +107,7 @@ public class Node extends UserInterface implements NodeInterface
 		SystemyLogger.log(Level.INFO, logName + "Created own loopback RMI interface");
 
 		createListChangeListener();
-    	fileList.addListener(listChangeListener);
+		fileList.addListener(listChangeListener);
 
 		loadingInitialFiles();
 		SystemyLogger.log(Level.INFO, logName + "Local files are loaded into the fileList");
@@ -129,7 +129,6 @@ public class Node extends UserInterface implements NodeInterface
 		}
 
 		startFileAgent();
-
 
 		/*
 		 * Once the nameserver interface stub is retrieved, the replicator can run autonomously.
@@ -155,31 +154,40 @@ public class Node extends UserInterface implements NodeInterface
 
 	private static void createListChangeListener()
 	{
-		listChangeListener = new ListChangeListener<String>() {
+		listChangeListener = new ListChangeListener<String>()
+		{
 			@Override
-			public void onChanged(javafx.collections.ListChangeListener.Change<? extends String> change) {
-				if (GUI) {
-					while (change.next()) {
-                        for (String file : change.getAddedSubList()) {
-                        	UserInterface.add(file,isLocal(file));
-                        }
-                        for (String file : change.getRemoved()) {
-                        	UserInterface.remove(file);
-                        }
-		            }
+			public void onChanged(javafx.collections.ListChangeListener.Change<? extends String> change)
+			{
+				if (GUI)
+				{
+					while (change.next())
+					{
+						for (String file : change.getAddedSubList())
+						{
+							UserInterface.add(file, isLocal(file));
+						}
+						for (String file : change.getRemoved())
+						{
+							UserInterface.remove(file);
+						}
+					}
 				}
 			}
-    	};
+		};
 	}
 
 	/**
 	 * start GUI if the GUI boolean is set
 	 */
-	private static void startGUI() {
-		if (GUI) {
-	        new Thread(() -> {
-	        	UserInterface.launch();
-	        }).start();
+	private static void startGUI()
+	{
+		if (GUI)
+		{
+			new Thread(() ->
+			{
+				UserInterface.launch();
+			}).start();
 		}
 	}
 
@@ -194,16 +202,17 @@ public class Node extends UserInterface implements NodeInterface
 			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure started");
 			try
 			{
-				if (fileAgent != null) {
-    				if (fileAgent.getActiveNode() == me.getName())
-    				{
-    					fileAgent.setNextNodeInterface(nextNodeInterface);
-    					fileAgent.wait(2500);
-    
-    				} else if (fileAgent.getActiveNode() == previousNode.getName())
-    				{
-    					fileAgent.wait(2500);
-    				}
+				if (fileAgent != null)
+				{
+					if (fileAgent.getActiveNode() == me.getName())
+					{
+						fileAgent.setNextNodeInterface(nextNodeInterface);
+						fileAgent.wait(2500);
+
+					} else if (fileAgent.getActiveNode() == previousNode.getName())
+					{
+						fileAgent.wait(2500);
+					}
 				}
 				if (nextNodeInterface != null)
 					nextNodeInterface.updatePreviousNode(previousNode);
@@ -555,7 +564,7 @@ public class Node extends UserInterface implements NodeInterface
 	@Override
 	public void updateFileListNode(ArrayList<String> fileList) throws RemoteException
 	{
-		Node.fileList = FXCollections.observableArrayList( fileList );
+		Node.fileList = FXCollections.observableArrayList(fileList);
 		Node.fileList.addListener(listChangeListener);
 	}
 
@@ -616,13 +625,13 @@ public class Node extends UserInterface implements NodeInterface
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Method to download a certain file from its owner. Returns a boolean if the file is downloaded as intended
 	 * @param String fileToDownload
 	 * @return boolean : downloaded file
 	 */
-	public Boolean downloadFile(String fileToDownload)
+	public static Boolean downloadFile(String fileToDownload)
 	{
 		String ipOwner = rep.getOwnerLocation(fileToDownload);
 		try
@@ -648,86 +657,101 @@ public class Node extends UserInterface implements NodeInterface
 	 * @param fileName : String
 	 * @return boolean : true if local
 	 */
-	public static boolean isLocal(String fileName) {
-		if (rep != null) {
-    		for (String localFile : rep.getLocalFiles()) {
-    			System.out.println("local file: " + localFile);
-    			if(localFile.equals(fileName)) {
-    				return true;
-    			}
-    		}
-    		return false;
-		} else {
+	public static boolean isLocal(String fileName)
+	{
+		if (rep != null)
+		{
+			for (String localFile : rep.getLocalFiles())
+			{
+				System.out.println("local file: " + localFile);
+				if (localFile.equals(fileName))
+				{
+					return true;
+				}
+			}
+			return false;
+		} else
+		{
 			return true;
 		}
 	}
 
 	/**
-     * GUI Callback function for button press "Open"
-     * @param fileName: file name of file in question
+	 * GUI Callback function for button press "Open"
+	 * @param fileName: file name of file in question
 	 * @throws IOException
-     */
-    public static void UIOPen(String fileName) {
-    	SystemyLogger.log(Level.INFO, logName + "Open: " + fileName);
-		try {
-			if (isLocal(fileName)) {
-        		File file = new File(LOCALFILESLOCATION + fileName);
-    			Desktop.getDesktop().open(file);
-        	} else { // remote
-        		// TODO: download
-        		// TODO: File file = new File(DOWNLOADEDFILESLOCATION + fileName);
-        		// TODO: Desktop.getDesktop().open(file).
-        	}
-    	} catch (IOException e) {
-    		SystemyLogger.log(Level.SEVERE, logName + "Cant't Open " + fileName + "\n" + e.getMessage());
-    	}
-    }
-
-    /**
-     * GUI Callback function for button press "Delete"
-     * @param fileName: file name of file in question
-     */
-    public static void UIDelete(String fileName) {
-    	SystemyLogger.log(Level.INFO, logName + "Delete: " + fileName);
-		// TODO: remove from local and remote
-    }
-
-    /**
-     * GUI Callback function for button press "Delete Local"
-     * @param fileName: file name of file in question
-     */
-    public static void UIDeleteLocal(String fileName) {
-    	SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
-		fileToDeleteLocal(fileName);
-    }
-
-    /**
-     * GUI Callback function for button press "Shutdown"
-     */
-    public static void UIShutdown() {
-		SystemyLogger.log(Level.INFO, logName + "Shuting down node after button press");
-    	System.exit(0);
+	 */
+	public static void UIOPen(String fileName)
+	{
+		SystemyLogger.log(Level.INFO, logName + "Open: " + fileName);
+		try
+		{
+			if (isLocal(fileName))
+			{
+				File file = new File(LOCALFILESLOCATION + fileName);
+				Desktop.getDesktop().open(file);
+			} else
+			{
+				if (downloadFile(fileName))
+				{
+					File file = new File(DOWNLOADEDFILESLOCATION + fileName);
+					Desktop.getDesktop().open(file);
+				}
+			}
+		} catch (IOException e)
+		{
+			SystemyLogger.log(Level.SEVERE, logName + "Cant't Open " + fileName + "\n" + e.getMessage());
+		}
 	}
 
-    /**
+	/**
+	 * GUI Callback function for button press "Delete"
+	 * @param fileName: file name of file in question
+	 */
+	public static void UIDelete(String fileName)
+	{
+		SystemyLogger.log(Level.INFO, logName + "Delete: " + fileName);
+		// TODO: remove from local and remote
+	}
+
+	/**
+	 * GUI Callback function for button press "Delete Local"
+	 * @param fileName: file name of file in question
+	 */
+	public static void UIDeleteLocal(String fileName)
+	{
+		SystemyLogger.log(Level.INFO, logName + "Delete Local: " + fileName);
+		fileToDeleteLocal(fileName);
+	}
+
+	/**
+	 * GUI Callback function for button press "Shutdown"
+	 */
+	public static void UIShutdown()
+	{
+		SystemyLogger.log(Level.INFO, logName + "Shuting down node after button press");
+		System.exit(0);
+	}
+
+	/**
 	* Method to force a node's replicator to replicate its localFiles again.
 	* Used upon shutdown, forcing the next node to replicate its files to the new previous node.
 	* This this is done consistently, this current node doesn't need to go through all
 	* its replicated/downloaded files and reconsider new owners. It'll be up to the next node to
 	* do that.
 	*/
-   @Override
-   public void replicateLocalFiles() throws RemoteException
-   {
-	   rep.replicateLocalFiles();
-   }
+	@Override
+	public void replicateLocalFiles() throws RemoteException
+	{
+		rep.replicateLocalFiles();
+	}
 
-   /**
+	/**
 	* Method to print the current file records status on the replicator of a node
 	*/
-   @Override
-   public void printFileRecordsStatus()
-   {
-	   rep.printFileRecords();
-   }
+	@Override
+	public void printFileRecordsStatus()
+	{
+		rep.printFileRecords();
+	}
 }
