@@ -102,7 +102,7 @@ public class Node implements NodeInterface
 		{
 			try
 			{
-				Thread.sleep(100);
+				Thread.sleep(1000);
 				SystemyLogger.log(Level.INFO, logName + "No response from nameserver: ");
 			} catch (InterruptedException e)
 			{
