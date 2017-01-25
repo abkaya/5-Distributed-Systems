@@ -499,7 +499,7 @@ public class Node extends UserInterface implements NodeInterface
 		{
 			try
 			{
-				if (nameServerInterface.getRegisterSize() == 1 && !fileAgentInNetwork)
+				if (nameServerInterface.getRegisterSize() > 1 && !fileAgentInNetwork)
 				{
 					fileAgent = new FileAgent(nameServerInterface);
 					fileAgentInNetwork = true;
