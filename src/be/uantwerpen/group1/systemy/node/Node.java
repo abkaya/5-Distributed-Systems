@@ -320,7 +320,7 @@ public class Node extends UserInterface implements NodeInterface
 					// ping next node
 					try
 					{
-						if (!InetAddress.getByName(nextNode.getIP()).isReachable(15))
+						if (!InetAddress.getByName(nextNode.getIP()).isReachable(15000))
 						{
 							SystemyLogger.log(Level.SEVERE, logName + "Next node lost. Starting recovery.");
 							nextFailed();
@@ -335,7 +335,7 @@ public class Node extends UserInterface implements NodeInterface
 					// ping previous node
 					try
 					{
-						if (!InetAddress.getByName(previousNode.getIP()).isReachable(15))
+						if (!InetAddress.getByName(previousNode.getIP()).isReachable(15000))
 						{
 							SystemyLogger.log(Level.SEVERE, logName + "Previous node lost. Starting recovery.");
 							previousFailed();
