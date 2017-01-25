@@ -503,7 +503,7 @@ public class Node implements NodeInterface
 	}
 
 	/**
-	 * Method for deleting file localy
+	 * Method for deleting file locally
 	 * @param fileToDelete: the specified file to delete
 	 */
 	private static void fileToDeleteLocal(String fileToDelete)
@@ -527,7 +527,7 @@ public class Node implements NodeInterface
 			}
 		}
 
-		SystemyLogger.log(Level.INFO, logName + fileToDelete + " is deleted localy");
+		SystemyLogger.log(Level.INFO, logName + fileToDelete + " is deleted locally");
 
 	}
 
