@@ -609,7 +609,7 @@ public class Node extends UserInterface implements NodeInterface
 	/**
 	 * Method to download a certain file. Returns a boolean if the file is downloaded as intended
 	 * @param String fileToDownload
-	 * @param String ipOwner 
+	 * @param String ipOwner
 	 * @return boolean : downloaded file
 	 */
 	@Override
@@ -680,33 +680,8 @@ public class Node extends UserInterface implements NodeInterface
 	 * GUI Callback function for button press "Open"
 	 * @param fileName: file name of file in question
 	 * @throws IOException
-<<<<<<< HEAD
-     */
-    public static void UIOpen(String fileName) {
-    	SystemyLogger.log(Level.INFO, logName + "Open: " + fileName);
-		try {
-			if (isLocal(fileName)) {
-        		File file = new File(LOCALFILESLOCATION + fileName);
-    			Desktop.getDesktop().open(file);
-        	} else { // remote
-        		// TODO: download
-        		// TODO: File file = new File(DOWNLOADEDFILESLOCATION + fileName);
-        		// TODO: Desktop.getDesktop().open(file).
-        	}
-    	} catch (IOException e) {
-    		SystemyLogger.log(Level.SEVERE, logName + "Cant't Open " + fileName + "\n" + e.getMessage());
-    	}
-    }
-
-    /**
-     * GUI Callback function for button press "Delete"
-     * @param fileName: file name of file in question
-     */
-    public static void UIDelete(String fileName) {
-    	SystemyLogger.log(Level.INFO, logName + "Delete: " + fileName);
-=======
 	 */
-	public static void UIOPen(String fileName)
+	public static void UIOpen(String fileName)
 	{
 		SystemyLogger.log(Level.INFO, logName + "Open: " + fileName);
 		try
@@ -736,7 +711,6 @@ public class Node extends UserInterface implements NodeInterface
 	public static void UIDelete(String fileName)
 	{
 		SystemyLogger.log(Level.INFO, logName + "Delete: " + fileName);
->>>>>>> d0a0545aee86fbdf0aa2b9d11d9cdce4a427d307
 		// TODO: remove from local and remote
 	}
 
