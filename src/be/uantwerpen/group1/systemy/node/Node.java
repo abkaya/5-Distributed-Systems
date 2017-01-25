@@ -22,7 +22,7 @@ import be.uantwerpen.group1.systemy.networking.RMI;
 import be.uantwerpen.group1.systemy.xml.ParserXML;
 import be.uantwerpen.group1.systemy.networking.MulticastSender;
 
-public class Node implements NodeInterface
+public class Node extends UserInterface implements NodeInterface
 {
 	private static String logName = Node.class.getName().replace("be.uantwerpen.group1.systemy.", "") + " >> ";
 
@@ -194,14 +194,16 @@ public class Node implements NodeInterface
 			SystemyLogger.log(Level.INFO, logName + "Shutdown procedure started");
 			try
 			{
-				if (fileAgent.getActiveNode() == me.getName())
-				{
-					fileAgent.setNextNodeInterface(nextNodeInterface);
-					fileAgent.wait(2500);
-
-				} else if (fileAgent.getActiveNode() == previousNode.getName())
-				{
-					fileAgent.wait(2500);
+				if (fileAgent != null) {
+    				if (fileAgent.getActiveNode() == me.getName())
+    				{
+    					fileAgent.setNextNodeInterface(nextNodeInterface);
+    					fileAgent.wait(2500);
+    
+    				} else if (fileAgent.getActiveNode() == previousNode.getName())
+    				{
+    					fileAgent.wait(2500);
+    				}
 				}
 				if (nextNodeInterface != null)
 					nextNodeInterface.updatePreviousNode(previousNode);
@@ -209,7 +211,8 @@ public class Node implements NodeInterface
 					previousNodeInterface.updateNextNode(nextNode);
 				if (nameServerInterface != null)
 					nameServerInterface.removeNode(me.getHash());
-				nextNodeInterface.replicateLocalFiles();
+				if (nextNodeInterface != null)
+					nextNodeInterface.replicateLocalFiles();
 			} catch (Exception e)
 			{
 				SystemyLogger.log(Level.SEVERE, logName + e.getMessage());
