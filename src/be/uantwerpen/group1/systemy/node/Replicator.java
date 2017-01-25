@@ -146,7 +146,9 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			SystemyLogger.log(Level.INFO, logName + "action : " + observedAction + " , fileName : " + observedFile);
 
 			/*
-			 * - handle the delete operation (observedAction == 0) by removing the file from the local lists. 
+			 * - handle the file delete OBSERVATION (observedAction == 0) by removing the file from the local lists. 
+			 * 	 And observed deletion can only be accompanied by the adjustment of the file lists.
+			 *   Accompanying file deletions to replication is the responsibility of the process performing the deletion.
 			 * - handle the create operation (observedAction == 1) by the replication process...
 			 */
 			/*
@@ -157,6 +159,10 @@ public class Replicator implements ReplicatorInterface, Runnable, java.util.Obse
 			{
 				if (localFiles.contains(observedFile))
 					localFiles.remove(observedFile);
+				if (ownedFiles.contains(observedFile))
+					ownedFiles.remove(observedFile);
+				if(fileRecordsContainFileName(observedFile))
+					deleteFileRecordByFileName(observedFile);
 			} else if (observedAction == 1)
 			{
 				replicate(observedFile);
