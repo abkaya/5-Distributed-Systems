@@ -78,9 +78,9 @@ public class FileAgent implements Runnable, Serializable
 
 		try
 		{
-			SystemyLogger.log(Level.INFO, logName + "Agent starts on node " + nodeInterface.getHostname());
+			//SystemyLogger.log(Level.INFO, logName + "Agent starts on node " + nodeInterface.getHostname());
 
-			TimeUnit.SECONDS.sleep(1);
+			//TimeUnit.SECONDS.sleep(1);
 
 			// testCode();
 
@@ -120,7 +120,7 @@ public class FileAgent implements Runnable, Serializable
 
 			}
 
-			SystemyLogger.log(Level.INFO, logName + fileToLock);
+			//SystemyLogger.log(Level.INFO, logName + fileToLock);
 
 			updateFileListNode(this.nodeInterface, this.fileListAgent);
 
@@ -150,10 +150,10 @@ public class FileAgent implements Runnable, Serializable
 			// SystemyLogger.log(Level.INFO, logName + "fileToDownload: " + nodeInterface.getFileToDownload());
 			// }
 
-			SystemyLogger.log(Level.INFO, logName + "Agent finished on node " + nodeInterface.getHostname());
-			SystemyLogger.log(Level.INFO, logName + "Sending the fileAgent to " + nextNodeInterface.getHostname() + " in 5 seconds");
+			//SystemyLogger.log(Level.INFO, logName + "Agent finished on node " + nodeInterface.getHostname());
+			//SystemyLogger.log(Level.INFO, logName + "Sending the fileAgent to " + nextNodeInterface.getHostname() + " in 5 seconds");
 
-			TimeUnit.SECONDS.sleep(2);
+			TimeUnit.MILLISECONDS.sleep(100);
 
 			// when the fileAgent is ready with its tasks, move it along to the next node
 			nextNodeInterface.passFileAgent(this);

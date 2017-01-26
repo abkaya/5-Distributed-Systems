@@ -169,13 +169,13 @@ public class NameServerRegister implements Serializable {
 		}
 		// if the temp Treemap is empty take the node with biggest hash
 		if (temp.size() == 0) {
-			SystemyLogger.log(Level.INFO, logName + register.get(register.lastKey()) + " (" + register.lastKey()
-					+ " ): is the owner of this file");
+			//SystemyLogger.log(Level.INFO, logName + register.get(register.lastKey()) + " (" + register.lastKey()
+			//		+ " ): is the owner of this file");
 			return register.get(register.lastKey());
 		} else {
 			//else get node with hash closest to filehash
-			SystemyLogger.log(Level.INFO,
-					logName + temp.get(temp.lastKey()) + " (" + temp.lastKey() + " ): is the owner of this file");
+			//SystemyLogger.log(Level.INFO,
+			//		logName + temp.get(temp.lastKey()) + " (" + temp.lastKey() + " ): is the owner of this file");
 			return temp.get(temp.lastKey());
 		}
 	}
